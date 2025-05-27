@@ -29,6 +29,13 @@
             color: #ffffff;
             border-color: #409eff;
         }
+
+        #app .dialog-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
     </style>
     <!-- 引入Vue3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -48,57 +55,133 @@
         <el-container>
             <el-header>
                 <h1 style="margin-right: 40px;color: #0047b9;">PaddleX Studio</h1>
-                <el-button type="primary" :class="{ active: currentPage === 'model' }"  
-                    @click="navigateTo('model')"><el-icon class="icon"><ICO_HelpFilled /></el-icon>模型</el-button>
+                <el-button type="primary" :class="{ active: currentPage === 'model' }"
+                    @click="navigateTo('model')"><el-icon class="icon">
+                        <ICO_HelpFilled />
+                    </el-icon>模型</el-button>
                 <el-button type="primary" :class="{ active: currentPage === 'dataset' }"
-                    @click="navigateTo('dataset')"><el-icon class="icon"><ICO_Menu /></el-icon>数据</el-button>
+                    @click="navigateTo('dataset')"><el-icon class="icon">
+                        <ICO_Menu />
+                    </el-icon>数据</el-button>
             </el-header>
             <el-main>
                 <!-- 模型列表页面 -->
                 <div v-if="currentPage === 'model'">
-                    <div class="model-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="model-header"
+                        style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
                         <h2 style="font-size: 20px; color: #303133; margin: 0;">模型空间</h2>
-                        <el-button type="primary" plain>创建模型</el-button>
+                        <el-button type="primary" plain @click="() => { if(this.$refs.newModelForm) this.$refs.newModelForm.resetFields(); moduleDescription='';pretrainedDescription='';dialogVisible = true; }">创建模型</el-button>
                     </div>
+
                     <el-row :gutter="20">
                         <el-col :span="24">
-                            <el-card class="model-card" v-for="(model, index) in models" :key="index" style="margin-bottom: 20px;">
-                                <div class="card-content" style="display: flex; justify-content: space-between; padding: 0px;">
+                            <el-card class="model-card" v-for="(model, index) in models" :key="index"
+                                style="margin-bottom: 20px;">
+                                <div class="card-content"
+                                    style="display: flex; justify-content: space-between; padding: 0px;">
                                     <!-- 左侧内容 -->
                                     <div class="left-section" style="flex: 2; margin-right: 20px;">
-                                        <div class="model-basic" style="display: flex; align-items: center; margin-top: 0; margin-bottom: 0;">
-                                            <h3 style="font-size: 16px; margin-right: 12px;margin-top: 0; margin-bottom: 0;" v-text="model.name"></h3>
-                                            <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="model.pretrained_name"></el-tag>
+                                        <div class="model-basic"
+                                            style="display: flex; align-items: center; margin-top: 0; margin-bottom: 0;">
+                                            <h3 style="font-size: 16px; margin-right: 12px;margin-top: 0; margin-bottom: 0;"
+                                                v-text="model.name"></h3>
+                                            <el-tag type="info" effect="plain" style="font-size: 14px;"
+                                                v-text="model.pretrained"></el-tag>
                                         </div>
-                                        <p class="model-desc" style="color: #909399; font-size: 14px; margin-bottom: 8px;" v-text="model.description"></p>
-                                        <div class="model-category" style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                            <el-tag type="success" v-for="category in model.category" v-text="category"></el-tag>
+                                        <p class="model-desc"
+                                            style="color: #909399; font-size: 14px; margin-bottom: 8px;"
+                                            v-text="model.description"></p>
+                                        <div class="model-category"
+                                            style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <el-tag type="success" v-text="model.category"></el-tag>
+                                            <el-tag type="success" v-text="model.module_name"></el-tag>
                                         </div>
                                     </div>
                                     <!-- 右侧内容 -->
                                     <div class="right-section" style="flex: 1; text-align: right;">
-                                        <p class="fine-tune-time" style="color: #606266; font-size: 14px; margin-bottom: 8px;" v-text="model.fine_tune_time"></p>
+                                        <p class="fine-tune-time"
+                                            style="color: #606266; font-size: 14px; margin-bottom: 8px;"
+                                            v-text="model.fine_tune_time"></p>
                                         <div class="model-status" style="margin-bottom: 8px;">
-                                            <el-tag :type="model.status === 'success' ? 'success' : model.status === 'processing' ? 'info' : 'danger'" v-text="model.status"></el-tag>
+                                            <el-tag
+                                                :type="model.status === '成功' ? 'success' : model.status === '训练中' ? 'primary' : model.status === '失败' ? 'danger': 'info'"
+                                                v-text="model.status"></el-tag>
                                         </div>
                                         <div class="info-actions">
-                                            <el-button type="text">删除</el-button>
+                                            <el-button type="text" @click="handleModelDelete(model.id)">删除</el-button>
                                         </div>
                                     </div>
                                 </div>
                             </el-card>
                         </el-col>
                     </el-row>
+
+                    <!-- 创建模型对话框 -->
+                    <el-dialog title="新建模型训练配置" v-model="dialogVisible" width="50%">
+                        <el-form ref="newModelForm" :model="newModelFormData" :rules="formRules" label-width="120px">
+                            <div style="display: flex;gap: 20px;">
+                                <div style="flex: 1;">
+                                    <el-form-item label="模型名称" prop="name" required>
+                                        <el-input v-model="newModelFormData.name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="唯一标识" prop="id" required>
+                                        <el-input v-model="newModelFormData.id" placeholder="仅支持大小写字母、数字、-、_"
+                                            oninput="value=value.replace(/[^a-zA-Z0-9-_]/g,'')"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="模型描述" prop="description" required>
+                                        <el-input type="textarea" v-model="newModelFormData.description"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="类别" prop="category" required>
+                                        <el-select v-model="newModelFormData.category" placeholder="请选择类别"
+                                            @change="handleCategoryChange">
+                                            <el-option v-for="cat in categoryOptions" :key="cat.category"
+                                                :label="cat.category" :value="cat.category"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="模块" prop="module_id" required>
+                                        <el-select v-model="newModelFormData.module_id" placeholder="请选择模块"
+                                            @change="handleModuleChange">
+                                            <el-option v-for="mod in moduleOptions" :key="mod.name" :label="mod.name"
+                                                :value="mod.id"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="预训练模型" prop="pretrained" required>
+                                        <el-select v-model="newModelFormData.pretrained" placeholder="请选择预训练模型"
+                                            @change="handlePretrainedChange">
+                                            <el-option v-for="pretrained in pretrainedOptions" :key="pretrained.name"
+                                                :label="pretrained.name" :value="pretrained.name"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </div>
+                                <div style="flex: 1; height: 100%;">
+                                    <el-text tag="b">模块描述</el-text>
+                                    <el-input type="textarea" v-model="moduleDescription" readonly :rows="6"></el-input>
+                                    <el-text tag="b">预训练模型描述</el-text>
+                                    <el-input type="textarea" v-model="pretrainedDescription" readonly
+                                        :rows="6"></el-input>
+                                </div>
+                            </div>
+                        </el-form>
+
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible = false">取消</el-button>
+                            <el-button type="primary" @click="handleModelSave">保存</el-button>
+                        </div>
+                    </el-dialog>
+
+
                 </div>
                 <!-- 数据集列表页面 -->
                 <div v-if="currentPage ==='dataset'">
-                    <div class="model-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="model-header"
+                        style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
                         <h2 style="font-size: 20px; color: #303133; margin: 0;">数据集</h2>
                         <el-button type="primary" plain>创建数据集</el-button>
-                    </div>                    
+                    </div>
                     <el-row :gutter="20">
                         <el-col :span="24">
-                            <el-card class="box-card" v-for="(dataset, index) in datasets" :key="index" style="margin-bottom: 20px;">
+                            <el-card class="box-card" v-for="(dataset, index) in datasets" :key="index"
+                                style="margin-bottom: 20px;">
                                 <div slot="header" class="clearfix">
                                     <span v-text="dataset.name"></span>
                                     <el-tag type="success" style="float: right;" v-text="dataset.category"></el-tag>
@@ -111,35 +194,76 @@
             </el-main>
 
         </el-container>
+
     </div>
     <script>
         const { createApp } = Vue
-        const { ElMessage, ElIcon, Document, Folder, ElCard } = ElementPlus  // 新增导入ElCard组件
+        const { ElMessage, ElIcon, Document, Folder, ElCard,ElForm } = ElementPlus  // 新增导入ElCard组件
+
         createApp({
             data() {
                 return {
                     currentPage: 'model',  // 默认显示模型列表页面
                     models: [],  // 初始化模型数组
-                    datasets: []  // 新增数据集数组
+                    datasets: [],  // 新增数据集数组
+                    dialogVisible: false,
+                    newModelFormData: {
+                        name: '',
+                        id: '',
+                        description: '',
+                        category: '',
+                        module_id: '',
+                        module_name: '',
+                        pretrained: ''
+                    },
+                    formRules: {
+                        name: [
+                            { required: true, message: '请输入模型名称', trigger: 'blur' }
+                        ],
+                        id: [
+                            { required: true, message: '请输入唯一标识', trigger: 'blur' },
+                            { pattern: /^[a-zA-Z0-9-_]+$/, message: '仅支持大小写字母、数字、-、_', trigger: 'blur' },
+                            { validator: this.checkModelUniqueId, trigger: 'blur' }
+                        ],
+                        description: [
+                            { required: true, message: '请输入模型描述', trigger: 'blur' }
+                        ],
+                        category: [
+                            { required: true, message: '请选择类别', trigger: 'change' }
+                        ],
+                        module_id: [
+                            { required: true, message: '请选择模块', trigger: 'change' }
+                        ],
+                        pretrained: [
+                            { required: true, message: '请选择预训练模型', trigger: 'change' }
+                        ]
+                    },
+                    categoryOptions: [],
+                    moduleOptions: [],
+                    pretrainedOptions: [],
+                    moduleDescription: '',
+                    pretrainedDescription: ''
                 }
             },
             mounted() {
                 // 页面加载后调用API获取模型数据
-                fetch('/api/models')
-                    .then(response => response.json())
+                this.loadModels();
+                // 加载modules.json数据填充选项
+                fetch('/modules.json')
+                    .then(res => res.json())
                     .then(data => {
-                        this.models = data;
-                    })
-                    .catch(error => {
-                        console.error('获取模型数据失败:', error);
+                        this.categoryOptions = data;
                     });
+
             },
             methods: {
+
+
                 navigateTo(page) {
                     this.currentPage = page;
                     if (page === 'dataset') {
                         // 切换到数据集页面时调用API获取数据
-                        fetch('/api/datasets')
+                        fetch('/datasets')
                             .then(response => response.json())
                             .then(data => {
                                 this.datasets = data;
@@ -148,14 +272,127 @@
                                 console.error('获取数据集数据失败:', error);
                             });
                     }
+                },
+                loadModels() {
+                    // 调用API获取模型数据
+                    fetch('/models')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.models = data;
+                        })
+                        .catch(error => {
+                            console.error('获取模型数据失败:', error);
+                        });
+                },
+                handleModelSave() {
+                    this.$refs.newModelForm.validate((valid) => {
+                        if (valid) {
+                            // 调用后端接口保存模型配置（需与app.py的save_model_config接口对应）
+                            fetch('/models/save', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(this.newModelFormData)
+                            }).then(res => res.json())
+                                .then(result => {
+                                    if (result.code === 200) {
+                                        this.dialogVisible = false;
+                                        this.newModelFormData = {
+                                            name: '',
+                                            id: '',
+                                            description: '',
+                                            category: '',
+                                            module_id: '',
+                                            module_name: '',
+                                            pretrained: ''
+                                        };
+                                        // 刷新模型列表（假设存在刷新方法）
+                                        this.loadModels();
+                                    }
+                                });
+                        } else {
+                            // 校验失败提示
+                            console.error('表单校验失败');
+                            return false;
+                        }
+                    });
+
+                },
+                handleModelDelete(modelId) {
+                    this.$confirm('确定要删除该模型吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        axios.post('/models/delete', { id: modelId })
+                            .then(response => {
+                                if (response.data.code === 200) {
+                                    this.loadModels();
+                                    this.$message.success('删除成功');
+                                } else {
+                                    this.$message.error(response.data.message);
+                                }
+                            })
+                            .catch(error => {
+                                this.$message.error('删除失败');
+                                console.error(error);
+                            });
+                    }).catch(() => {
+                        this.$message.info('已取消删除');
+                    });
+                },
+                handleCategoryChange(val) {
+                    // 从categoryOptions中找到当前选中类别的modules属性
+                    const currentCategory = this.categoryOptions.find(cat => cat.category === val);
+                    if (currentCategory) {
+                        this.moduleOptions = currentCategory.modules;
+                    } else {
+                        this.moduleOptions = [];
+                    }
+                    this.pretrainedOptions = [];
+                    this.newModelFormData.module = '';
+                    this.newModelFormData.pretrained = '';
+                    this.moduleDescription = '';
+                    this.pretrainedDescription = '';
+                },
+                handleModuleChange(val) {
+                    // 从moduleOptions中找到当前选中模块的pretrained属性
+                    const currentModule = this.moduleOptions.find(mod => mod.id === val);
+                    if (currentModule) {
+                        this.pretrainedOptions = currentModule.pretrained;
+                        this.moduleDescription = currentModule.description;
+                        this.newModelFormData.module_name = currentModule.name;
+                    } else {
+                        this.pretrainedOptions = [];
+                    }
+                    this.newModelFormData.pretrained = '';
+                    this.pretrainedDescription = '';
+                },
+                handlePretrainedChange(val) {
+                    // 从pretrainedOptions中找到当前选中预训练模型的description属性
+                    const currentPretrained = this.pretrainedOptions.find(pretrained => pretrained.name === val);
+                    if (currentPretrained) {
+                        this.pretrainedDescription = currentPretrained.description + '\n' + currentPretrained.model_size;
+                    }
+                },
+                checkModelUniqueId(rule, value, callback) {
+                    if (!value) {
+                        return callback(new Error('唯一标识不能为空'));
+                    }
+                    const isExist = this.models.some(model => model.id === value);
+                    if (isExist) {
+                        callback(new Error('该唯一标识已存在'));
+                    } else {
+                        callback();
+                    }
                 }
             },
             components: {
-                ElIcon, Document, Folder, ElCard,  // 注册ElCard组件（已正确导入）
+                ElIcon, Document, Folder, ElCard, ElForm,  // 注册ElForm及ElCard组件（已正确导入）
                 'ico_helpfilled': ElementPlusIconsVue.HelpFilled,
                 'ico_menu': ElementPlusIconsVue.Menu
             }
         }).use(ElementPlus).mount('#app')
+
     </script>
 </body>
 
