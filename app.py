@@ -1,10 +1,13 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_from_directory, send_file
 import os
 import json
 import datetime
-
+import subprocess
+import sys
 # 初始化Flask应用
 app = Flask(__name__)
+paddlex_root = os.path.dirname('C:\\UGit\\PaddleX\\')
+paddlex_main = os.path.join(paddlex_root,'main.py')
 
 @app.route('/')
 def index():
@@ -17,15 +20,22 @@ def get_modules():
     return send_file('modules.json', mimetype='application/json')
 
 
+@app.route('/models/<modelId>', methods=['GET'])
+def get_model_detail(modelId):
+    """API接口：根据模型ID获取单个模型详细信息"""
+    # 从全局模型列表中查找指定ID的模型
+    for model in models:
+        if model.get('id') == modelId:
+            return jsonify(model)
+    # 未找到模型返回404
+    return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+
 @app.route('/models')
 def get_models():
-    """API接口：获取模型列表数据"""
     return jsonify(models)  # 返回JSON格式的模型数据
 
-@app.route('/models/delete', methods=['POST'])
-def delete_model():
-    """API接口：根据模型ID删除模型"""
-    model_id = request.json.get('id')
+@app.route('/models/<model_id>/delete', methods=['GET'])
+def delete_model(model_id):
     if not model_id:
         return jsonify({'code': 400, 'message': '缺少模型ID参数'}), 400
 
@@ -47,8 +57,8 @@ def delete_model():
     return jsonify({'code': 200, 'message': '模型删除成功'})
 
 
-@app.route('/models/save', methods=['POST'])
-def save_model_route():
+@app.route('/models/new', methods=['POST'])
+def new_model():
     model_data = request.get_json()
     # 转换为符合models配置的格式（补充category和module字段）
     formatted_model = {
@@ -60,34 +70,96 @@ def save_model_route():
         'module_name': model_data['module_name'],
         'pretrained': model_data['pretrained'],
         'fine_tune_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # 初始化为当前日期时间，精确到秒
-        'status': '未训练'  # 初始状态为处理中
+        'status': '未开始'  # 初始状态为处理中
     }
     save_model_config(formatted_model)
     return {'code': 200, 'message': '保存成功'}
 
+@app.route('/models/<model_id>/check/<path:filename>')
+def send_check_dataset_file(model_id, filename):
+    check_path = os.path.join(models_root, model_id, 'check')
+    return send_from_directory(check_path, filename)
+
+@app.route('/models/<model_id>/check', methods=['POST'])
+def checkDataSet(model_id):
+    check_data = request.get_json()
+    dataset_id = check_data.get('dataset_id')
+    # 查找模型
+    model = next((m for m in models if m.get('id') == model_id), None)
+    if not model:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
+    # 查找数据集
+    dataset = next((d for d in datasets if d.get('id') == dataset_id), None)
+    if not dataset:
+        return jsonify({'code': 404,'message': '未找到指定数据集'}), 404
+    # 运行检查命令
+    yaml_path = os.path.join(paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    dataset_path = os.path.join(dataset_root, dataset_id)
+    check_path = os.path.join(models_root, model_id, 'check')
+    result = subprocess.run(
+        [sys.executable, paddlex_main, 
+        "-c",yaml_path,
+        "-o", "Global.mode=check_dataset",
+        "-o","Global.output="+check_path,
+        "-o", "Global.dataset_dir="+dataset_path,
+        "-o", "CheckDataset.convert.enable=True",
+        "-o", "CheckDataset.convert.src_dataset_type="+dataset['type']],
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
+    # 保存运行输出到日志文件
+    with open(os.path.join(check_path, 'check_dataset.log'), 'w', encoding='utf-8') as f:
+        # 处理可能的None值（subprocess可能返回None）
+        stdout = result.stdout if result.stdout is not None else ''
+        stderr = result.stderr if result.stderr is not None else ''
+        f.write(f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}")
+        
+    if result.returncode != 0:
+        print(f"检查失败: {result.stderr}")
+        return jsonify({'code': 500,'message': '检查失败'}), 200
+    else:
+        # 读取检查结果文件内容
+        with open(os.path.join(check_path, 'check_dataset_result.json'), 'r', encoding='utf-8') as f:
+            check_result = json.load(f)
+        
+        # 更新图像路径为包含model_id的完整路径
+        base_path = f"models/{model_id}/check/"
+        check_result['attributes']['train_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['train_sample_paths']]
+        check_result['attributes']['val_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['val_sample_paths']]
+        check_result['analysis']['histogram'] = base_path + check_result['analysis']['histogram'].replace("\\","/")
+
+        return jsonify({'code': 200,'message': '检查完成','data': check_result})
+
+
+
 @app.route('/datasets')  # 新增数据集接口
 def get_datasets():
-    # 示例数据集数据（包含名称、描述、分类）
-    datasets = [
-        {
-            "name": "CIFAR-10",
-            "description": "10类图像分类数据集，包含6万张32x32彩色图像",
-            "category": "图像分类"
-        },
-        {
-            "name": "COCO",
-            "description": "目标检测、分割和描述数据集，包含超过33万张图像",
-            "category": "目标检测"
-        },
-        {
-            "name": "IMDB",
-            "description": "电影评论情感分析数据集，包含5万条评论",
-            "category": "自然语言处理"
-        }
-    ]
     return jsonify(datasets)  # 返回JSON格式的数据集数据
 
-
+datasets = [
+    {
+        "name": "test",
+        "id": "test",
+        "description": "10类图像分类数据集，包含6万张32x32彩色图像",
+        "category": "目标检测",
+        "type": "LabelMe"
+    },
+    {
+        "name": "COCO",
+        "id": "coco",
+        "description": "目标检测、分割和描述数据集，包含超过33万张图像",
+        "category": "图像分类",
+        "type": "LabelMe"
+    },
+    {
+        "name": "IMDB",
+        "id": "imdb",
+        "description": "电影评论情感分析数据集，包含5万条评论",
+        "category": "自然语言处理",
+        "type": "LLM"
+    }
+]
 
 def create_directories():
     # 检查并创建models、dataset、pretrained目录
@@ -104,7 +176,10 @@ def create_directories():
 
 # 全局模型数据变量
 models = []
-models_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'models_config.json')
+models_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),'models')
+dataset_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),'dataset')
+pretrained_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),'pretrained')
+models_config_path = os.path.join(models_root, 'models_config.json')
 def load_or_create_models_config():
     """加载或创建模型配置文件，并返回模型数据列表"""
     # 检查文件是否存在
