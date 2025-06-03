@@ -9,7 +9,7 @@ def init():
     """从配置文件初始化PaddleX路径"""
     global paddlex_root, paddlex_main
     # 获取当前文件所在目录的绝对路径，拼接配置文件路径
-    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+    config_path = os.path.join(os.getcwd(), 'config.json')
     with open(config_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
     # 从配置文件读取根路径并处理

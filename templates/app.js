@@ -98,6 +98,24 @@ createApp({
             }
 
         },
+        async handleCopyDS() {
+            if (this.copyDataset || !this.datasetCheck.checkPass) return;
+            this.datasetCheck.copyDataset = true;
+            await this.$nextTick();
+            try {
+                const response = await axios.post(`/models/${this.currentModel.id}/copyds`, {
+                    dataset_id: this.currentModel.dataset_id
+                });
+                if (response.data.code === 200) {
+                    this.loadModelDetails(this.currentModel.id);
+                }
+            } catch (error) {
+                this.$message.error('网络请求失败：' + error.message);
+            } finally {
+                this.datasetCheck.copyDataset = false;
+            }
+
+        },
         navigateTo(page) {
             this.currentPage = page;
         },
@@ -133,6 +151,17 @@ createApp({
                     // 将获取到的模型数据赋值给currentModel
                     this.currentModel = result;
                     this.modelPage = 'model_detail';
+                });
+        },
+        loadModelDetails(modelId) {
+            fetch(`/models/${modelId}`, { method: 'GET' })
+                .then(res => res.json())
+                .then(result => {
+                    this.currentModel = result;
+                })
+                .catch(error => {
+                    console.error('加载模型详情失败:', error);
+                    // 可选：失败时也触发回调（如提示用户）
                 });
         },
         handleModelSave() {

@@ -4,15 +4,15 @@ import json
 import datetime
 import subprocess
 import sys
-import datasetMgr
-import paddlexCfg
-
+import pxs.datasetMgr as datasetMgr
+import pxs.paddlexCfg as paddlexCfg
+from pxs.utils import copy_files
 # 初始化模型管理蓝图
 model_bp = Blueprint('model', __name__)
 
 # 全局模型数据变量
 models = []
-models_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),'models')
+models_root = os.path.join(os.getcwd(),'models')
 models_config_path = os.path.join(models_root, 'models_config.json')
 
 def init():
@@ -170,3 +170,33 @@ def checkDataSet(model_id):
 
         return jsonify({'code': 200,'message': '检查完成','data': check_result})
 
+@model_bp.route('/models/<model_id>/copyds', methods=['POST'])
+def copydataset(model_id):
+    check_data = request.get_json()
+    dataset_id = check_data.get('dataset_id')
+    # 查找模型
+    model = next((m for m in models if m.get('id') == model_id), None)
+    if not model:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
+    # 查找数据集
+    dataset = next((d for d in datasetMgr.datasets if d.get('id') == dataset_id), None)
+    if not dataset:
+        return jsonify({'code': 404,'message': '未找到指定数据集'}), 404
+    # 复制数据集到模型目录
+    dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
+    model_path = os.path.join(models_root, model_id,'dataset')
+    # 根据模型的类型选择复制方式
+    match model['module_id']:
+        case 'object_detection':
+            copyCOCODetDataset(dataset_path,model_path)
+
+    return jsonify({'code': 200,'message': '复制完成'})
+
+def copyCOCODetDataset(dataset_path,model_path):
+    # 复制annotations和images目录到模型目录
+    annotations_path = os.path.join(dataset_path, 'annotations')
+    model_annotations_path = os.path.join(model_path, 'annotations')
+    files = [{"src":os.path.join(annotations_path,'instance_train.json'),"dst":model_annotations_path},
+             {"src":os.path.join(annotations_path,'instance_val.json'),"dst":model_annotations_path},
+             {"src":os.path.join(dataset_path, 'images'),"dst":os.path.join(model_path, 'images')}]
+    copy_files(files)

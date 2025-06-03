@@ -1,14 +1,14 @@
 from flask import Flask, render_template, send_from_directory, send_file
 import os
-from paddlexCfg import init as paddlexCfg_init
+from pxs.paddlexCfg import init as paddlexCfg_init
 
 # 初始化Flask应用
 app = Flask(__name__, template_folder='templates')  # 明确模板目录
 
-from modelMgr import model_bp,init as modelMgr_init
+from pxs.modelMgr import model_bp,init as modelMgr_init
 app.register_blueprint(model_bp)
 
-from datasetMgr import dataset_bp,init as datasetMgr_init
+from pxs.datasetMgr import dataset_bp,init as datasetMgr_init
 app.register_blueprint(dataset_bp)
 
 @app.route('/')
@@ -37,7 +37,7 @@ def create_directories():
     required_dirs = ['models', 'dataset', 'pretrained']
     for dir_name in required_dirs:
         # 获取当前文件所在目录的绝对路径，拼接目标目录路径
-        dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), dir_name)
+        dir_path = os.path.join(os.getcwd(), dir_name)
         if not os.path.exists(dir_path):
             # 创建目录（允许已存在时不报错）
             os.makedirs(dir_path, exist_ok=True)

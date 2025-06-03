@@ -79,7 +79,7 @@
             </el-card>
         </div>
         <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: #ffffff;">
-            <el-button type="primary" @click="currentModel.status='未训练'"
+            <el-button type="primary" @click="handleCopyDS"
                 :disabled="!datasetCheck.checkPass">下一步</el-button>
         </div>
     </div>

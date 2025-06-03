@@ -7,7 +7,7 @@ dataset_bp = Blueprint('dataset_bp', __name__)
 
 # 定义数据集列表
 datasets = []
-dataset_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),'dataset')
+dataset_root = os.path.join(os.getcwd(),'dataset')
 dataset_config_path = os.path.join(dataset_root, 'dataset_config.json')
 
 def init():
