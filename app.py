@@ -5,7 +5,8 @@ import datetime
 import subprocess
 import sys
 # 初始化Flask应用
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')  # 明确模板目录
+
 paddlex_root = os.path.dirname('C:\\UGit\\PaddleX\\')
 paddlex_main = os.path.join(paddlex_root,'main.py')
 
@@ -13,6 +14,16 @@ paddlex_main = os.path.join(paddlex_root,'main.py')
 def index():
     """首页路由，返回平台介绍信息"""
     return render_template('index.html')  # 仅渲染模板
+
+@app.route('/app.js')
+def send_app_js():
+    """提供app.js静态文件"""
+    return send_from_directory('templates', 'app.js')
+
+@app.route('/components/<path:filename>')
+def send_components(filename):
+    filepath = os.path.join('components',filename)
+    return render_template(filepath)
 
 @app.route('/modules.json')
 def get_modules():
@@ -142,22 +153,31 @@ datasets = [
         "name": "test",
         "id": "test",
         "description": "10类图像分类数据集，包含6万张32x32彩色图像",
-        "category": "目标检测",
-        "type": "LabelMe"
+        "category": "CV",
+        "module_id": "object_detection",
+        "module_name": "目标检测",
+        "type": "LabelMe",
+        "update_time": "2025-05-28 14:32:27"
     },
     {
         "name": "COCO",
         "id": "coco",
         "description": "目标检测、分割和描述数据集，包含超过33万张图像",
-        "category": "图像分类",
-        "type": "LabelMe"
+        "category": "CV",
+        "module_id": "image_classification",
+        "module_name": "图像分类",
+        "type": "LabelMe",
+        "update_time": "2025-05-28 14:32:27"
     },
     {
         "name": "IMDB",
         "id": "imdb",
-        "description": "电影评论情感分析数据集，包含5万条评论",
-        "category": "自然语言处理",
-        "type": "LLM"
+        "description": "从输入图像中自动识别并定位人脸的位置和大小",
+        "category": "CV",
+        "module_id": "face_detection",
+        "module_name": "人脸检测",        
+        "type": "LabelMe",
+        "update_time": "2025-05-28 14:32:27"
     }
 ]
 

@@ -1,0 +1,32 @@
+<div class="page-header">
+    <h2 class="page-header h2">数据集</h2>
+    <el-button type="primary" plain>创建数据集</el-button>
+</div>
+<el-row :gutter="20">
+    <el-col :span="24">
+        <el-card class="model-card" v-for="(dataset, index) in datasets" :key="index" style="margin-bottom: 20px;">
+            <div class="card-content">
+                <!-- 左侧内容 -->
+                <div class="left-section">
+                    <div class="model-basic">
+                        <h3 class="model-basic h3" v-text="dataset.name"></h3>
+                        <el-tag type="info" effect="plain" style="font-size: 14px;"
+                            v-text="dataset.type"></el-tag>  <!-- 对应model.pretrained，使用dataset.type字段 -->
+                    </div>
+                    <p class="model-desc" v-text="dataset.description"></p>
+                    <div class="model-category">
+                        <el-tag type="success" v-text="dataset.category"></el-tag>  <!-- 保留原category标签 -->
+                        <el-tag type="success" v-text="dataset.module_name"></el-tag>  <!-- 新增module_name标签 -->
+                    </div>
+                </div>
+                <!-- 右侧内容 -->
+                <div class="right-section">
+                    <p class="fine-tune-time" v-text="dataset.update_time"></p>  <!-- 示例使用module_id作为右侧信息 -->
+                    <div class="info-actions" style="margin-top: 8px;">
+                        <el-button type="text" size="small">删除</el-button>
+                    </div>
+                </div>
+            </div>
+        </el-card>
+    </el-col>
+</el-row>
