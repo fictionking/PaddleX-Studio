@@ -147,7 +147,6 @@
 
 <body>
     <div id="app">
-
         <el-container>
             <el-header>
                 <h1 class="paddlex-title">PaddleX Studio</h1>
@@ -165,16 +164,12 @@
                 <div v-if="currentPage === 'model'">
                     {% include 'components/model-list.html' %}
                 </div>
-                    
                 <!-- 数据集列表页面 -->
                 <div v-if="currentPage ==='dataset'">
                     {% include 'components/dataset-list.html' %}
                 </div>
-
             </el-main>
-
         </el-container>
-
     </div>
     <script src="app.js"></script>
 </body>
