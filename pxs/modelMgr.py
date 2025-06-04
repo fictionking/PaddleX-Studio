@@ -7,6 +7,7 @@ import sys
 import pxs.datasetMgr as datasetMgr
 import pxs.paddlexCfg as paddlexCfg
 from pxs.utils import copy_files
+import shutil
 # 初始化模型管理蓝图
 model_bp = Blueprint('model', __name__)
 
@@ -90,6 +91,10 @@ def delete_model(model_id):
         return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
 
     # 删除模型
+    model_dir = os.path.join(models_root, model_id)
+    if os.path.exists(model_dir):
+        shutil.rmtree(model_dir)  # 删除模型目录及其内容
+        print(f"已删除模型目录: {model_dir}")
     del models[delete_index]
     # 保存更新后的模型列表
     save_model_config(None)  # 传入None触发全量保存
@@ -189,8 +194,9 @@ def copydataset(model_id):
     match model['module_id']:
         case 'object_detection':
             copyCOCODetDataset(dataset_path,model_path)
-
-    return jsonify({'code': 200,'message': '复制完成'})
+    model['status'] = '未训练'
+    save_model_config(model)
+    return jsonify({'code': 200,'message': '复制完成','data': model})
 
 def copyCOCODetDataset(dataset_path,model_path):
     # 复制annotations和images目录到模型目录

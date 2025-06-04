@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PaddleX-Studio</title>
+    <link rel="icon" href="/assets/fav.png" type="image/png">
     <style>
         #app .el-header {
             display: flex;
@@ -120,6 +121,7 @@
         .paddlex-title {
             margin-right: 40px;
             color: #0047b9;
+            height: 40px;
         }
 
         .model-status {
@@ -144,7 +146,7 @@
     <div id="app">
         <el-container>
             <el-header>
-                <h1 class="paddlex-title">PaddleX Studio</h1>
+                <img class="paddlex-title" src="/assets/banner.png" alt="PaddleX Studio"  />
                 <el-button type="primary" :class="{ active: currentPage === 'model' }"
                     @click="navigateTo('model')"><el-icon class="icon">
                         <ICO_HelpFilled />

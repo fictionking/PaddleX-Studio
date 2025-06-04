@@ -16,7 +16,8 @@ createApp({
                 checkingDataset: false,
                 checkPass: false,
                 showCheckResult: false,
-                checkLog: ''
+                checkLog: '',
+                processing: false
             },
             newModelFormData: {
                 name: '',
@@ -70,8 +71,8 @@ createApp({
     },
     methods: {
         async handleCheckDataset() {
-            if (this.checkingDataset) return;
-            this.datasetCheck.checkingDataset = true;
+            if (this.datasetCheck.processing) return;
+            this.datasetCheck.processing = true;
             this.datasetCheck.checkPass = false;
             await this.$nextTick();
             try {
@@ -94,25 +95,27 @@ createApp({
             } catch (error) {
                 this.$message.error('网络请求失败：' + error.message);
             } finally {
-                this.datasetCheck.checkingDataset = false;
+                this.datasetCheck.processing = false;
             }
 
         },
         async handleCopyDS() {
-            if (this.copyDataset || !this.datasetCheck.checkPass) return;
-            this.datasetCheck.copyDataset = true;
+            if (this.datasetCheck.processing || !this.datasetCheck.checkPass) return;
+            this.datasetCheck.processing = true;
             await this.$nextTick();
             try {
                 const response = await axios.post(`/models/${this.currentModel.id}/copyds`, {
                     dataset_id: this.currentModel.dataset_id
                 });
                 if (response.data.code === 200) {
-                    this.loadModelDetails(this.currentModel.id);
+                    this.currentModel=response.data.data;
+                }else{
+                    this.$message.error('数据集复制失败：' + response.data.message);
                 }
             } catch (error) {
                 this.$message.error('网络请求失败：' + error.message);
             } finally {
-                this.datasetCheck.copyDataset = false;
+                this.datasetCheck.processing = false;
             }
 
         },
@@ -205,7 +208,7 @@ createApp({
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                axios.get(`/models/${this.currentModel.id}/delete`)
+                axios.get(`/models/${modelId}/delete`)
                     .then(response => {
                         if (response.data.code === 200) {
                             this.loadModels();

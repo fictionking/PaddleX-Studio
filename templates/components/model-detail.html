@@ -20,15 +20,15 @@
     </el-steps>
 
     <!-- 数据集选择 -->
-    <div style="align-items: center;text-align: center;">
+    <div v-if="currentModel.status === '未开始'" style="align-items: center;text-align: center;">
         <br>
         <el-button type="primary" @click="datasetCheck.showDatasetDialog = true"
-            :disabled="datasetCheck.checkingDataset">选择训练数据集</el-button>
+            :disabled="datasetCheck.processing">选择训练数据集</el-button>
         <div style="display: flex;margin:0 auto;margin-top: 10px;gap: 20px;align-items: center;"
             v-if="currentModel.dataset_id">
             已选数据集：<el-text v-text="currentModel.dataset_name"></el-text>
             <el-button type="primary" @click="handleCheckDataset"
-                :disabled="datasetCheck.checkingDataset">检查数据集</el-button>
+                :disabled="datasetCheck.processing">检查数据集</el-button>
         </div>
         <div v-show="datasetCheck.showCheckResult" style="margin-top: 20px;">
             <el-card>
@@ -80,7 +80,7 @@
         </div>
         <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: #ffffff;">
             <el-button type="primary" @click="handleCopyDS"
-                :disabled="!datasetCheck.checkPass">下一步</el-button>
+                :disabled="!datasetCheck.checkPass || datasetCheck.processing">下一步</el-button>
         </div>
     </div>
     <el-dialog title="选择数据集" v-model="datasetCheck.showDatasetDialog" width="30%">

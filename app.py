@@ -26,6 +26,11 @@ def send_components(filename):
     filepath = os.path.join('components',filename)
     return render_template(filepath)
 
+@app.route('/assets/<path:filename>')
+def send_assets(filename):
+    filepath = os.path.join('templates', 'assets')
+    return send_from_directory(filepath,filename)
+
 @app.route('/modules.json')
 def get_modules():
     """返回modules.json文件内容"""
