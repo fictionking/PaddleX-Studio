@@ -113,8 +113,9 @@ def new_model():
         'module_id': model_data['module_id'], 
         'module_name': model_data['module_name'],
         'pretrained': model_data['pretrained'],
-        'fine_tune_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # 初始化为当前日期时间，精确到秒
-        'status': '未开始'  # 初始状态为处理中
+        'update_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # 初始化为当前日期时间，精确到秒
+        'status': 'config',  # 初始状态为配置中（数据准备阶段）,config:配置中、training:训练中、finished:运行完成
+        'step': 0  # 新增步骤字段（0:数据准备，1:参数准备，2:提交训练）
     }
     save_model_config(formatted_model)
     return {'code': 200, 'message': '保存成功'}
@@ -194,7 +195,8 @@ def copydataset(model_id):
     match model['module_id']:
         case 'object_detection':
             copyCOCODetDataset(dataset_path,model_path)
-    model['status'] = '未训练'
+    model['status'] = '配置中'  # 保持配置中状态
+    model['step'] = 1  # 数据准备完成，进入参数准备阶段
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
 

@@ -147,24 +147,17 @@
         <el-container>
             <el-header>
                 <img class="paddlex-title" src="/assets/banner.png" alt="PaddleX Studio"  />
-                <el-button type="primary" :class="{ active: currentPage === 'model' }"
-                    @click="navigateTo('model')"><el-icon class="icon">
+                <el-button type="primary" :class="{ active: $route.path === '/model' }"
+                    @click="() => $router.push('/model')"><el-icon class="icon">
                         <ICO_HelpFilled />
                     </el-icon>模型</el-button>
-                <el-button type="primary" :class="{ active: currentPage === 'dataset' }"
-                    @click="navigateTo('dataset')"><el-icon class="icon">
+                <el-button type="primary" :class="{ active: $route.path === '/dataset' }"
+                    @click="() => $router.push('/dataset')"><el-icon class="icon">
                         <ICO_Menu />
                     </el-icon>数据</el-button>
             </el-header>
             <el-main>
-                <!-- 模型列表页面 -->
-                <div v-if="currentPage === 'model'">
-                    {% include 'components/model-list.html' %}
-                </div>
-                <!-- 数据集列表页面 -->
-                <div v-if="currentPage ==='dataset'">
-                    {% include 'components/dataset-list.html' %}
-                </div>
+                <router-view></router-view>
             </el-main>
         </el-container>
     </div>
