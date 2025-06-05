@@ -3,7 +3,16 @@ from typing import Tuple, List
 from flask import make_response
 
 
-def _parse_script(content: str) -> Tuple[str, bool]:
+def _parse_script(content: str) -> Tuple[str, bool, list]:
+    """
+    解析<script>标签内容，处理<script setup>语法及import语句
+    
+    Args:
+        content (str): Vue文件原始内容
+    
+    Returns:
+        Tuple[str, bool, list]: 解析后的脚本内容，是否为setup语法，import语句列表
+    """
     """
     解析<script>标签内容，处理<script setup>语法
     
@@ -20,12 +29,17 @@ def _parse_script(content: str) -> Tuple[str, bool]:
 
     script_attrs = script_match.group(1)
     script_content = script_match.group(2).strip()
+    # 提取import语句
+    import_pattern = re.compile(r'^import .*$', re.MULTILINE)
+    import_statements = import_pattern.findall(script_content)
+    # 从脚本内容中移除import语句
+    script_content = import_pattern.sub('', script_content).strip()
     is_setup = 'setup' in script_attrs
 
     # 简化处理<script setup>为函数形式
     if is_setup:
-        return f'__sfc_setup__: () => ({{ {script_content} }})', True
-    return script_content, False
+        return f'__sfc_setup__: () => ({{ {script_content} }})', True, import_statements
+    return script_content, False, import_statements
 
 
 def _parse_styles(content: str) -> List[Tuple[str, dict]]:
@@ -85,8 +99,8 @@ def render_vue_component(vue_file_path: str) -> str:
     template = template_match.group(1).strip() if template_match else ''
     escaped_template = template.replace('\\', '\\\\').replace('`', '\\`')  # 转义反斜杠和反引号
 
-    # 解析脚本（支持setup语法）
-    script_content, is_setup = _parse_script(content)
+    # 解析脚本（支持setup语法及import）
+    script_content, is_setup, import_statements = _parse_script(content)
 
     # 解析样式（含属性）
     styles = _parse_styles(content)
@@ -99,14 +113,14 @@ def render_vue_component(vue_file_path: str) -> str:
         style_items.append(item_str)
     # 合并为最终样式字符串
     style_str = ',\n  '.join(style_items)
-
+    import_str = '\n'.join(import_statements) + '\n' if import_statements else ''
     # 组合最终组件对象
     if is_setup:
-        content = f'''\
-            export default {{                template: `{escaped_template}`,                ...{script_content},                styles: [{style_str}]            }};''' 
+
+        content = f'''{import_str}\n export default {{\n                template: `{escaped_template}`,\n                ...{script_content},\n                styles: [{style_str}]\n            }};'''
         return make_response(content, 200, {'Content-Type': 'application/javascript'})
     else:
-        content = f'''export default {{
+        content = f'''{import_str}\n export default {{
             template: `{escaped_template}`,
             ...{script_content[len('export default'):].lstrip() if script_content.startswith('export default') else script_content},
             styles: [{style_str}]

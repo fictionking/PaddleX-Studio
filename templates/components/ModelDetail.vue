@@ -21,6 +21,7 @@
 
 
 <script type="module">
+
 export default {
     props: ['modelId'],
     emits: [],
@@ -47,15 +48,18 @@ export default {
         }
     },
     computed: {
+        // 导入Vue的defineAsyncComponent用于异步组件加载
         configComponent() {
+            const {defineAsyncComponent } = Vue
             // 检查currentModel是否已加载module_id
             if (!this.currentModel.module_id) {
                 // 未加载时返回空组件或加载提示（可选）
                 return null; 
             }
-            // 数据加载完成后，动态导入目标组件
-            return () => import(`/components/model/${this.currentModel.module_id}.vue`);
+            // 数据加载完成后，使用defineAsyncComponent动态导入目标组件
+            return defineAsyncComponent(() => import(`/components/model/${this.currentModel.module_id}.vue`));
         }
+
     },
     methods: {
         async handleCheckDataset() {
