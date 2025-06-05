@@ -56,8 +56,6 @@ export default {
     },
     methods: {
         loadModels() {
-            import axios from 'axios'
-
             // 调用API获取模型数据（使用axios）
             axios.get('/models')
                 .then(response => {

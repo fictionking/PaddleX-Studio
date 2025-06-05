@@ -1,5 +1,6 @@
 import re
 from typing import Tuple, List
+from flask import make_response
 
 
 def _parse_script(content: str) -> Tuple[str, bool]:
@@ -89,23 +90,25 @@ def render_vue_component(vue_file_path: str) -> str:
 
     # 解析样式（含属性）
     styles = _parse_styles(content)
-    style_str = ',\n  '.join([
-        f'{{ content: `{s.replace("`","\\`")}`, attrs: {repr(a)} }}'
-        for s, a in styles
-    ])
+    style_items = []
+    for s, a in styles:
+        # 处理内容中的单引号转义
+        escaped_content = s.replace("'", "\\'")
+        # 构造单个样式项字符串
+        item_str = f'{{ content: \'{escaped_content}\', attrs: {repr(a)} }}'
+        style_items.append(item_str)
+    # 合并为最终样式字符串
+    style_str = ',\n  '.join(style_items)
 
     # 组合最终组件对象
     if is_setup:
-        return f'''\
-        export default {{
-            template: `{escaped_template}`,
-            {script_content},
-            styles: [{style_str}]
-        }};''' 
+        content = f'''\
+            export default {{                template: `{escaped_template}`,                ...{script_content},                styles: [{style_str}]            }};''' 
+        return make_response(content, 200, {'Content-Type': 'application/javascript'})
     else:
-        return f'''\
-        export default {{
+        content = f'''export default {{
             template: `{escaped_template}`,
-            {script_content if script_content.startswith('export default') else f'...({{ {script_content} }})'},
+            ...{script_content[len('export default'):].lstrip() if script_content.startswith('export default') else script_content},
             styles: [{style_str}]
         }};'''
+        return make_response(content, 200, {'Content-Type': 'application/javascript'})
