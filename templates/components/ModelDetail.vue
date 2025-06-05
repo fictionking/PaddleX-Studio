@@ -1,5 +1,5 @@
 <template>
-    <div v-if="modelPage === 'model_detail'">
+    <div>
         <div class="page-header">
             <div class="page-header-info">
                 <h2 class="page-header h2" v-text="currentModel.name"></h2>
@@ -7,7 +7,7 @@
                 <el-tag type="success" v-text="currentModel.category"></el-tag>
                 <el-tag type="success" v-text="currentModel.module_name"></el-tag>
             </div>
-            <el-button type="primary" plain @click="modelPage = 'model_list'">返回</el-button>
+            <el-button type="primary" plain @click="$router.push('/model')">返回</el-button>
         </div>
         <p class="model-desc" v-text="currentModel.description"></p>
         <br>
@@ -22,14 +22,39 @@
 
 <script type="module">
 export default {
-    props: ['model_id'],
+    props: ['modelId'],
     emits: [],
+    data() {
+        return {
+            currentModel: {}
+        }
+    },
+    async created() {
+        try {
+            const modelId = this.$route.params.modelId; // 从路由参数获取modelId
+            if (!modelId) {
+                this.$message.error('模型ID未获取到');
+                return;
+            }
+            const response = await axios.get(`/models/${modelId}`);
+            if (response.status === 200) {
+                this.currentModel = response.data;
+            } else {
+                this.$message.error('获取模型详情失败：' + response.data.message);
+            }
+        } catch (error) {
+            this.$message.error('网络请求失败：' + error.message);
+        }
+    },
     computed: {
         configComponent() {
-            const moduleId = this.currentModel.module_id;
-            // 根据模型类型返回对应配置组件
-            // 根据moduleId动态构建文件路径
-            return () => import(`./model/${moduleId}.vue`);
+            // 检查currentModel是否已加载module_id
+            if (!this.currentModel.module_id) {
+                // 未加载时返回空组件或加载提示（可选）
+                return null; 
+            }
+            // 数据加载完成后，动态导入目标组件
+            return () => import(`/components/model/${this.currentModel.module_id}.vue`);
         }
     },
     methods: {

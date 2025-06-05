@@ -149,11 +149,11 @@
         <el-container>
             <el-header>
                 <img class="paddlex-title" src="/assets/banner.png" alt="PaddleX Studio" />
-                <el-button type="primary" :class="{ active: $route.path === '/model' }"
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/model') }"
                     @click="() => $router.push('/model')"><el-icon class="icon">
                         <ICO_HelpFilled />
                     </el-icon>模型</el-button>
-                <el-button type="primary" :class="{ active: $route.path === '/dataset' }"
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/dataset') }"
                     @click="() => $router.push('/dataset')"><el-icon class="icon">
                         <ICO_Menu />
                     </el-icon>数据</el-button>
