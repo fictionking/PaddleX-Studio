@@ -1,9 +1,8 @@
 <template>
-    <div v-if="modelPage ==='model_list'">
+    <div id="modellist">
         <div class="page-header">
             <h2 class="page-header h2">模型空间</h2>
-            <el-button type="primary" plain
-                @click="() => { if(this.$refs.newModelForm) this.$refs.newModelForm.resetFields(); moduleDescription='';pretrainedDescription='';newModelDialogVisible = true; }">创建模型</el-button>
+            <el-button type="primary" plain @click="">创建模型</el-button>
         </div>
 
         <el-row :gutter="20">
@@ -43,16 +42,10 @@
     </div>
 </template>
 
-<script>
-import ModelCreate from './model-create.vue'
-import ModelDetail from './model-detail.vue'
-import axios from 'axios'
+<script type="module">
 
 export default {
-    components: {
-        ModelCreate,
-        ModelDetail
-    },
+
     data() {
         return {
             models: []  // 模型数据列表
@@ -63,14 +56,18 @@ export default {
     },
     methods: {
         loadModels() {
-            // 调用API获取模型数据
-            fetch('/models')
-                .then(response => response.json())
-                .then(data => {
-                    this.models = data;
+            import axios from 'axios'
+
+            // 调用API获取模型数据（使用axios）
+            axios.get('/models')
+                .then(response => {
+                    // 确保data为数组，避免v-for错误
+                    this.models = Array.isArray(response.data) ? response.data : [];
                 })
                 .catch(error => {
                     console.error('获取模型数据失败:', error);
+                    // 保持models为数组
+                    this.models = [];
                 });
         },
         handleModelDelete(modelId) {

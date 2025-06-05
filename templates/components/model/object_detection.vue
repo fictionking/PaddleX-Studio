@@ -128,7 +128,7 @@
     </div>
 </template>
 
-<script>
+<script type="module">
 export default {
     data() {
         return {

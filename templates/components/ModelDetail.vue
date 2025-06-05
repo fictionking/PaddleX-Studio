@@ -20,7 +20,7 @@
 </template>
 
 
-<script>
+<script type="module">
 export default {
     props: ['model_id'],
     emits: [],

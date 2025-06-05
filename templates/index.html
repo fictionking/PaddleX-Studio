@@ -131,6 +131,8 @@
 
     <!-- 引入Vue3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入Vue Router -->
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
     <!-- 引入element-plus样式文件 -->
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
     <!-- 引入element-plus组件库 -->
@@ -146,7 +148,7 @@
     <div id="app">
         <el-container>
             <el-header>
-                <img class="paddlex-title" src="/assets/banner.png" alt="PaddleX Studio"  />
+                <img class="paddlex-title" src="/assets/banner.png" alt="PaddleX Studio" />
                 <el-button type="primary" :class="{ active: $route.path === '/model' }"
                     @click="() => $router.push('/model')"><el-icon class="icon">
                         <ICO_HelpFilled />
@@ -161,7 +163,74 @@
             </el-main>
         </el-container>
     </div>
-    <script src="app.js"></script>
+    <script type="module">
+        const { createApp, defineAsyncComponent } = Vue
+        const { createRouter, createWebHashHistory } = VueRouter
+        const { ElMessage, ElIcon, Document, Folder, ElCard, ElForm } = ElementPlus
+        function load(path) {
+            return new Promise((resolve, reject) => {
+                // 使用异步XMLHttpRequest加载文件
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', path, true); // 第三个参数设为true表示异步请求
+                xhr.onload = () => {
+                    if (xhr.status !== 200) {
+                        reject(new Error(`加载文件失败：${xhr.statusText}`));
+                        return;
+                    }
+                    const source = xhr.responseText;
+                    // 提取组件内容
+                    const templateMatch = source.match(/<template>([\s\S]+?)<\/template>/);
+                    const template = templateMatch ? templateMatch[1] : '';
+                    const styleMatch = source.match(/<style>([\s\S]+?)<\/style>/);
+                    const style = styleMatch ? styleMatch[1] : '';
+                    const scriptMatch = source.match(/<script\b[^>]*>([\s\S]+?)<\/script>/);
+                    const script = scriptMatch ? scriptMatch[1] : '';
+
+                    // 转换为模块
+                    try {
+                        // 使用动态import加载ES模块
+                        const blob = new Blob([script], { type: 'text/javascript' });
+                        const url = URL.createObjectURL(blob);
+                        const module = import(url);
+                        URL.revokeObjectURL(url);
+                        const exports = module.default;
+                        resolve({
+                            template,
+                            style,
+                            script: exports.default
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                xhr.onerror = () => reject(new Error('请求失败'));
+                xhr.send();
+            });
+        }
+        // 定义路由
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes: [
+                { path: '/', redirect: '/model' },
+                { path: '/model', component: () => load('./components/ModelList.vue') },
+                { path: '/dataset', component: () => load('./components/DatasetList.vue') },
+                { path: '/model/detail/:modelId', component: () => load('./components/ModelDetail.vue') }
+            ]
+        })
+        // 确保app在引用前初始化
+        const app = createApp({
+            components: {
+                ElIcon, Document, Folder, ElCard, ElForm,
+                'ico_helpfilled': ElementPlusIconsVue.HelpFilled,
+                'ico_menu': ElementPlusIconsVue.Menu,
+                'ico_delete': ElementPlusIconsVue.Delete
+            }
+        })
+        app.use(ElementPlus)
+        app.use(router)
+        app.mount('#app')
+
+    </script>
 </body>
 
 </html>

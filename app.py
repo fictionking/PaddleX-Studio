@@ -16,15 +16,9 @@ def index():
     """首页路由，返回平台介绍信息"""
     return render_template('index.html')  # 仅渲染模板
 
-@app.route('/app.js')
-def send_app_js():
-    """提供app.js静态文件"""
-    return send_from_directory('templates', 'app.js')
-
 @app.route('/components/<path:filename>')
 def send_components(filename):
-    filepath = os.path.join('components',filename)
-    return render_template(filepath)
+    return send_from_directory('templates/components', filename, mimetype='text/plain')
 
 @app.route('/assets/<path:filename>')
 def send_assets(filename):
@@ -35,7 +29,6 @@ def send_assets(filename):
 def get_modules():
     """返回modules.json文件内容"""
     return send_file('modules.json', mimetype='application/json')
-
 
 def create_directories():
     # 检查并创建models、dataset、pretrained目录
