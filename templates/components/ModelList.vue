@@ -2,7 +2,7 @@
     <div id="modellist">
         <div class="page-header">
             <h2 class="page-header h2">模型空间</h2>
-            <el-button type="primary" plain @click="">创建模型</el-button>
+            <el-button type="primary" plain @click="showCreateDialog">创建模型</el-button>
         </div>
 
         <el-row :gutter="20">
@@ -40,19 +40,28 @@
             </el-col>
         </el-row>
     </div>
+    <!-- 动态加载模型配置组件 -->
+    <component :is="configComponent" v-model="dialogVisible" :models="models" @close="handleClose">
+    </component>
 </template>
 
 <script type="module">
 
 export default {
-
     data() {
         return {
-            models: []  // 模型数据列表
+            models: [],
+            dialogVisible: false
         }
     },
     mounted() {
         this.loadModels();  // 组件挂载后加载模型数据
+    },
+    computed: {
+        configComponent() {
+            const { defineAsyncComponent } = Vue
+            return defineAsyncComponent(() => import('/components/ModelCreate.vue'));
+        }
     },
     methods: {
         loadModels() {
@@ -94,6 +103,13 @@ export default {
         modelTrain(modelId) {
             // 跳转到模型详情路由
             this.$router.push(`/model/detail/${modelId}`);
+        },
+        showCreateDialog() {
+            this.dialogVisible = true;
+        },
+        handleClose() {
+            this.dialogVisible = false;
+            this.loadModels();
         }
     }
 }

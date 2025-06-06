@@ -173,9 +173,9 @@
             history: createWebHashHistory(),
             routes: [
                 { path: '/', redirect: '/model' },
-                { path: '/model', component: () => import('./components/ModelList.vue') },
-                { path: '/dataset', component: () => import('./components/DatasetList.vue') },
-                { path: '/model/detail/:modelId', component: () => import('./components/ModelDetail.vue') }
+                { path: '/model', component: () => import('/components/ModelList.vue') },
+                { path: '/dataset', component: () => import('/components/DatasetList.vue') },
+                { path: '/model/detail/:modelId', component: () => import('/components/ModelDetail.vue') }
             ]
         })
         // 确保app在引用前初始化

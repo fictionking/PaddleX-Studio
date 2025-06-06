@@ -1,6 +1,6 @@
 <template>
   <!-- 创建模型对话框 -->
-  <el-dialog title="新建模型训练配置" v-model="newModelDialogVisible" width="50%">
+  <el-dialog ref="newModelDlg" title="新建模型训练配置" destroy-on-close width="50%">
     <el-form ref="newModelForm" :model="newModelFormData" :rules="formRules" label-width="120px">
       <div style="display: flex;gap: 20px;">
         <div style="flex: 1;">
@@ -42,17 +42,16 @@
     </el-form>
 
     <div slot="footer" class="dialog-footer">
-      <el-button @click="newModelDialogVisible = false">取消</el-button>
       <el-button type="primary" @click="handleModelSave">保存</el-button>
     </div>
   </el-dialog>
 </template>
 
-<script  type="module">
+<script type="module">
 export default {
+  props: ['models'],
   data() {
     return {
-      newModelDialogVisible: false, // 控制对话框显示/隐藏
       newModelFormData: {
         name: '',
         id: '',
@@ -135,7 +134,6 @@ export default {
         this.pretrainedDescription = currentPretrained.description + '\n' + currentPretrained.model_size;
       }
     },
-
     checkModelUniqueId(rule, value, callback) {
       if (!value) {
         return callback(new Error('唯一标识不能为空'));
@@ -151,12 +149,38 @@ export default {
       // 保存模型配置
       this.$refs.newModelForm.validate(valid => {
         if (valid) {
-          this.$emit('save-model', this.newModelFormData); // 触发父组件保存事件
-          this.newModelDialogVisible = false; // 关闭对话框
-          this.$refs.newModelForm.resetFields(); // 重置表单
+          // 调用后端接口保存模型配置（需与app.py的save_model_config接口对应）
+          const modelId = this.newModelFormData.id;
+          fetch('/models/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.newModelFormData)
+          }).then(res => res.json())
+            .then(result => {
+              if (result.code === 200) {
+                this.newModelDialogVisible = false;
+                this.newModelFormData = {
+                  name: '',
+                  id: '',
+                  description: '',
+                  category: '',
+                  module_id: '',
+                  module_name: '',
+                  pretrained: ''
+                };
+                this.$router.push(`/model/detail/${modelId}`);
+              }
+            });
+            // this.$refs.newModelForm.resetFields();
+            // this.$emit('close');
+        } else {
+          // 校验失败提示
+          console.error('表单校验失败');
+          return false;
         }
+
       });
     }
   }
-};
+}
 </script>
