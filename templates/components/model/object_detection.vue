@@ -124,7 +124,7 @@
             </div>
         </div>
         <div class="step-footer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);">
-            <el-button type="primary" @click="handleModelCfgNext" :disabled="processing">下一步</el-button>
+            <el-button type="primary" @click="handleModelCfgNext" :disabled="processing">{{ currentModel.step === 2 ? '提交训练' : '下一步' }}</el-button>
         </div>
     </div>
 </template>
@@ -247,6 +247,7 @@ export default {
                 case 1:
                     this.currentModel.step = 2;
                     break;
+                case 2:
             }
         }
     }
