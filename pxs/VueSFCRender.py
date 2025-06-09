@@ -65,7 +65,7 @@ def _parse_styles(content: str) -> List[Tuple[str, dict]]:
                     k, v = attr.split('=', 1)
                     attrs[k.strip()] = v.strip().strip('"\'')
                 else:
-                    attrs[attr.strip()] = True
+                    attrs[attr.strip()] = 'true'
         styles.append((style_content, attrs))
     return styles
 
@@ -109,7 +109,7 @@ def render_vue_component(vue_file_path: str) -> str:
         # 处理内容中的单引号转义
         escaped_content = s.replace("'", "\\'")
         # 构造单个样式项字符串
-        item_str = f'{{ content: \'{escaped_content}\', attrs: {repr(a)} }}'
+        item_str = f'{{ content: `{escaped_content}`, attrs: {repr(a)} }}'
         style_items.append(item_str)
     # 合并为最终样式字符串
     style_str = ',\n  '.join(style_items)

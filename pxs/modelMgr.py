@@ -16,10 +16,30 @@ models = []
 models_root = os.path.join(os.getcwd(),'models')
 models_config_path = os.path.join(models_root, 'models_config.json')
 
+import threading
+import time
+
 def init():
-    """初始化模型数据，从JSON文件加载或创建"""
+    """初始化模型数据，从JSON文件加载或创建，并通过轮询监听配置文件变化"""
     global models
     models = load_or_create_models_config()
+    
+    # 获取初始修改时间
+    last_modified = os.path.getmtime(models_config_path)
+    
+    def check_modification():
+        nonlocal last_modified
+        while True:
+            current_modified = os.path.getmtime(models_config_path)
+            if current_modified != last_modified:
+                global models
+                models = load_or_create_models_config()
+                last_modified = current_modified
+                print("模型配置文件已更新，重新加载成功")
+            time.sleep(5)  # 每5秒检查一次
+    
+    # 启动后台线程
+    threading.Thread(target=check_modification, daemon=True).start()
 
 def load_or_create_models_config():
     """加载或创建模型配置文件，并返回模型数据列表"""
@@ -195,8 +215,8 @@ def copydataset(model_id):
     match model['module_id']:
         case 'object_detection':
             copyCOCODetDataset(dataset_path,model_path)
-    model['status'] = '配置中'  # 保持配置中状态
     model['step'] = 1  # 数据准备完成，进入参数准备阶段
+    model['update_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 更新时间
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
 

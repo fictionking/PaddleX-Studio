@@ -12,10 +12,8 @@
         <p class="model-desc" v-text="currentModel.description"></p>
         <br>
         <!-- 动态加载模型配置组件 -->
-        <component :is="configComponent" :current-model="currentModel"
-           @check-ds="handleCheckDataset" @copy-ds="handleCopyDS">
+        <component :is="configComponent" :current-model="currentModel" @update:currentModel="handleCurrentModelUpdate">
         </component>
-
     </div>
 </template>
 
@@ -50,11 +48,11 @@ export default {
     computed: {
         // 导入Vue的defineAsyncComponent用于异步组件加载
         configComponent() {
-            const {defineAsyncComponent } = Vue
+            const { defineAsyncComponent } = Vue
             // 检查currentModel是否已加载module_id
             if (!this.currentModel.module_id) {
                 // 未加载时返回空组件或加载提示（可选）
-                return null; 
+                return null;
             }
             // 数据加载完成后，使用defineAsyncComponent动态导入目标组件
             return defineAsyncComponent(() => import(`/components/model/${this.currentModel.module_id}.vue`));
@@ -62,54 +60,8 @@ export default {
 
     },
     methods: {
-        async handleCheckDataset() {
-            if (this.modelConfig.processing) return;
-            this.modelConfig.processing = true;
-            this.modelConfig.checkPass = false;
-            await this.$nextTick();
-            try {
-                const response = await axios.post(`/models/${this.currentModel.id}/check`, {
-                    dataset_id: this.currentModel.dataset_id
-                });
-                if (response.data.code === 200) {
-                    this.modelConfig.checkResult = response.data.data;
-                    this.modelConfig.checkPass = this.modelConfig.checkResult.check_pass;
-                }
-                this.modelConfig.showCheckResult = true;
-                if (!this.checkPass) {
-                    try {
-                        const logResponse = await axios.get(`/models/${this.currentModel.id}/check/check_dataset.log`);
-                        this.modelConfig.checkLog = logResponse.data;
-                    } catch (error) {
-                        this.$message.error('获取日志失败：' + error.message);
-                    }
-                }
-            } catch (error) {
-                this.$message.error('网络请求失败：' + error.message);
-            } finally {
-                this.modelConfig.processing = false;
-            }
-
-        },
-        async handleCopyDS() {
-            if (this.modelConfig.processing || !this.modelConfig.checkPass) return;
-            this.modelConfig.processing = true;
-            await this.$nextTick();
-            try {
-                const response = await axios.post(`/models/${this.currentModel.id}/copyds`, {
-                    dataset_id: this.currentModel.dataset_id
-                });
-                if (response.data.code === 200) {
-                    this.currentModel = response.data.data;
-                } else {
-                    this.$message.error('数据集复制失败：' + response.data.message);
-                }
-            } catch (error) {
-                this.$message.error('网络请求失败：' + error.message);
-            } finally {
-                this.modelConfig.processing = false;
-            }
-
+        handleCurrentModelUpdate(newModel) {
+            this.currentModel = newModel;
         }
     }
 }
