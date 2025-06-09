@@ -12,7 +12,7 @@
         <p class="model-desc" v-text="currentModel.description"></p>
         <br>
         <!-- 动态加载模型配置组件 -->
-        <component :is="configComponent" :current-model="currentModel" @update:currentModel="handleCurrentModelUpdate">
+        <component :is="configComponent" :current-model="currentModel">
         </component>
     </div>
 </template>
@@ -58,11 +58,6 @@ export default {
             return defineAsyncComponent(() => import(`/components/model/${this.currentModel.module_id}.vue`));
         }
 
-    },
-    methods: {
-        handleCurrentModelUpdate(newModel) {
-            this.currentModel = newModel;
-        }
     }
 }
 </script>

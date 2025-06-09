@@ -215,7 +215,6 @@ def copydataset(model_id):
     match model['module_id']:
         case 'object_detection':
             copyCOCODetDataset(dataset_path,model_path)
-    model['step'] = 1  # 数据准备完成，进入参数准备阶段
     model['update_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 更新时间
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
@@ -224,7 +223,13 @@ def copyCOCODetDataset(dataset_path,model_path):
     # 复制annotations和images目录到模型目录
     annotations_path = os.path.join(dataset_path, 'annotations')
     model_annotations_path = os.path.join(model_path, 'annotations')
+    images_path = os.path.join(model_path, 'images')
+    # 如果目录存在则清空
+    if os.path.exists(model_annotations_path):
+        shutil.rmtree(model_annotations_path)
+    if os.path.exists(images_path):
+        shutil.rmtree(images_path)
     files = [{"src":os.path.join(annotations_path,'instance_train.json'),"dst":model_annotations_path},
              {"src":os.path.join(annotations_path,'instance_val.json'),"dst":model_annotations_path},
-             {"src":os.path.join(dataset_path, 'images'),"dst":os.path.join(model_path, 'images')}]
+             {"src":os.path.join(dataset_path, 'images'),"dst":images_path}]
     copy_files(files)
