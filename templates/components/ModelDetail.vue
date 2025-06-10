@@ -7,12 +7,12 @@
                 <el-tag type="success" v-text="currentModel.category"></el-tag>
                 <el-tag type="success" v-text="currentModel.module_name"></el-tag>
             </div>
-            <el-button type="primary" plain @click="$router.push('/model')">返回</el-button>
+            <el-button type="primary" plain @click="handleBack">返回</el-button>
         </div>
         <p class="model-desc" v-text="currentModel.description"></p>
         <br>
         <!-- 动态加载模型配置组件 -->
-        <component :is="configComponent" :current-model="currentModel">
+        <component v-if="showConfigComponent" :is="configComponent" :current-model="currentModel">
         </component>
     </div>
 </template>
@@ -25,7 +25,8 @@ export default {
     emits: [],
     data() {
         return {
-            currentModel: {}
+            currentModel: {},
+            showConfigComponent: true
         }
     },
     async created() {
@@ -58,6 +59,14 @@ export default {
             return defineAsyncComponent(() => import(`/components/model/${this.currentModel.module_id}.vue`));
         }
 
+    },
+    methods: {
+        handleBack() {
+            this.showConfigComponent = false;
+            this.$nextTick(() => {
+                this.$router.push('/model');
+            });
+        }
     }
 }
 </script>

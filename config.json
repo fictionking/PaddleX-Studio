@@ -1,1 +1,5 @@
-{"paddlex_root": "C:\\UGit\\PaddleX\\"}
+{
+    "paddlex_root": "C:\\UGit\\PaddleX\\",
+    "pretrained_root": ".\\pretrained\\",
+    "device": "gpu:0"
+}

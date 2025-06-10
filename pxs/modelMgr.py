@@ -8,18 +8,27 @@ import pxs.datasetMgr as datasetMgr
 import pxs.paddlexCfg as paddlexCfg
 from pxs.utils import copy_files
 import shutil
+import threading
+import time
+
 # 初始化模型管理蓝图
 model_bp = Blueprint('model', __name__)
 
 # 全局模型数据变量
+modules = []
 models = []
 models_root = os.path.join(os.getcwd(),'models')
 models_config_path = os.path.join(models_root, 'models_config.json')
 
-import threading
-import time
 
 def init():
+    """初始化模型管理模块"""
+    global modules
+    # 从配置文件加载模块信息
+    config_path = os.path.join(os.getcwd(), 'modules.json')
+    with open(config_path, 'r', encoding='utf-8') as f:
+        modules = json.load(f)
+
     """初始化模型数据，从JSON文件加载或创建，并通过轮询监听配置文件变化"""
     global models
     models = load_or_create_models_config()
@@ -196,6 +205,145 @@ def checkDataSet(model_id):
 
         return jsonify({'code': 200,'message': '检查完成','data': check_result})
 
+
+@model_bp.route('/models/<model_id>/train', methods=['POST'])
+def train(model_id):
+    # 获取请求参数（需与前端约定参数名）：
+    # {
+    #     epochs: 100,
+    #     batchSize: 8,
+    #     classNum: 4,
+    #     learningRate: 0.00010,
+    #     warmUpSteps: 100,
+    #     logInterval: 10,
+    #     trainEvalInterval: 1
+    # }
+    params = request.get_json()
+     # 查找模型
+    model = next((m for m in models if m.get('id') == model_id), None)
+    if not model:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
+    yaml_path = os.path.join(paddlexCfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    output_dir = os.path.join(models_root, model_id, 'train')
+    dataset_dir = os.path.join(models_root, model_id, 'dataset')
+    # 删除已存在的训练目录
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    # 逐级查找匹配的预训练模型路径
+    pretrained_model = None
+    for category_item in modules:
+        # 匹配category
+        if category_item['category'] != model['category']:
+            continue
+        # 匹配module_id
+        for module_item in category_item['modules']:
+            if module_item['id'] != model['module_id']:
+                continue
+            # 匹配pretrained.name
+            for pretrained_item in module_item['pretrained']:
+                if pretrained_item['name'] == model['pretrained']:
+                    pretrained_model = pretrained_item['pretrained_model']
+                    break
+            if pretrained_model:
+                break
+        if pretrained_model:
+            break
+    # 从url中提取文件名
+    pretrained_file_name = os.path.basename(pretrained_model)
+    # 构建完整的预训练模型路径
+    pretrain_weight_path = os.path.join(paddlexCfg.pretrained_root, pretrained_file_name)
+    # 检查预训练模型是否存在
+    if not os.path.exists(pretrain_weight_path):
+        pretrain_weight_path=pretrained_model
+        
+    # 构建训练命令（参考checkDataSet使用sys.executable和paddlex_main）
+    cmd = [
+        sys.executable,  # 使用当前环境的Python解释器（替代硬编码的'python'）
+        paddlexCfg.paddlex_main,  # 使用paddlex主脚本路径（替代硬编码的'main.py'）
+        '-c', yaml_path,
+        '-o', f'Global.mode=train',
+        '-o', f'Global.output={output_dir}',
+        '-o', f'Global.dataset_dir={dataset_dir}',
+        '-o', f'Global.device={paddlexCfg.device}',
+        '-o', f'Train.epochs_iters={params.get("epochs")}',
+        '-o', f'Train.batch_size={params.get("batchSize")}',
+        '-o', f'Train.num_classes={params.get("classNum")}',
+        '-o', f'Train.learning_rate={params.get("learningRate")}',
+        '-o', f'Train.warmup_steps={params.get("warmUpSteps")}',
+        '-o', f'Train.log_interval={params.get("logInterval")}',
+        '-o', f'Train.eval_interval={params.get("trainEvalInterval")}',
+        '-o', f'Train.pretrain_weight_path="{pretrain_weight_path}"'
+    ]
+
+    # 创建训练日志目录
+    train_log_dir = os.path.join(output_dir, 'logs')
+    os.makedirs(train_log_dir, exist_ok=True)
+    train_log_path = os.path.join(train_log_dir, 'train.log')
+
+    try:
+        # 异步执行训练命令并捕获输出流
+        print(f"执行训练命令: {cmd}")
+        # 定义线程函数：运行subprocess并等待完成
+        def run_subprocess():
+            # 打开日志文件（追加模式，避免覆盖历史日志）
+            target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
+            with open(train_log_path, 'w') as log_file:
+                # 复制当前环境变量并设置PYTHONIOENCODING为utf-8，避免子程序用gbk解码
+                env = os.environ.copy()
+                env['PYTHONIOENCODING'] = target_encoding
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=log_file,  # 标准输出仍丢弃
+                    stderr=subprocess.STDOUT,  # 标准错误输出到日志文件
+                    text=True,
+                    encoding=target_encoding,  # 确保日志文件使用utf-8编码
+                    # errors='ignore',  # 忽略解码错误
+                    env=env  # 传递修改后的环境变量
+                )
+                process.wait()  # 阻塞等待子进程完成，线程自动结束
+
+        # 启动线程运行subprocess
+        threading.Thread(
+            target=run_subprocess,
+            daemon=True
+        ).start()
+        model['status'] = 'training'  # 更新模型状态为训练中
+        model['step'] = 2  # 更新步骤为提交训练
+        save_model_config(model)  # 保存模型配置
+        return jsonify({  # 返回包含日志路径的信息供前端轮询
+            'code': 200,
+            'message': '训练已启动',
+            'log_path': f'/models/{model_id}/train/log'
+        })
+
+    except Exception as e:
+        print(f"训练启动失败: {str(e)}")
+        return jsonify({'code': 500, 'message': f'训练启动失败: {str(e)}'})
+
+@model_bp.route('/models/<model_id>/train/log', methods=['GET'])
+def get_train_log(model_id):
+    """获取训练实时日志接口"""
+    # 检查模型是否存在
+    model = next((m for m in models if m.get('id') == model_id), None)
+    if not model:
+        return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+    
+    # 构建日志路径
+    output_dir = os.path.join(models_root, model_id, 'train')
+    train_log_path = os.path.join(output_dir, 'logs','train.log')
+    
+    # 读取日志内容（最多返回最后1000行防止内存溢出）
+    try:
+        # 动态判断编码：Windows使用gbk，其他系统使用utf-8
+        target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
+        with open(train_log_path, 'r', encoding=target_encoding) as f:
+            lines = f.readlines()
+            # 取最后1000行保证实时性
+            log_content = ''.join(lines[-1000:]) if len(lines) > 1000 else ''.join(lines)
+        return jsonify({'code': 200, 'data': log_content})
+    except FileNotFoundError:
+        return jsonify({'code': 404, 'message': '日志文件未生成或训练未启动'}), 404
+
 @model_bp.route('/models/<model_id>/copyds', methods=['POST'])
 def copydataset(model_id):
     check_data = request.get_json()
@@ -233,3 +381,4 @@ def copyCOCODetDataset(dataset_path,model_path):
              {"src":os.path.join(annotations_path,'instance_val.json'),"dst":model_annotations_path},
              {"src":os.path.join(dataset_path, 'images'),"dst":images_path}]
     copy_files(files)
+
