@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="currentModel.status === 'training' || currentModel.status === 'finished'">
+        <div v-if="currentModel.status !== 'config'">
             <el-scrollbar ref="logScrollbar" style="height: calc(100vh - 300px); width: 100%; padding: 20px 0;">
                 <pre ref="logPre" style="white-space: pre; word-wrap: normal ; padding: 15px; margin: 0;"><code>{{ trainLog }}</code></pre>
             </el-scrollbar>
@@ -184,6 +184,7 @@ export default {
             case 'config':
                 this.loadDatasets();
                 break;
+            case 'queued':
             case 'training':
                 this.startLogPolling();
                 break;

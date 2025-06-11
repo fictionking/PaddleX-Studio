@@ -27,8 +27,8 @@
                             <p class="listcard updatetime" v-text="model.update_time"></p>
                             <div class="model-status">
                                 <el-tag
-                                    :type="model.status === 'finished' ? 'success' : model.status === 'training' ? 'primary' : 'info'"
-                                    v-text="model.status === 'finished' ? '运行完成' : model.status === 'training' ? '训练中' : model.status === 'config' ? '配置中' : '未知'">
+                                    :type="model.status === 'finished' ? 'success' : (model.status === 'training' || model.status === 'queued') ? 'primary' : 'info'"
+                                    v-text="model.status === 'finished' ? '运行完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
                                 </el-tag>
                             </div>
                             <div class="listcard actions">
