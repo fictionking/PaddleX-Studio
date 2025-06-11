@@ -157,6 +157,10 @@
                     @click="() => $router.push('/dataset')"><el-icon class="icon">
                         <ICO_Menu />
                     </el-icon>数据</el-button>
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/app') }" @click=""><el-icon
+                        class="icon">
+                        <ICO_Platform />
+                    </el-icon>应用</el-button>
             </el-header>
             <el-main>
                 <router-view></router-view>
@@ -167,7 +171,7 @@
         const { createApp, defineAsyncComponent } = Vue
         const { createRouter, createWebHashHistory } = VueRouter
         const { ElMessage, ElIcon, Document, Folder, ElCard, ElForm } = ElementPlus
-        
+
         // 定义路由
         const router = createRouter({
             history: createWebHashHistory(),
@@ -184,7 +188,8 @@
                 ElIcon, Document, Folder, ElCard, ElForm,
                 'ico_helpfilled': ElementPlusIconsVue.HelpFilled,
                 'ico_menu': ElementPlusIconsVue.Menu,
-                'ico_delete': ElementPlusIconsVue.Delete
+                'ico_delete': ElementPlusIconsVue.Delete,
+                'ico_platform': ElementPlusIconsVue.Platform
             }
         })
         app.use(ElementPlus)

@@ -2,7 +2,7 @@
     <div>
         <div v-if="currentModel.status === 'training' || currentModel.status === 'finished'">
             <el-scrollbar ref="logScrollbar" style="height: calc(100vh - 300px); width: 100%; padding: 20px 0;">
-                <pre ref="logPre" style="white-space: pre-wrap; word-wrap: break-word; padding: 15px; margin: 0;">{{ trainLog }}</pre>
+                <pre ref="logPre" style="white-space: pre; word-wrap: normal ; padding: 15px; margin: 0;"><code>{{ trainLog }}</code></pre>
             </el-scrollbar>
         </div>
         <div v-if="currentModel.status === 'config'">

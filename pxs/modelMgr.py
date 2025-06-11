@@ -287,7 +287,7 @@ def train(model_id):
         def run_subprocess(modelid,command,log_path):
             # 打开日志文件（追加模式，避免覆盖历史日志）
             target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
-            with open(log_path, 'w') as log_file:
+            with open(log_path, 'w', encoding=target_encoding) as log_file:
                 # 复制当前环境变量并设置PYTHONIOENCODING为utf-8，避免子程序用gbk解码
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = target_encoding
@@ -301,6 +301,7 @@ def train(model_id):
                     env=env  # 传递修改后的环境变量
                 )
                 process.wait()  # 阻塞等待子进程完成，线程自动结束
+                log_file.write(f"训练已结束，返回码: {process.returncode}\n")
             # 训练完成后更新模型状态
             model = next((m for m in models if m.get('id') == modelid), None)
             if model:

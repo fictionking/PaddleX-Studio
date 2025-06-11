@@ -33,6 +33,11 @@ def send_assets(filename):
     filepath = os.path.join('templates', 'assets')
     return send_from_directory(filepath,filename)
 
+@app.route('/libs/<path:filename>')
+def send_libs(filename):
+    filepath = os.path.join('templates', 'libs')
+    return send_from_directory(filepath,filename)
+
 @app.route('/modules.json')
 def get_modules():
     """返回modules.json文件内容"""
