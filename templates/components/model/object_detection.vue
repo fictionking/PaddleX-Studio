@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="currentModel.status === 'training'">
+        <div v-if="currentModel.status === 'training' || currentModel.status === 'finished'">
             <el-scrollbar ref="logScrollbar" style="height: calc(100vh - 300px); width: 100%; padding: 20px 0;">
                 <pre ref="logPre" style="white-space: pre-wrap; word-wrap: break-word; padding: 15px; margin: 0;">{{ trainLog }}</pre>
             </el-scrollbar>
@@ -180,10 +180,16 @@ export default {
     },
     mounted() {
         // 如果当前模型是训练状态，启动日志轮询
-        if (this.currentModel.status === 'training') {
-            this.startLogPolling();
-        } else {
-            this.loadDatasets();
+        switch (this.currentModel.status) {
+            case 'config':
+                this.loadDatasets();
+                break;
+            case 'training':
+                this.startLogPolling();
+                break;
+            case 'finished':
+                this.fetchTrainLog();
+                break;
         }
     },
     beforeUnmount() {

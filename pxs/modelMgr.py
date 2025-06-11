@@ -284,15 +284,15 @@ def train(model_id):
         # 异步执行训练命令并捕获输出流
         print(f"执行训练命令: {cmd}")
         # 定义线程函数：运行subprocess并等待完成
-        def run_subprocess():
+        def run_subprocess(modelid,command,log_path):
             # 打开日志文件（追加模式，避免覆盖历史日志）
             target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
-            with open(train_log_path, 'w') as log_file:
+            with open(log_path, 'w') as log_file:
                 # 复制当前环境变量并设置PYTHONIOENCODING为utf-8，避免子程序用gbk解码
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = target_encoding
                 process = subprocess.Popen(
-                    cmd,
+                    command,
                     stdout=log_file,  # 标准输出仍丢弃
                     stderr=subprocess.STDOUT,  # 标准错误输出到日志文件
                     text=True,
@@ -301,10 +301,18 @@ def train(model_id):
                     env=env  # 传递修改后的环境变量
                 )
                 process.wait()  # 阻塞等待子进程完成，线程自动结束
+            # 训练完成后更新模型状态
+            model = next((m for m in models if m.get('id') == modelid), None)
+            if model:
+                model['status'] = 'finished'  # 更新模型状态为完成
+                model['step'] = 0  # 更新步骤为数据准备
+                save_model_config(model)  # 保存模型配置
+                print(f"模型 {modelid} 训练完成")
 
         # 启动线程运行subprocess
         threading.Thread(
             target=run_subprocess,
+            args=(model_id,cmd,train_log_path),
             daemon=True
         ).start()
         model['status'] = 'training'  # 更新模型状态为训练中
@@ -340,6 +348,8 @@ def get_train_log(model_id):
             lines = f.readlines()
             # 取最后1000行保证实时性
             log_content = ''.join(lines[-1000:]) if len(lines) > 1000 else ''.join(lines)
+        if log_content=='':
+            log_content = '正在启动训练...'
         return jsonify({'code': 200, 'data': log_content})
     except FileNotFoundError:
         return jsonify({'code': 404, 'message': '日志文件未生成或训练未启动'}), 404
