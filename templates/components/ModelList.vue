@@ -28,7 +28,7 @@
                             <div class="model-status">
                                 <el-tag round
                                     :type="model.status === 'aborted' ? 'danger' :model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
-                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '运行完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
+                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '训练完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
                                 </el-tag>
                             </div>
                             <div class="listcard actions">
