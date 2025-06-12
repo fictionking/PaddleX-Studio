@@ -2,7 +2,8 @@
     <div>
         <div v-if="currentModel.status !== 'config'">
             <el-scrollbar ref="logScrollbar" style="height: calc(100vh - 300px); width: 100%; padding: 20px 0;">
-                <pre ref="logPre" style="white-space: pre; word-wrap: normal ; padding: 15px; margin: 0;"><code>{{ trainLog }}</code></pre>
+                <pre ref="logPre"
+                    style="white-space: pre; word-wrap: normal ; padding: 15px; margin: 0;"><code>{{ trainLog }}</code></pre>
             </el-scrollbar>
         </div>
         <div v-if="currentModel.status === 'config'">
@@ -134,15 +135,24 @@
                                 </el-form-item>
                             </el-collapse-item>
                         </el-collapse>
-
                     </el-form>
                 </div>
+                <!-- 提交训练 -->
+                <div v-if="currentModel.step === 2" style="align-items: center;text-align: center;">
+                    <h4>选择训练运行位置</h4>
+                    <el-radio-group v-model="runLocation">
+                        <el-radio label="local">本地</el-radio>
+                        <el-radio label="dock">Dock(暂未实现)</el-radio>
+                    </el-radio-group>
+                </div>
             </div>
-            <div class="step-footer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);">
-                <el-button type="primary" @click="handleModelCfgNext" :disabled="processing">{{ currentModel.step === 2
-                    ?
-                    '提交训练' : '下一步' }}</el-button>
-            </div>
+        </div>
+        <div class="step-footer" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);">
+            <el-button type="primary" @click="handleModelCfgNext" :disabled="processing">{{
+                currentModel.status === 'config' ? (currentModel.step === 2 ? '提交训练' : '下一步') : currentModel.status ===
+                    'finished' || currentModel.status ===
+                    'aborted' ? '重新训练' : '中断训练'
+            }}</el-button>
         </div>
     </div>
 </template>
@@ -175,7 +185,8 @@ export default {
                 logInterval: 10,
                 trainEvalInterval: 1
             },
-            trainLog: ''  // 训练日志内容
+            trainLog: '',  // 训练日志内容
+            runLocation: 'local'  // 训练运行位置默认值（local/dock）
         }
     },
     mounted() {
@@ -189,6 +200,7 @@ export default {
                 this.startLogPolling();
                 break;
             case 'finished':
+            case 'aborted':
                 this.fetchTrainLog();
                 break;
         }
@@ -231,6 +243,7 @@ export default {
                 .then(res => {
                     if (res.data.code === 200) {
                         this.trainLog = res.data.data;  // 更新日志内容
+                        this.currentModel.status = res.data.status;  // 更新模型状态
                     }
                 })
                 .catch(err => {
@@ -308,20 +321,36 @@ export default {
 
         },
         async handleModelCfgNext() {
-            switch (this.currentModel.step) {
-                case 0:
-                    if (this.checkPass) {
-                        this.currentModel.step = 1;
-                    } else {
-                        this.$message.error('请选择数据集并通过检查');
+            switch (this.currentModel.status) {
+                case 'config':
+                    switch (this.currentModel.step) {
+                        case 0:
+                            if (this.checkPass) {
+                                this.currentModel.step = 1;
+                            } else {
+                                this.$message.error('请选择数据集并通过检查');
+                            }
+                            break;
+                        case 1:
+                            this.currentModel.step = 2;
+                            break;
+                        case 2:
+                            try {
+                                const response = await axios.post(`/models/${this.currentModel.id}/train`, this.training);
+                                if (response.data.code === 200) {
+                                    window.location.reload(); // 强制刷新当前页面
+                                } else {
+                                    this.$message.error(response.data.message);
+                                }
+                            } catch (error) {
+                                this.$message.error('网络请求失败：' + error.message);
+                            }
                     }
                     break;
-                case 1:
-                    this.currentModel.step = 2;
-                    break;
-                case 2:
+                case 'queued':
+                case 'training':
                     try {
-                        const response = await axios.post(`/models/${this.currentModel.id}/train`, this.training);
+                        const response = await axios.get(`/models/${this.currentModel.id}/train/stop`);
                         if (response.data.code === 200) {
                             window.location.reload(); // 强制刷新当前页面
                         } else {
@@ -330,7 +359,22 @@ export default {
                     } catch (error) {
                         this.$message.error('网络请求失败：' + error.message);
                     }
+                    break;
+                case 'finished':
+                case 'aborted':
+                    try {
+                        const response = await axios.get(`/models/${this.currentModel.id}/config/1`);
+                        if (response.data.code === 200) {
+                            window.location.reload(); // 强制刷新当前页面
+                        } else {
+                            this.$message.error(response.data.message);
+                        }
+                    } catch (error) {
+                        this.$message.error('网络请求失败：' + error.message);
+                    }
+                    break;
             }
+
         }
     }
 }

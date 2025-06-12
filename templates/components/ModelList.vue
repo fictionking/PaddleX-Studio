@@ -26,9 +26,9 @@
                         <div class="listcard right-section">
                             <p class="listcard updatetime" v-text="model.update_time"></p>
                             <div class="model-status">
-                                <el-tag
-                                    :type="model.status === 'finished' ? 'success' : (model.status === 'training' || model.status === 'queued') ? 'primary' : 'info'"
-                                    v-text="model.status === 'finished' ? '运行完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
+                                <el-tag round
+                                    :type="model.status === 'aborted' ? 'danger' :model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
+                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '运行完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
                                 </el-tag>
                             </div>
                             <div class="listcard actions">
@@ -44,7 +44,6 @@
     <component :is="configComponent" v-model="dialogVisible" :models="models" @close="handleClose">
     </component>
 </template>
-
 <script type="module">
 
 export default {
@@ -55,7 +54,7 @@ export default {
         }
     },
     mounted() {
-        this.loadModels();  // 组件挂载后加载模型数据
+        this.autofresh();  // 自动刷新模型数据
     },
     computed: {
         configComponent() {
@@ -64,7 +63,16 @@ export default {
         }
     },
     methods: {
+        autofresh() {
+            this.logPollingTimer = setInterval(() => {
+                this.loadModels();
+            }, 10000);
+            this.loadModels();
+        },
         loadModels() {
+            if (this.dialogVisible) {
+                return;
+            }
             // 调用API获取模型数据（使用axios）
             axios.get('/models')
                 .then(response => {

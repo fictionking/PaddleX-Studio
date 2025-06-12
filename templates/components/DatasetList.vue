@@ -6,24 +6,23 @@
         </div>
         <el-row :gutter="20">
             <el-col :span="24">
-                <el-card class="list-card" v-for="(dataset, index) in datasets" :key="index" style="margin-bottom: 20px;">
+                <el-card class="list-card" v-for="(dataset, index) in datasets" :key="index">
                     <div class="listcard content">
                         <!-- 左侧内容 -->
                         <div class="listcard left-section">
                             <div class="listcard base">
                                 <h3 class="listcard base h3" v-text="dataset.name"></h3>
                                 <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="dataset.type"></el-tag>
-                                <!-- 对应model.pretrained，使用dataset.type字段 -->
                             </div>
                             <p class="listcard desc" v-text="dataset.description"></p>
                             <div class="listcard category">
-                                <el-tag type="success" v-text="dataset.category"></el-tag> <!-- 保留原category标签 -->
-                                <el-tag type="success" v-text="dataset.module_name"></el-tag> <!-- 新增module_name标签 -->
+                                <el-tag type="success" v-text="dataset.category"></el-tag> 
+                                <el-tag type="success" v-text="dataset.module_name"></el-tag> 
                             </div>
                         </div>
                         <!-- 右侧内容 -->
                         <div class="listcard right-section">
-                            <p class="listcard updatetime" v-text="dataset.update_time"></p> <!-- 示例使用module_id作为右侧信息 -->
+                            <p class="listcard updatetime" v-text="dataset.update_time"></p> 
                             <div class="listcard actions">
                                 <el-button type="text" size="small">删除</el-button>
                             </div>
@@ -36,7 +35,6 @@
 </template>
 
 <script type="module">
-import axios from 'axios'
 
 export default {
     data() {

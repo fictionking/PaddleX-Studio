@@ -40,7 +40,6 @@
         </div>
       </div>
     </el-form>
-
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="handleModelSave">保存</el-button>
     </div>

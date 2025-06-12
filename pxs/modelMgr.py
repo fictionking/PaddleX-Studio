@@ -24,7 +24,7 @@ modules = []
 models = {}
 models_root = os.path.join(os.getcwd(),'models')
 models_config_path = os.path.join(models_root, 'models_config.json')
-
+abort_model_id = None
 
 def init():
     """初始化模型管理模块"""
@@ -69,13 +69,14 @@ def resetModelsStatus():
 
 # 定义任务处理函数
 def process_tasks():
-    global task_queue, is_training, lock
+    global task_queue,lock, abort_model_id
     while True:
         time.sleep(1)  # 队列空时等待1秒，避免频繁检查
         with lock:
             if task_queue.empty():
                 continue
             model_id, cmd, train_log_path = task_queue.get()
+        abort_model_id = None
         run_subprocess(model_id,cmd,train_log_path)
 
 # 定义线程函数：运行subprocess并等待完成
@@ -100,12 +101,37 @@ def run_subprocess(modelid,command,log_path):
             # errors='ignore',  # 忽略解码错误
             env=env  # 传递修改后的环境变量
         )
-        process.wait()  # 阻塞等待子进程完成，线程自动结束
-        log_file.write(f"训练已结束，返回码: {process.returncode}\n")
-    # 训练完成后更新模型状态
-    model['status'] = 'finished'  # 更新模型状态为完成
-    save_model_config(model)  # 保存模型配置
-    print(f"模型 {modelid} 训练完成")
+        # 循环检查进程状态和中止信号（每0.5秒检查一次）
+        while True:
+            # 检查子进程是否已结束
+            if process.poll() is not None:
+                log_file.write(f"训练结束，返回码: {process.returncode}\n")
+                # 训练完成后更新模型状态
+                model['status'] = 'finished'  # 更新模型状态为完成
+                save_model_config(model)  # 保存模型配置
+                print(f"模型 {modelid} 训练完成")
+                break
+            # 检查是否收到中止指令（假设abort_model_id是全局共享的中止标记）
+            if abort_model_id == modelid:
+                # 根据操作系统类型选择终止方式
+                if sys.platform == 'win32':
+                    # Windows: 使用taskkill终止主进程及所有子进程
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], check=False)
+                else:
+                    # Linux: 使用killpg终止进程组（包含所有子进程）
+                    try:
+                        pgid = os.getpgid(process.pid)  # 获取进程组ID
+                        os.killpg(pgid, os.SIGTERM)     # 发送终止信号
+                    except OSError:
+                        pass  # 进程可能已终止
+                process.wait()  # 等待进程完全终止
+                log_file.write("训练已被中止\n")
+                model['status'] = 'aborted'  # 更新状态为中止
+                save_model_config(model)
+                break
+            time.sleep(0.5)  # 短暂休眠减少CPU占用
+        
+    
         
 def load_or_create_models_config():
     """加载或创建模型配置文件，并返回以model id为键的字典"""
@@ -171,20 +197,16 @@ def delete_model(model_id):
     global models
     # 查找要删除的模型索引
     delete_index = None
-    for i, model in enumerate(models):
-        if model.get('id') == model_id:
-            delete_index = i
-            break
-
-    if delete_index is None:
-        return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+    model=models.get(model_id)
+    if model==None:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
 
     # 删除模型
     model_dir = os.path.join(models_root, model_id)
     if os.path.exists(model_dir):
         shutil.rmtree(model_dir)  # 删除模型目录及其内容
         print(f"已删除模型目录: {model_dir}")
-    del models[delete_index]
+    models.pop(model_id, None)  # 从模型字典中删除
     # 保存更新后的模型列表
     save_model_config(None)  # 传入None触发全量保存
     return jsonify({'code': 200, 'message': '模型删除成功'})
@@ -375,9 +397,53 @@ def get_train_log(model_id):
             log_content = ''.join(lines[-1000:]) if len(lines) > 1000 else ''.join(lines)
         if log_content=='':
             log_content = '正在启动训练...'
-        return jsonify({'code': 200, 'data': log_content})
+        return jsonify({'code': 200, 'status':model['status'],'data': log_content})
     except FileNotFoundError:
         return jsonify({'code': 404, 'message': '日志文件未生成或训练未启动'}), 404
+
+@model_bp.route('/models/<model_id>/train/stop', methods=['GET'])
+def stop_train(model_id):
+    """停止训练接口"""
+    # 检查模型是否存在
+    model = models[model_id]
+    if not model:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
+    if model['status'] == 'queued':
+        # 从队列中删除任务（保留其他任务）
+        with lock:
+            # 取出所有任务到临时列表
+            temp_tasks = []
+            while not task_queue.empty():
+                temp_tasks.append(task_queue.get())
+            # 过滤目标任务并重新入队其他任务
+            for task in temp_tasks:
+                if task[0] == model_id:
+                    print(f"已从队列中删除模型 {model_id} 的训练任务")
+                else:
+                    task_queue.put(task)
+        model['status'] = 'config'
+        save_model_config(model)  # 保存模型配置
+        return jsonify({'code': 200,'message': '训练任务已停止'}), 200
+    elif model['status'] == 'training':
+        global abort_model_id
+        with lock:
+            abort_model_id = model_id
+        return jsonify({'code': 200,'message': '训练已停止'}), 200
+    else:
+        return jsonify({'code': 400,'message': '当前训练状态无法停止'}), 400
+
+@model_bp.route('/models/<model_id>/<status>/<step>', methods=['GET'])
+def setStatus(model_id,status,step):
+    model = models[model_id]
+    if not model:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
+    try:
+        model['status'] = status
+        model['step'] = int(step)
+        save_model_config(model)  # 保存模型配置
+        return jsonify({'code': 200,'message': '模型状态已更新'})
+    except ValueError:
+        return jsonify({'code': 400,'message': '无效的状态值'}), 400
 
 @model_bp.route('/models/<model_id>/copyds', methods=['POST'])
 def copydataset(model_id):
