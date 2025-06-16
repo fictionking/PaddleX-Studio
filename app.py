@@ -12,6 +12,10 @@ app.register_blueprint(model_bp)
 from pxs.datasetMgr import dataset_bp,init as datasetMgr_init
 app.register_blueprint(dataset_bp)
 
+from pxs.doc import doc_bp,init as doc_init
+app.register_blueprint(doc_bp)
+
+
 @app.route('/')
 def index():
     """首页路由，返回平台介绍信息"""
@@ -62,4 +66,5 @@ if __name__ == '__main__':
     create_directories()
     modelMgr_init()
     datasetMgr_init()
+    doc_init()
     app.run(host='0.0.0.0', port=5000,debug=True)

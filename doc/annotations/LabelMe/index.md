@@ -18,7 +18,7 @@ pip install labelme
 * 创建数据集根目录，如 `hemlet`。
 * 在 `hemlet` 中创建 `images` 目录（必须为`images`目录），并将待标注图片存储在 `images` 目录下，如下图所示：
 
-<img src="https://raw.githubusercontent.com/cuicheng01/PaddleX_doc_images/main/images/data_prepare/obeject_detection/01.png">
+<img src="LabelMe/01.png">
 * 在 `hemlet` 文件夹中创建待标注数据集的类别标签文件 `label.txt`，并在 `label.txt` 中按行写入待标注数据集的类别。安全帽检测数据集的`label.txt`为例，如下图所示：
 
 <img src="https://raw.githubusercontent.com/cuicheng01/PaddleX_doc_images/main/images/data_prepare/obeject_detection/02.png">

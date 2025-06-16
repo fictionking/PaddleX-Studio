@@ -15,9 +15,12 @@
       style="margin-bottom: 20px; padding: 20px; border: 1px dashed #ccc; border-radius: 4px;">
       <el-upload class="upload-demo" drag action="" :http-request="handleUpload" :before-upload="beforeUpload"
         :on-success="uploadSuccess" :on-error="uploadError" multiple>
-        <i class="el-icon-upload"></i>
-        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-        <div class="el-upload__tip" slot="tip">支持多文件上传，压缩文件将自动解压</div>
+        <div class="el-upload__text" style="margin-bottom: 20px;">
+          <el-icon>
+            <UploadFilled />
+          </el-icon>将文件拖到此处，或<em>点击上传</em>，支持多文件上传，压缩文件将自动解压
+        </div>
+        <el-button type="success" plain round style="font-weight:bold;" @click.stop="showDoc">点此查看数据集说明</el-button>
       </el-upload>
     </div>
 
@@ -38,8 +41,12 @@
           :style="{ position: 'absolute', top: contextMenuPosition.top + 'px', left: contextMenuPosition.left + 'px', zIndex: 1000, boxShadow: '0 2px 12px rgba(0, 0, 0, 0.1)' }">
           <el-menu @select="handleContextMenuSelect" background-color="#fff" text-color="#333"
             active-text-color="#409EFF" :default-active="''" style="--el-menu-item-height: 32px;">
-            <el-menu-item index="createDir"><el-icon><FolderAdd /></el-icon>创建目录</el-menu-item>
-            <el-menu-item index="delete"><el-icon><Delete /></el-icon>删除</el-menu-item>
+            <el-menu-item index="createDir"><el-icon>
+                <FolderAdd />
+              </el-icon>创建目录</el-menu-item>
+            <el-menu-item index="delete"><el-icon>
+                <Delete />
+              </el-icon>删除</el-menu-item>
           </el-menu>
         </div>
       </div>
@@ -133,7 +140,9 @@ export default {
   components: {
     Download: ElementPlusIconsVue.Download,
     Delete: ElementPlusIconsVue.Delete,
-    FolderAdd: ElementPlusIconsVue.FolderAdd
+    FolderAdd: ElementPlusIconsVue.FolderAdd,
+    UploadFilled: ElementPlusIconsVue.UploadFilled,
+    QuestionFilled: ElementPlusIconsVue.QuestionFilled
   },
   async created() {
     try {
@@ -388,7 +397,7 @@ export default {
       if (this.selectedNodes.length === 0) return;
 
       const paths = this.selectedNodes.map(node => node.path);
-      
+
       axios.delete(`/datasets/${this.currentDataset.id}/files/delete`, {
         data: { paths }
       })
@@ -411,11 +420,8 @@ export default {
       window.open(`/datasets/${this.currentDataset.id}/files/dl/${encodeURIComponent(this.selectedFile.path)}`, '_blank');
     },
 
-    /**
-     * 返回数据集列表
-     */
-    goBack() {
-      this.$router.push('/datasets');
+    showDoc() {
+      window.open(`/docs/annotations/${this.currentDataset.type}`, '_blank');
     }
   }
 }
