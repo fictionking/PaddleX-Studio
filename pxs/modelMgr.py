@@ -57,15 +57,19 @@ def init():
     threading.Thread(target=check_modification, daemon=True).start()
 
 def resetModelsStatus():
+    changed=False
     for model in models.values():
         match model['status']:
             case 'queued':
                 model['status'] = 'config'
+                changed = True
             case 'training':
                 model['status'] = 'config'
+                changed = True
             case _:
                 pass
-    save_model_config()
+    if changed:
+        save_model_config()
 
 # 定义任务处理函数
 def process_tasks():
@@ -177,40 +181,29 @@ def save_model_config(new_model=None):
         # 始终保存为数组格式
         json.dump(models_list, f, ensure_ascii=False, indent=4)
 
-@model_bp.route('/models/<modelId>', methods=['GET'])
-def get_model_detail(modelId):
+@model_bp.route('/models/<modelId>', methods=['GET','DELETE'])
+def handle_model(modelId):
     model=models.get(modelId)
-    if model:
+    if not model:
+        # 未找到模型返回404
+        return jsonify({'message': '未找到指定模型'}), 404
+    if request.method == 'GET':
         return jsonify(model)
-    # 未找到模型返回404
-    return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+    elif request.method == 'DELETE':
+        # 删除模型
+        model_dir = os.path.join(models_root, modelId)
+        if os.path.exists(model_dir):
+            shutil.rmtree(model_dir)  # 删除模型目录及其内容
+            print(f"已删除模型目录: {model_dir}")
+        models.pop(modelId, None)  # 从模型字典中删除
+        # 保存更新后的模型列表
+        save_model_config(None)  # 传入None触发全量保存
+        return jsonify({'message': '模型删除成功'}),204
+    
 
 @model_bp.route('/models')
 def get_models():
     return jsonify(list(models.values()))  # 返回JSON格式的模型数据
-
-@model_bp.route('/models/<model_id>/delete', methods=['GET'])
-def delete_model(model_id):
-    if not model_id:
-        return jsonify({'code': 400, 'message': '缺少模型ID参数'}), 400
-
-    global models
-    # 查找要删除的模型索引
-    delete_index = None
-    model=models.get(model_id)
-    if model==None:
-        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
-
-    # 删除模型
-    model_dir = os.path.join(models_root, model_id)
-    if os.path.exists(model_dir):
-        shutil.rmtree(model_dir)  # 删除模型目录及其内容
-        print(f"已删除模型目录: {model_dir}")
-    models.pop(model_id, None)  # 从模型字典中删除
-    # 保存更新后的模型列表
-    save_model_config(None)  # 传入None触发全量保存
-    return jsonify({'code': 200, 'message': '模型删除成功'})
-
 
 @model_bp.route('/models/new', methods=['POST'])
 def new_model():

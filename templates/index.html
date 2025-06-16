@@ -179,7 +179,8 @@
                 { path: '/', redirect: '/model' },
                 { path: '/model', component: () => import('/components/ModelList.vue') },
                 { path: '/dataset', component: () => import('/components/DatasetList.vue') },
-                { path: '/model/detail/:modelId', component: () => import('/components/ModelDetail.vue') }
+                { path: '/dataset/:datasetId', component: () => import('/components/DatasetDetail.vue') },
+                { path: '/model/:modelId', component: () => import('/components/ModelDetail.vue') }
             ]
         })
         // 确保app在引用前初始化

@@ -7,7 +7,7 @@
 
         <el-row :gutter="20">
             <el-col :span="24">
-                <el-card class="list-card" v-for="(model, index) in models" :key="index" @click="modelTrain(model.id)">
+                <el-card class="list-card" v-for="(model, index) in models" :key="index" @click="$router.push('/model/'+model.id)">
                     <div class="listcard content">
                         <!-- 左侧内容 -->
                         <div class="listcard left-section">
@@ -56,6 +56,13 @@ export default {
     mounted() {
         this.autofresh();  // 自动刷新模型数据
     },
+    beforeUnmount() {
+        // 组件卸载时清除定时器
+        if (this.modelsPollingTimer) {
+            clearInterval(this.modelsPollingTimer);
+            this.modelsPollingTimer = null;
+        }
+    },
     computed: {
         configComponent() {
             const { defineAsyncComponent } = Vue
@@ -64,7 +71,7 @@ export default {
     },
     methods: {
         autofresh() {
-            this.logPollingTimer = setInterval(() => {
+            this.modelsPollingTimer = setInterval(() => {
                 this.loadModels();
             }, 10000);
             this.loadModels();
@@ -91,9 +98,9 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                axios.get(`/models/${modelId}/delete`)
+                axios.delete(`/models/${modelId}`)
                     .then(response => {
-                        if (response.data.code === 200) {
+                        if (response.status === 204) {
                             this.loadModels();  // 删除成功后刷新模型列表
                             this.$message.success('删除成功');
                         } else {
@@ -107,10 +114,6 @@ export default {
             }).catch(() => {
                 this.$message.info('已取消删除');
             });
-        },
-        modelTrain(modelId) {
-            // 跳转到模型详情路由
-            this.$router.push(`/model/detail/${modelId}`);
         },
         showCreateDialog() {
             this.dialogVisible = true;
