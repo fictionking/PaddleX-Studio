@@ -29,12 +29,12 @@ pip install labelme
 
 ```bash
 cd path/to/hemlet
-labelme images --labels label.txt --nodata --autosave --output annotations
+labelme images --labels label.txt --flags flags.txt --nodata --autosave --output annotations
 ```
 
 * `images` 为待标注图片所在目录。
-* `labels` 为目标类别标签文件路径。
-* `flags` 为图像分类标签文件路径。
+* `labels` 为目标类别标签文件路径，与flags不能同时使用。用于对图片中的局部图像进行标注，常用于目标识别、图像分割等任务。
+* `flags` 为图像分类标签文件路径，与labels不能同时使用。用于对整张图片进行标注，常用用于图像分类、图像特征等任务。
 * `nodata` 停止将图像数据存储到 `JSON`文件。
 * `autosave` 自动存储。
 * `output` 标签文件存储路径。
