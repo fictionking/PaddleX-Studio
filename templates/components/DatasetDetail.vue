@@ -56,7 +56,7 @@
         style="width: 70%; height: 95%; flex: 2; border: 1px solid #e6e6e6; border-radius: 4px; padding: 10px;">
         <div v-if="selectedFile" class="preview-header"
           style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e6e6e6;">
-          <h3>{{ selectedFile.name }}</h3>
+          <h3>{{ selectedFile.name }} [{{ formatFileSize(selectedFile.size) }}]</h3>
           <div class="preview-actions">
             <el-button type="text" @click="downloadFile"><el-icon>
                 <Download />
@@ -171,6 +171,18 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    /**
+     * 格式化文件大小显示
+     * @param {Number} bytes - 文件大小(字节)
+     * @returns {String} 格式化后的大小字符串
+     */
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
     /**
      * 获取文件目录树
      */

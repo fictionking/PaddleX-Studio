@@ -1,2 +1,3 @@
 flask
-Flask-VueSFC
+markdown-it-py
+linkify-it-py

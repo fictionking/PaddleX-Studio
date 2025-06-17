@@ -1,40 +1,72 @@
 from flask import Blueprint, jsonify,send_file
 import os
-import markdown
+from markdown_it import MarkdownIt
 import mimetypes
+
 # 初始化数据集管理蓝图
 doc_bp = Blueprint('doc_bp', __name__)
 
 def init():
     return
 
-@doc_bp.route('/docs/<doctype>/<docname>')
-def renderMarkdown(doctype,docname):
-    if not docname:
-        return jsonify({'error': 'docname is required'}), 400
-    file_path = os.path.join('doc', doctype, docname+'.md')
-    if not os.path.exists(file_path):
-        return jsonify({'error': 'file not found'}), 404
-    #将markdown文件转换为html文件
-    content=''
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    # 使用markdown库将markdown转换为html
-    html = markdown.markdown(content)
-    # 返回html文件
-    return html, 200
+@doc_bp.route('/docs/styles.css')
+def serve_css():
+    """提供文档样式表CSS文件"""
+    css_path = os.path.join('doc', 'styles.css')
+    if not os.path.exists(css_path):
+        return jsonify({'error': 'CSS file not found'}), 404
+    return send_file(css_path, mimetype='text/css')
 
-@doc_bp.route('/docs/<doctype>/<docname>/<path:file_path>')  # 数据集接口
-def getAttatch(doctype,docname,file_path):
-    if not file_path:
-        return jsonify({'error': 'file_path is required'}), 400
-    file_path = os.path.join('doc',doctype, file_path)
-    if not os.path.exists(file_path):
+@doc_bp.route('/docs/<doctype>/<docname>/')
+@doc_bp.route('/docs/<doctype>/<docname>/<path:file_path>')
+def handle_docs(doctype, docname, file_path=None):
+    """
+    处理文档请求，根据file_path参数决定返回内容
+    - 当file_path为空时，默认读取index.md并转换为HTML
+    - 当file_path为.md文件时，转换为HTML返回
+    - 其他文件类型直接发送文件
+    """
+    # 确定文件路径
+    if file_path is None:
+        file_path = 'index.md'
+    full_path = os.path.join('doc', doctype, docname, file_path)
+    
+    # 安全检查：确保文件路径在允许范围内
+    base_dir = os.path.abspath(os.path.join('doc', doctype, docname))
+    full_path_abs = os.path.abspath(full_path)
+    if not full_path_abs.startswith(base_dir):
+        return jsonify({'error': 'Access denied: Invalid path'}), 403
+    
+    # 检查文件是否存在
+    if not os.path.exists(full_path):
         return jsonify({'error': 'file not found'}), 404
-    # 获取文件MIME类型
-    mime_type, _ = mimetypes.guess_type(full_path)
-    try:
-        return send_file(full_path, mimetype=mime_type)
-    except Exception as e:
-        return jsonify({'error': f'Failed to send file: {str(e)}'}), 500
+    
+    # 处理Markdown文件
+    if full_path.endswith('.md'):
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            md = MarkdownIt("gfm-like")
+
+            # 添加完整HTML结构和图片样式
+            html = f'''<!DOCTYPE html>
+            <html lang="zh-CN">
+            <head>
+            <title>PaddleX Studio 文档</title>
+            <link rel="stylesheet" href="/docs/styles.css">
+            </head>
+            <body>
+            <div class="doc-container">{md.render(content)}</div>
+            </body>
+            </html>'''
+            return html, 200
+        except Exception as e:
+            return jsonify({'error': f'Failed to read or convert markdown file: {str(e)}'}), 500
+    # 处理其他文件类型
+    else:
+        mime_type, _ = mimetypes.guess_type(full_path)
+        try:
+            return send_file(full_path, mimetype=mime_type)
+        except Exception as e:
+            return jsonify({'error': f'Failed to send file: {str(e)}'}), 500
 
