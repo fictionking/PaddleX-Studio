@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="">
 
 <head>
     <meta charset="UTF-8">
@@ -7,35 +7,32 @@
     <title>PaddleX Studio</title>
     <link rel="icon" href="/assets/fav.png" type="image/png">
     <style>
+        body {
+            background-color: var(--el-bg-color);
+        }
+
         #app .el-header {
             display: flex;
             align-items: center;
             padding: 0 20px;
             height: 60px;
-            border-bottom: 1px solid #ebeef5;
+            border-bottom: 1px solid var(--el-border-color);
+            background: var(--el-bg-color);
         }
 
         #app .el-header .el-button {
-            /* 未选中状态：白色背景、灰色文字、浅灰边框 */
-            background: #ffffff;
-            color: #606266;
-            border: 1px solid #dcdfe6;
+            background: var(--el-bg-color);
+            color: var(--el-text-color);
+            border: 2px solid;
+            border-color: #8e4302;
             min-width: 80px;
             margin-left: 20px;
         }
 
         #app .el-header .el-button.active {
-            /* 选中状态：蓝色背景、白色文字、蓝色边框 */
-            background: #409eff;
+            background: #c35b00;
             color: #ffffff;
-            border-color: #409eff;
-        }
-
-        #app .dialog-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 20px;
+            border-color: #c35b00;
         }
 
         .page-header {
@@ -47,7 +44,6 @@
 
         .page-header h2 {
             font-size: 20px;
-            color: #303133;
             margin: 0;
         }
 
@@ -71,6 +67,30 @@
             margin-bottom: 0;
         }
 
+        .listcard.base h3 {
+            font-size: 16px;
+            margin-right: 12px;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .listcard.category {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .listcard.desc {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .listcard.updatetime {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
         .listcard.content {
             display: flex;
             justify-content: space-between;
@@ -91,42 +111,36 @@
             margin-top: 8px;
         }
 
-        .listcard.desc {
-            color: #909399;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .listcard.base h3 {
-            font-size: 16px;
-            margin-right: 12px;
-            margin-top: 0;
-            margin-bottom: 0;
-        }
-
-        .listcard.category {
-            margin-bottom: 8px;
+        #app .dialog-footer {
             display: flex;
-            align-items: center;
+            justify-content: flex-end;
             gap: 8px;
+            margin-top: 20px;
         }
-
-        .listcard.updatetime {
-            color: #606266;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
 
         .paddlex-title {
             margin-right: 40px;
-            color: #0047b9;
             height: 40px;
         }
 
         .model-status {
             margin-bottom: 8px;
         }
+
+        #app .el-switch.themeToggle {
+            --el-switch-on-color: #313131;
+            --el-switch-off-color: #313131;
+        }
+        .el-switch.themeToggle .el-switch__core .el-switch__action {
+            color: #ffffff;
+        }
+        .el-switch.themeToggle.is-checked .el-switch__core .el-switch__action {
+            color: #ffffff;
+        }
+        .el-switch.themeToggle .el-switch__core .el-switch__action {
+            background-color: #313131;
+        }
+
     </style>
 
     <!-- 引入Vue3 -->
@@ -135,6 +149,7 @@
     <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
     <!-- 引入element-plus样式文件 -->
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.10.2/theme-chalk/dark/css-vars.css" />
     <!-- 引入element-plus组件库 -->
     <script src="https://unpkg.com/element-plus"></script>
     <!-- 引入element-plus所有图标 -->
@@ -148,19 +163,25 @@
     <div id="app">
         <el-container>
             <el-header>
-                <img class="paddlex-title" src="/assets/banner.png" alt="PaddleX Studio" />
+                <img class="paddlex-title" src="/assets/banner2.png" alt="PaddleX Studio" />
                 <el-button type="primary" :class="{ active: $route.path.startsWith('/model') }"
-                    @click="() => $router.push('/model')"><el-icon class="icon">
+                    @click="() => $router.push('/model')">
+                    <el-icon class="icon">
                         <ICO_HelpFilled />
                     </el-icon>模型</el-button>
                 <el-button type="primary" :class="{ active: $route.path.startsWith('/dataset') }"
-                    @click="() => $router.push('/dataset')"><el-icon class="icon">
+                    @click="() => $router.push('/dataset')">
+                    <el-icon class="icon">
                         <ICO_Menu />
                     </el-icon>数据</el-button>
-                <el-button type="primary" :class="{ active: $route.path.startsWith('/app') }" @click=""><el-icon
-                        class="icon">
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/app') }" @click="">
+                    <el-icon class="icon">
                         <ICO_Platform />
                     </el-icon>应用</el-button>
+                <div style="margin-left: auto;">
+                    <el-switch v-model="isDark" class="themeToggle" :active-action-icon="ico_moon"
+                        :inactive-action-icon="ico_sunny" @change="toggleTheme"></el-switch>
+                </div>
             </el-header>
             <el-main>
                 <router-view></router-view>
@@ -171,7 +192,6 @@
         const { createApp, defineAsyncComponent } = Vue
         const { createRouter, createWebHashHistory } = VueRouter
         const { ElMessage, ElIcon, Document, Folder, ElCard, ElForm } = ElementPlus
-
         // 定义路由
         const router = createRouter({
             history: createWebHashHistory(),
@@ -185,6 +205,19 @@
         })
         // 确保app在引用前初始化
         const app = createApp({
+            data() {
+                return {
+                    isDark: true
+                }
+            },
+            methods: {
+                toggleTheme() {
+                    document.documentElement.className = this.isDark ? 'dark' : '';
+                }
+            },
+            mounted() {
+                document.documentElement.className = this.isDark ? 'dark' : '';
+            },
             components: {
                 ElIcon, Document, Folder, ElCard, ElForm,
                 'ico_helpfilled': ElementPlusIconsVue.HelpFilled,
@@ -193,6 +226,8 @@
                 'ico_platform': ElementPlusIconsVue.Platform
             }
         })
+        app.config.globalProperties.ico_sunny = ElementPlusIconsVue.Sunny
+        app.config.globalProperties.ico_moon = ElementPlusIconsVue.Moon
         app.use(ElementPlus)
         app.use(router)
         app.mount('#app')

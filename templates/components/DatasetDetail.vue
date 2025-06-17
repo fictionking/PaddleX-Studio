@@ -12,7 +12,7 @@
 
     <!-- 文件上传区域 -->
     <div class="upload-section"
-      style="margin-bottom: 20px; padding: 20px; border: 1px dashed #ccc; border-radius: 4px;">
+      style="margin-bottom: 20px; padding: 20px; border: 1px dashed var(--el-border-color-light); border-radius: 4px;">
       <el-upload class="upload-demo" drag action="" :http-request="handleUpload" :before-upload="beforeUpload"
         :on-success="uploadSuccess" :on-error="uploadError" multiple>
         <div class="el-upload__text" style="margin-bottom: 20px;">
@@ -27,11 +27,11 @@
     <!-- 文件列表区域 -->
     <div class="file-manager" style="display: flex; gap: 20px; height: calc(100vh - 410px); overflow: hidden;">
       <div class="file-tree"
-        style="width: 30%; height: 95%; overflow-y: scroll; flex: 1; border: 1px solid #e6e6e6; border-radius: 4px; padding: 10px;">
+        style="width: 30%; height: 95%; overflow-y: scroll; flex: 1; border: 1px solid var(--el-border-color); border-radius: 4px; padding: 10px;">
         <el-tree accordion highlight-current :data="fileTree" :props="treeProps" :expand-on-click-node="true"
           @node-click="handleNodeClick" @node-contextmenu="handleContextMenu" ref="fileTreeRef" v-slot="{ data }">
           <span class="custom-tree-node">
-            <span :style="data.type === 'directory' ? { color: '#409EFF', fontWeight: 'bold' } : { color: '#67C23A' }">
+            <span :style="data.type === 'directory' ? { color: 'var(--el-color-primary)', fontWeight: 'bold' } : { color: 'var(--el-color-success)' }">
               {{ data.name }}
             </span>
           </span>
@@ -53,7 +53,7 @@
 
       <!-- 文件预览区域 -->
       <div class="file-preview"
-        style="width: 70%; height: 95%; flex: 2; border: 1px solid #e6e6e6; border-radius: 4px; padding: 10px;">
+        style="width: 70%; height: 95%; flex: 2; border: 1px solid var(--el-border-color); border-radius: 4px; padding: 10px;">
         <div v-if="selectedFile" class="preview-header"
           style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e6e6e6;">
           <h3>{{ selectedFile.name }} [{{ formatFileSize(selectedFile.size) }}]</h3>
@@ -67,7 +67,7 @@
           </div>
         </div>
         <div v-if="!selectedFile" class="empty-preview"
-          style="height: 100%; display: flex; justify-content: center; align-items: center; color: #999; background-color: #f9f9f9; border-radius: 4px;">
+          style="height: 100%; display: flex; justify-content: center; align-items: center; color: var(--el-text-color-placeholder); background-color: var(--el-bg-color); border-radius: 4px;">
           请选择文件进行预览
         </div>
         <div v-else class="preview-content">
@@ -76,7 +76,7 @@
               style="max-width: 100%; max-height: calc(100vh - 320px); object-fit: contain;" />
           </div>
           <div v-else-if="selectedFile.filetype === 'text'" class="text-preview"
-            style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; max-height: calc(100vh - 570px);">
+            style="background-color: var(--el-fill-color-light); padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; max-height: calc(100vh - 570px);">
             <pre>{{ previewContent }}</pre>
             <div v-if="isTruncated" class="truncated-warning" style="margin-top: 10px;">
               <el-alert title="文件内容过长，仅显示部分内容" type="warning" inline show-icon />

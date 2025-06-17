@@ -167,7 +167,7 @@ export default {
                   module_name: '',
                   pretrained: ''
                 };
-                this.$router.push(`/model/detail/${modelId}`);
+                this.$router.push(`/model/${modelId}`);
               }
             });
             // this.$refs.newModelForm.resetFields();
