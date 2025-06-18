@@ -153,6 +153,7 @@
                     'finished' || currentModel.status ===
                     'aborted' ? '重新训练' : '中断训练'
             }}</el-button>
+            <el-button  v-if="currentModel.status ==='finished'" type="primary" @click="download">下载模型</el-button>
         </div>
     </div>
 </template>
@@ -375,6 +376,10 @@ export default {
                     break;
             }
 
+        },
+        download() {
+            // 调用API获取模型文件
+            window.open(`/models/${this.currentModel.id}/download`, '_blank');
         }
     }
 }

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, send_from_directory
+from flask import Blueprint, jsonify, request, send_from_directory, send_file
 import os
 import json
 import datetime
@@ -110,8 +110,19 @@ def run_subprocess(modelid,command,log_path):
             # 检查子进程是否已结束
             if process.poll() is not None:
                 log_file.write(f"训练结束，返回码: {process.returncode}\n")
-                # 训练完成后更新模型状态
-                model['status'] = 'finished'  # 更新模型状态为完成
+                # 训练成功时自动打包模型
+                if process.returncode == 0:
+                    log_file.write(f"正在打包模型...")
+                    best_model_dir = os.path.join(models_root, modelid, 'train', 'best_model')
+                    zip_file_path = os.path.join(models_root, modelid, 'train', 'best_model.zip')
+                    try:
+                        # 打包最佳模型目录
+                        shutil.make_archive(os.path.splitext(zip_file_path)[0], 'zip', root_dir=best_model_dir)
+                        log_file.write("模型打包成功\n")
+                    except Exception as e:
+                        log_file.write(f"模型打包失败: {str(e)}\n")
+                # 更新模型状态
+                model['status'] = 'finished' if process.returncode == 0 else 'failed'
                 save_model_config(model)  # 保存模型配置
                 print(f"模型 {modelid} 训练完成")
                 break
@@ -437,6 +448,42 @@ def setStatus(model_id,status,step):
         return jsonify({'code': 200,'message': '模型状态已更新'})
     except ValueError:
         return jsonify({'code': 400,'message': '无效的状态值'}), 400
+
+@model_bp.route('/models/<model_id>/download', methods=['GET'])
+def download_model(model_id):
+    """下载训练好的最佳模型打包文件
+
+    Args:
+        model_id: 模型ID
+
+    Returns:
+        ZIP文件下载响应或错误信息
+    """
+    # 检查模型是否存在
+    model = models.get(model_id)
+    if not model:
+        return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+    
+    # 构建最佳模型目录路径
+    best_model_dir = os.path.join(models_root, model_id, 'train', 'best_model')
+    if not os.path.exists(best_model_dir):
+        return jsonify({'code': 404, 'message': '最佳模型目录不存在'}), 404
+    
+    # 构建ZIP文件路径
+    zip_base_path = os.path.join(models_root, model_id, 'train', 'best_model')
+    zip_file_path = f"{zip_base_path}.zip"
+    
+    try:
+        # 发送ZIP文件给客户端
+        return send_file(
+            zip_file_path,
+            as_attachment=True,
+            download_name=f"{model_id}_best_model.zip",
+            mimetype='application/zip'
+        )
+    except Exception as e:
+        return jsonify({'code': 500, 'message': f'模型打包失败: {str(e)}'}), 500
+
 
 @model_bp.route('/models/<model_id>/copyds', methods=['POST'])
 def copydataset(model_id):

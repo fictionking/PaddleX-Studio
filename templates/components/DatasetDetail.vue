@@ -25,7 +25,7 @@
     </div>
 
     <!-- 文件列表区域 -->
-    <div class="file-manager" style="display: flex; gap: 20px; height: calc(100vh - 410px); overflow: hidden;">
+    <div class="file-manager" style="display: flex; gap: 20px; height: calc(100vh - 450px); overflow: hidden;">
       <div class="file-tree"
         style="width: 30%; height: 95%; overflow-y: scroll; flex: 1; border: 1px solid var(--el-border-color); border-radius: 4px; padding: 10px;">
         <el-tree accordion highlight-current :data="fileTree" :props="treeProps" :expand-on-click-node="true"
@@ -76,7 +76,7 @@
               style="max-width: 100%; max-height: calc(100vh - 320px); object-fit: contain;" />
           </div>
           <div v-else-if="selectedFile.filetype === 'text'" class="text-preview"
-            style="background-color: var(--el-fill-color-light); padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; max-height: calc(100vh - 570px);">
+            style="background-color: var(--el-fill-color-light); padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; max-height: calc(100vh - 610px);">
             <pre>{{ previewContent }}</pre>
             <div v-if="isTruncated" class="truncated-warning" style="margin-top: 10px;">
               <el-alert title="文件内容过长，仅显示部分内容" type="warning" inline show-icon />
