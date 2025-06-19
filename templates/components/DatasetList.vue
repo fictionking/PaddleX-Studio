@@ -4,7 +4,7 @@
             <h2 class="page-header h2">数据集</h2>
             <el-button type="primary" plain @click="showCreateDialog">创建数据集</el-button>
         </div>
-        <el-row :gutter="20">
+        <el-row :gutter="20"  class="list-container">
             <el-col :span="24">
                 <el-card class="list-card" v-for="(dataset, index) in datasets" :key="index" @click="$router.push('/dataset/' + dataset.id)">
                     <div class="listcard content">
