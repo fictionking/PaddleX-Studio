@@ -1,39 +1,31 @@
+<img src="templates/assets/banner.png" height="70" style="display: block; margin: 0 auto;">
+
 # PaddleX Studio
 
 #### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+PaddleX Studio是PaddleX的图形化界面工具，提供直观的可视化操作界面，帮助用户更便捷地使用PaddleX进行模型训练、评估和部署。
 
 #### 软件架构
-软件架构说明
-
+PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue.js构建，后端通过Python Flask提供API服务，核心功能依赖PaddleX深度学习框架。
 
 #### 安装教程
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. 首先安装PaddleX深度学习框架，请参考官方文档：<mcurl name="PaddleX安装指南" url="https://paddlepaddle.github.io/PaddleX/latest/index.html"></mcurl>
+2. 克隆本仓库到本地：`git clone https://gitee.com/yourusername/PaddleX-Studio.git`
+3. 进入项目目录：`cd PaddleX-Studio`
+4. 安装依赖包：`pip install -r requirements.txt`
+5. 修改配置文件：编辑config.json文件，指定PaddleX的安装路径
 
 #### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. 启动应用：`python app.py`
+2. 在浏览器中访问：http://localhost:5000
+3. 首次使用需在设置中确认PaddleX路径是否正确配置
+4. 按照界面指引创建项目、导入数据并开始模型训练
 
 #### 参与贡献
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+1. Fork 本仓库
+2. 新建 Feat_xxx 分支
+3. 提交代码
+4. 新建 Pull Request
