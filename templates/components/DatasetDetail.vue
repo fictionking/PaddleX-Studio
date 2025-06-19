@@ -1,9 +1,99 @@
+<style scoped>
+.upload-section {
+  margin-bottom: 20px; 
+  padding: 20px; 
+  border: 1px dashed var(--el-border-color-light);
+  border-radius: 14px;
+}
+.dataset-detail-container {
+  padding: 20px;
+}
+
+.tag-font {
+  font-size: 14px;
+}
+.el-menu-custom {
+  --el-menu-item-height: 32px;
+}
+.file-manager {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 450px);
+  overflow: hidden;
+}
+.file-tree {
+  width: 30%;
+  height: 95%;
+  overflow-y: scroll;
+  flex: 1;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  padding: 10px;
+}
+.file-preview {
+  width: 70%;
+  height: 95%;
+  flex: 2;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  padding: 10px;
+}
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e6e6e6;
+}
+.empty-preview {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--el-text-color-placeholder);
+  background-color: var(--el-bg-color);
+  border-radius: 4px;
+}
+.image-preview {
+  text-align: center;
+}
+.image-preview img {
+  max-width: 100%;
+  max-height: calc(100vh - 320px);
+  object-fit: contain;
+}
+.text-preview {
+  background-color: var(--el-fill-color-light);
+  padding: 15px;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-y: auto;
+  max-height: calc(100vh - 610px);
+}
+.truncated-warning {
+  margin-top: 10px;
+}
+.context-menu {
+  position: absolute;
+  z-index: 1000;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+.el-upload__text-custom {
+  margin-bottom: 20px;
+}
+.btn-bold {
+  font-weight: bold;
+}
+</style>
 <template>
-  <div class="dataset-detail-container" style="padding: 20px;">
+  <div class="dataset-detail-container">
     <div class="page-header">
       <div class="page-header-info">
         <h2 class="page-header h2" v-text="currentDataset.name"></h2>
-        <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="currentDataset.type"></el-tag>
+        <el-tag type="info" effect="plain" class="tag-font" v-text="currentDataset.type"></el-tag>
         <el-tag type="success" v-text="currentDataset.category"></el-tag>
         <el-tag type="success" v-text="currentDataset.module_name"></el-tag>
       </div>
@@ -11,36 +101,36 @@
     </div>
 
     <!-- 文件上传区域 -->
-    <div class="upload-section"
-      style="margin-bottom: 20px; padding: 20px; border: 1px dashed var(--el-border-color-light); border-radius: 4px;">
+    <div class="upload-section">
       <el-upload class="upload-demo" drag action="" :http-request="handleUpload" :before-upload="beforeUpload"
         :on-success="uploadSuccess" :on-error="uploadError" multiple>
-        <div class="el-upload__text" style="margin-bottom: 20px;">
+        <div class="el-upload__text-custom">
           <el-icon>
             <UploadFilled />
           </el-icon>将文件拖到此处，或<em>点击上传</em>，支持多文件上传，压缩文件将自动解压
         </div>
-        <el-button type="success" plain round style="font-weight:bold;" @click.stop="showDoc">点此查看数据集说明</el-button>
+        <el-button type="success" plain round class="btn-bold" @click.stop="showDoc">点此查看数据集说明</el-button>
       </el-upload>
     </div>
 
     <!-- 文件列表区域 -->
-    <div class="file-manager" style="display: flex; gap: 20px; height: calc(100vh - 450px); overflow: hidden;">
+    <div class="file-manager">
       <div class="file-tree"
-        style="width: 30%; height: 95%; overflow-y: scroll; flex: 1; border: 1px solid var(--el-border-color); border-radius: 4px; padding: 10px;">
+        ref="fileTreeRef">
         <el-tree accordion highlight-current :data="fileTree" :props="treeProps" :expand-on-click-node="true"
           @node-click="handleNodeClick" @node-contextmenu="handleContextMenu" ref="fileTreeRef" v-slot="{ data }">
           <span class="custom-tree-node">
-            <span :style="data.type === 'directory' ? { color: 'var(--el-color-primary)', fontWeight: 'bold' } : { color: 'var(--el-color-success)' }">
+            <span
+              :style="data.type === 'directory' ? { color: 'var(--el-color-primary)', fontWeight: 'bold' } : { color: 'var(--el-color-success)' }">
               {{ data.name }}
             </span>
           </span>
         </el-tree>
         <!-- 右键菜单 -->
-        <div v-show="contextMenuVisible" ref="contextMenu"
-          :style="{ position: 'absolute', top: contextMenuPosition.top + 'px', left: contextMenuPosition.left + 'px', zIndex: 1000, boxShadow: '0 2px 12px rgba(0, 0, 0, 0.1)' }">
+        <div v-show="contextMenuVisible" ref="contextMenu" class="context-menu"
+          :style="{ top: contextMenuPosition.top + 'px', left: contextMenuPosition.left + 'px' }">
           <el-menu @select="handleContextMenuSelect" background-color="#fff" text-color="#333"
-            active-text-color="#409EFF" :default-active="''" style="--el-menu-item-height: 32px;">
+            active-text-color="#409EFF" :default-active="''" class="el-menu-custom">
             <el-menu-item index="createDir"><el-icon>
                 <FolderAdd />
               </el-icon>创建目录</el-menu-item>
@@ -52,10 +142,8 @@
       </div>
 
       <!-- 文件预览区域 -->
-      <div class="file-preview"
-        style="width: 70%; height: 95%; flex: 2; border: 1px solid var(--el-border-color); border-radius: 4px; padding: 10px;">
-        <div v-if="selectedFile" class="preview-header"
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e6e6e6;">
+      <div class="file-preview">
+        <div v-if="selectedFile" class="preview-header">
           <h3>{{ selectedFile.name }} [{{ formatFileSize(selectedFile.size) }}]</h3>
           <div class="preview-actions">
             <el-button type="text" @click="downloadFile"><el-icon>
@@ -66,19 +154,16 @@
               </el-icon>删除</el-button>
           </div>
         </div>
-        <div v-if="!selectedFile" class="empty-preview"
-          style="height: 100%; display: flex; justify-content: center; align-items: center; color: var(--el-text-color-placeholder); background-color: var(--el-bg-color); border-radius: 4px;">
+        <div v-if="!selectedFile" class="empty-preview">
           请选择文件进行预览
         </div>
         <div v-else class="preview-content">
-          <div v-if="selectedFile.filetype === 'image'" class="image-preview" style="text-align: center;">
-            <img :src="previewContent" alt="预览图片"
-              style="max-width: 100%; max-height: calc(100vh - 320px); object-fit: contain;" />
+          <div v-if="selectedFile.filetype === 'image'" class="image-preview">
+            <img :src="previewContent" alt="预览图片" />
           </div>
-          <div v-else-if="selectedFile.filetype === 'text'" class="text-preview"
-            style="background-color: var(--el-fill-color-light); padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; max-height: calc(100vh - 610px);">
+          <div v-else-if="selectedFile.filetype === 'text'" class="text-preview">
             <pre>{{ previewContent }}</pre>
-            <div v-if="isTruncated" class="truncated-warning" style="margin-top: 10px;">
+            <div v-if="isTruncated" class="truncated-warning">
               <el-alert title="文件内容过长，仅显示部分内容" type="warning" inline show-icon />
             </div>
           </div>

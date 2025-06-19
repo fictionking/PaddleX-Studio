@@ -5,9 +5,10 @@
             <el-button type="primary" plain @click="showCreateDialog">创建模型</el-button>
         </div>
 
-        <el-row :gutter="20">
+        <el-row :gutter="20" class="list-container">
             <el-col :span="24">
-                <el-card class="list-card" v-for="(model, index) in models" :key="index" @click="$router.push('/model/'+model.id)">
+                <el-card class="list-card" v-for="(model, index) in models" :key="index"
+                    @click="$router.push('/model/' + model.id)">
                     <div class="listcard content">
                         <!-- 左侧内容 -->
                         <div class="listcard left-section">
@@ -27,7 +28,7 @@
                             <p class="listcard updatetime" v-text="model.update_time"></p>
                             <div class="model-status">
                                 <el-tag round
-                                    :type="model.status === 'aborted' ? 'danger' :model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
+                                    :type="model.status === 'aborted' ? 'danger' : model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
                                     v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '训练完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
                                 </el-tag>
                             </div>
@@ -125,3 +126,4 @@ export default {
     }
 }
 </script>
+

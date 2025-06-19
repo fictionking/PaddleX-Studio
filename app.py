@@ -1,7 +1,7 @@
 from flask import Flask, render_template, send_from_directory, send_file
 import os
 from pxs.paddlexCfg import init as paddlexCfg_init
-from pxs.VueSFCRender import render_vue_component
+from pxs.VueSFCRender import get_cached_vue_component
 
 # 初始化Flask应用
 app = Flask(__name__, template_folder='templates')  # 明确模板目录
@@ -27,7 +27,7 @@ def send_components(filename):
     # 返回使用Vue编译后的JavaScript组件
     if filename.endswith('.vue'):
         # 直接返回render_vue_component生成的Response对象
-        return render_vue_component(path)
+        return get_cached_vue_component(path)
     else:
         # 其他文件直接返回，如CSS、图片等
         return send_from_directory('templates/components', filename)
