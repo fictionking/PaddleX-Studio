@@ -1,4 +1,4 @@
-<img src="templates/assets/banner.png" height="70">
+<img src="doc/readme/banner.png" height="70">
 
 # PaddleX Studio
 
@@ -22,6 +22,24 @@ PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue
 2. 在浏览器中访问：http://localhost:5000
 3. 首次使用需在设置中确认PaddleX路径是否正确配置
 4. 按照界面指引创建项目、导入数据并开始模型训练
+
+#### 特性
+
+* 提供图形化模型、数据、应用管理功能
+<img src="doc/readme/screen01.jpg" height="200">
+* 直接选择，查看说明，省去翻看文档
+<img src="doc/readme/screen02.jpg" height="200">
+
+* 数据检查结果可视化
+<img src="doc/readme/screen03.jpg" height="200">
+
+* 训练输出实时查看，模型打包下载
+<img src="doc/readme/screen04.jpg" height="200">
+
+* 数据集提供目录化管理，zip/tar文件自动解压导入
+<img src="doc/readme/screen05.jpg" height="200">
+
+* ...未完待续
 
 #### 参与贡献
 
