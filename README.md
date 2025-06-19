@@ -11,7 +11,7 @@ PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue
 #### 安装教程
 
 1. 首先安装PaddleX深度学习框架，请参考官方文档：[PaddleX安装指南](https://paddlepaddle.github.io/PaddleX/latest/index.html)
-2. 克隆本仓库到本地：`git clone https://gitee.com/yourusername/PaddleX-Studio.git`
+2. 克隆本仓库到本地：`git clone https://gitee.com/naza/paddlex-studio.git`
 3. 进入项目目录：`cd PaddleX-Studio`
 4. 安装依赖包：`pip install -r requirements.txt`
 5. 修改配置文件：编辑config.json文件，指定PaddleX的安装路径
