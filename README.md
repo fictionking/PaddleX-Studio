@@ -37,7 +37,7 @@ PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue
 
 <img src="doc/readme/screen03.jpg" height="200">
 
-* 训练输出实时查看，模型打包下载
+* 训练输出实时查看，模型打包下载，多个训练任务排队执行
 
 <img src="doc/readme/screen04.jpg" height="200">
 
