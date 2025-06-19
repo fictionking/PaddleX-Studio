@@ -4,9 +4,10 @@
             <h2 class="page-header h2">数据集</h2>
             <el-button type="primary" plain @click="showCreateDialog">创建数据集</el-button>
         </div>
-        <el-row :gutter="20"  class="list-container">
+        <el-row :gutter="20" class="list-container">
             <el-col :span="24">
-                <el-card class="list-card" v-for="(dataset, index) in datasets" :key="index" @click="$router.push('/dataset/' + dataset.id)">
+                <el-card class="list-card" v-for="(dataset, index) in datasets" :key="index"
+                    @click="$router.push('/dataset/' + dataset.id)">
                     <div class="listcard content">
                         <!-- 左侧内容 -->
                         <div class="listcard left-section">
@@ -40,8 +41,8 @@
                     <el-input v-model="form.name"></el-input>
                 </el-form-item>
                 <el-form-item label="唯一标识" prop="id">
-                    <el-input v-model="form.id"  placeholder="仅支持大小写字母、数字、-、_"
-                    oninput="value=value.replace(/[^a-zA-Z0-9-_]/g,'')"></el-input>
+                    <el-input v-model="form.id" placeholder="仅支持大小写字母、数字、-、_"
+                        oninput="value=value.replace(/[^a-zA-Z0-9-_]/g,'')"></el-input>
                 </el-form-item>
                 <el-form-item label="描述" prop="description">
                     <el-input type="textarea" v-model="form.description"></el-input>
@@ -141,7 +142,14 @@ export default {
         }
     },
     mounted() {
-        this.loadDatasets();  // 组件挂载后加载数据集数据
+        this.autofresh();  // 自动刷新数据集数据
+    },
+    beforeUnmount() {
+        // 组件卸载时清除定时器
+        if (this.datasetsPollingTimer) {
+            clearInterval(this.datasetsPollingTimer);
+            this.datasetsPollingTimer = null;
+        }
     },
     methods: {
         loadDatasets() {
@@ -154,6 +162,16 @@ export default {
                 .catch(error => {
                     console.error('获取数据集数据失败:', error);
                 });
+        },
+        /**
+         * 自动刷新数据集列表
+         * 设置定时器定期调用loadDatasets方法刷新数据
+         */
+        autofresh() {
+            this.datasetsPollingTimer = setInterval(() => {
+                this.loadDatasets();
+            }, 10000);
+            this.loadDatasets();
         },
         // 删除数据集
         // 显示创建对话框
