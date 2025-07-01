@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify,send_file
 import os
 from pxs.paddlexCfg import init as paddlexCfg_init
 from pxs.VueSFCRender import get_cached_vue_component
@@ -9,7 +9,7 @@ app = Flask(__name__, template_folder='templates')  # 明确模板目录
 from pxs.defineMgr import define_bp,init as defineMgr_init
 app.register_blueprint(define_bp)
 
-from pxs.modelMgr import model_bp,init as modelMgr_init
+from pxs.modelMgr import model_bp,init as modelMgr_init,get_queue_size
 app.register_blueprint(model_bp)
 
 from pxs.datasetMgr import dataset_bp,init as datasetMgr_init
@@ -22,7 +22,7 @@ app.register_blueprint(doc_bp)
 @app.route('/')
 def index():
     """首页路由，返回平台介绍信息"""
-    return render_template('index.html')  # 仅渲染模板
+    return send_file('templates/index.html')  # 仅渲染模板
 
 @app.route('/components/<path:filename>')
 def send_components(filename):
@@ -72,13 +72,14 @@ def system_usage():
         gpu_usage = 0
         vram_usage = 0
         temp_usage = 0
-    
+    queue_size = get_queue_size()
     return jsonify({
         'cpu': cpu_usage,
         'ram': ram_usage,
         'gpu': gpu_usage,
         'vram': vram_usage,
-        'temp': temp_usage
+        'temp': temp_usage,
+        'queue_size':queue_size
     })
 
 def create_directories():

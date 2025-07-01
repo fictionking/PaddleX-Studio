@@ -213,6 +213,10 @@
                 </el-button>
                 <div style="margin-left: auto;display: flex; gap: 50px; align-items: center;">
                     <div style="display: flex; gap: 16px; align-items: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-size: 9px;">Queue</span>
+                            <span style="font-size: 12px;font-weight: bold;">{{queueSize}}</span>
+                        </div>
                         <div>
                             <el-progress type="dashboard" :percentage="cpuUsage" :color="colors" :width="40"
                                 :stroke-width="3">
@@ -300,6 +304,7 @@
                     gpuUsage: 0,
                     vramUsage: 0,
                     tempUsage: 0,
+                    queueSize:0
                 }
             },
             methods: {
@@ -315,6 +320,7 @@
                             this.gpuUsage = response.data.gpu;
                             this.vramUsage = response.data.vram;
                             this.tempUsage = response.data.temp;
+                            this.queueSize = response.data.queue_size;
                         })
                         .catch(error => {
                             ElMessage.error('获取系统使用情况失败');

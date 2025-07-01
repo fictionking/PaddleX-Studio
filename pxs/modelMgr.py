@@ -17,6 +17,7 @@ from threading import Lock
 
 task_queue = queue.Queue()
 lock = Lock()
+is_training = False 
 # 初始化模型管理蓝图
 model_bp = Blueprint('model', __name__)
 
@@ -64,17 +65,29 @@ def resetModelsStatus():
     if changed:
         save_model_config()
 
+#获取队列任务数量
+def get_queue_size():
+    global task_queue,lock,is_training
+    with lock:
+        queue_size = task_queue.qsize()
+        if is_training:
+            queue_size += 1
+    return queue_size
+
 # 定义任务处理函数
 def process_tasks():
-    global task_queue,lock, abort_model_id
+    global task_queue,lock, abort_model_id,is_training
     while True:
         time.sleep(1)  # 队列空时等待1秒，避免频繁检查
         with lock:
             if task_queue.empty():
                 continue
             model_id, cmd, train_log_path = task_queue.get()
-        abort_model_id = None
+            abort_model_id = None
+            is_training = True
         run_subprocess(model_id,cmd,train_log_path)
+        with lock:
+            is_training = False
 
 # 定义线程函数：运行subprocess并等待完成
 def run_subprocess(modelid,command,log_path):
