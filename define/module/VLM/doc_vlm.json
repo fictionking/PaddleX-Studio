@@ -1,0 +1,22 @@
+{
+    "name": "文档类视觉语言模型",
+    "id": "doc_vlm",
+    "description": "文档类视觉语言模型是当前一种前沿的多模态处理技术，旨在解决传统文档处理方法的局限性。传统方法往往局限于处理特定格式或预定义类别的文档信息，而文档类视觉语言模型能够融合视觉与语言信息，理解并处理多样化的文档内容。",
+    "is_trainable": false,
+    "pretrained": [
+        {
+            "name": "PP-DocBee-2B",
+            "description": "PP-DocBee 是飞桨团队自研的一款专注于文档理解的多模态大模型，在中文文档理解任务上具有卓越表现。该模型通过近 500 万条文档理解类多模态数据集进行微调优化，各种数据集包括了通用VQA类、OCR类、图表类、text-rich文档类、数学和复杂推理类、合成数据类、纯文本数据等，并设置了不同训练数据配比。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-DocBee-2B_infer.tar",
+            "pretrained_model_url": "",
+            "model_size": "4.2 G"
+        },
+        {
+            "name": "PP-DocBee-7B",
+            "description": "PP-DocBee 是飞桨团队自研的一款专注于文档理解的多模态大模型，在中文文档理解任务上具有卓越表现。该模型通过近 500 万条文档理解类多模态数据集进行微调优化，各种数据集包括了通用VQA类、OCR类、图表类、text-rich文档类、数学和复杂推理类、合成数据类、纯文本数据等，并设置了不同训练数据配比。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-DocBee-7B_infer.tar",
+            "pretrained_model_url": "",
+            "model_size": "15.8 G"
+        }
+    ]
+}

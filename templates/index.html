@@ -11,25 +11,35 @@
             background-color: var(--el-bg-color);
         }
 
-        #app .el-header {
+        .navbar {
             display: flex;
             align-items: center;
             padding: 0 20px;
             height: 60px;
             border-bottom: 1px solid var(--el-border-color);
-            background: var(--el-bg-color);
+            background-image: radial-gradient(transparent 1px, var(--el-bg-color) 1px);
+            background-size: 4px 4px;
+            backdrop-filter: saturate(50%) blur(4px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
         }
 
-        #app .el-header .el-button {
-            background: var(--el-bg-color);
+        .navbar .el-button {
+            background: var(--el-mask-color);
             color: var(--el-text-color);
             border: 1px solid;
             border-color: #8F1838;
             min-width: 80px;
             margin-left: 20px;
+            --el-button-hover-bg-color:rgba(238, 64, 87, 0.5);
+            --el-button-hover-border-color:#EE4057;
+            --el-button-active-bg-color:#EE4057;
         }
 
-        #app .el-header .el-button.active {
+        .navbar .el-button.active {
             background: #EE4057;
             color: #ffffff;
             border-color: #EE4057;
@@ -152,10 +162,6 @@
             color: #ffd500;
             background-color: #041f47;
         }
-
-        /* .el-switch.themeToggle .el-switch__core .el-switch__action {
-            background-color: #313131;
-        } */
     </style>
 
     <!-- 引入Vue3 -->
@@ -177,28 +183,73 @@
 <body>
     <div id="app">
         <el-container>
-            <el-header>
+            <el-header class="navbar">
                 <img class="paddlex-title" src="/assets/banner2.png" alt="PaddleX Studio" />
-                <el-button type="primary" :class="{ active: $route.path.startsWith('/model') }"
-                    @click="() => $router.push('/model')">
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/module') }"
+                    @click="() => $router.push('/module')">
                     <el-icon class="icon">
                         <ICO_HelpFilled />
                     </el-icon>模型</el-button>
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/pipline') }"
+                    @click="() => $router.push('/pipline')">
+                    <el-icon class="icon">
+                        <ICO_Expand />
+                    </el-icon>产线</el-button>
                 <el-button type="primary" :class="{ active: $route.path.startsWith('/dataset') }"
                     @click="() => $router.push('/dataset')">
                     <el-icon class="icon">
                         <ICO_Menu />
                     </el-icon>数据</el-button>
-                <el-button type="primary" :class="{ active: $route.path.startsWith('/app') }" @click="">
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/model') }"
+                    @click="() => $router.push('/model')">
                     <el-icon class="icon">
+                        <ICO_TrendCharts />
+                    </el-icon>训练</el-button>
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/app') }"
+                    @click="() => $router.push('/app')">
+                    <el-icon class=" icon">
                         <ICO_Platform />
-                    </el-icon>应用</el-button>
-                <div style="margin-left: auto;">
+                    </el-icon>应用
+                </el-button>
+                <div style="margin-left: auto;display: flex; gap: 50px; align-items: center;">
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <div>
+                            <el-progress type="dashboard" :percentage="cpuUsage" :color="colors" :width="40"
+                                :stroke-width="3">
+                                <span style="display: block;font-size: 12px;margin-left: -10px;">CPU</span>
+                            </el-progress>
+                        </div>
+                        <div>
+                            <el-progress type="dashboard" :percentage="ramUsage" :color="colors" :width="40"
+                                :stroke-width="3">
+                                <span style="display: block;font-size: 12px;margin-left: -10px;">RAM</span>
+                            </el-progress>
+                        </div>
+                        <div>
+                            <el-progress type="dashboard" :percentage="gpuUsage" :color="colors" :width="40"
+                                :stroke-width="3">
+                                <span style="display: block;font-size: 12px;margin-left: -10px;">GPU</span>
+                            </el-progress>
+                        </div>
+                        <div>
+                            <el-progress type="dashboard" :percentage="vramUsage" :color="colors" :width="40"
+                                :stroke-width="3">
+                                <span style="display: block;font-size: 12px;margin-left: -10px;">VRAM</span>
+                            </el-progress>
+                        </div>
+                        <div>
+                            <el-progress type="dashboard" :percentage="tempUsage" :color="colors" :width="40"
+                                :stroke-width="3">
+                                <span style="display: block;font-size: 12px;margin-left: -10px;">℃</span>
+                            </el-progress>
+                        </div>
+                    </div>
                     <el-switch v-model="isDark" class="themeToggle" :active-action-icon="ico_moon"
                         :inactive-action-icon="ico_sunny" @change="toggleTheme"></el-switch>
                 </div>
             </el-header>
             <el-main>
+                <div style="height: 60px;"></div>
                 <router-view></router-view>
             </el-main>
         </el-container>
@@ -211,41 +262,82 @@
         const router = createRouter({
             history: createWebHashHistory(),
             routes: [
-                { path: '/', redirect: '/model' },
+                { path: '/', redirect: '/module' },
+                { path: '/module', component: () => import('/components/ModuleList.vue') },
                 { path: '/model', component: () => import('/components/ModelList.vue') },
                 { path: '/dataset', component: () => import('/components/DatasetList.vue') },
                 { path: '/dataset/:datasetId', component: () => import('/components/DatasetDetail.vue') },
                 { path: '/model/:modelId', component: () => import('/components/ModelDetail.vue') }
             ]
         })
+        const colors = [
+            { color: '#6f7ad3', percentage: 20 },
+            { color: '#1989fa', percentage: 40 },
+            { color: '#5cb87a', percentage: 60 },
+            { color: '#e6a23c', percentage: 80 },
+            { color: '#f56c6c', percentage: 100 },
+        ]
         // 确保app在引用前初始化
         const app = createApp({
             data() {
                 return {
                     isDark: localStorage.getItem('isDark') ? localStorage.getItem('isDark') === 'true' : true,
                     ico_sunny: markRaw(Vue.defineComponent({
-                        template: `<svg viewBox="0 0 24 24"><path d="M6.05 4.14l-.39-.39a.993.993 0 0 0-1.4 0l-.01.01a.984.984 0 0 0 0 1.4l.39.39c.39.39 1.01.39 1.4 0l.01-.01a.984.984 0 0 0 0-1.4zM3.01 10.5H1.99c-.55 0-.99.44-.99.99v.01c0 .55.44.99.99.99H3c.56.01 1-.43 1-.98v-.01c0-.56-.44-1-.99-1zm9-9.95H12c-.56 0-1 .44-1 .99v.96c0 .55.44.99.99.99H12c.56.01 1-.43 1-.98v-.97c0-.55-.44-.99-.99-.99zm7.74 3.21c-.39-.39-1.02-.39-1.41-.01l-.39.39a.984.984 0 0 0 0 1.4l.01.01c.39.39 1.02.39 1.4 0l.39-.39a.984.984 0 0 0 0-1.4zm-1.81 15.1l.39.39a.996.996 0 1 0 1.41-1.41l-.39-.39a.993.993 0 0 0-1.4 0c-.4.4-.4 1.02-.01 1.41zM20 11.49v.01c0 .55.44.99.99.99H22c.55 0 .99-.44.99-.99v-.01c0-.55-.44-.99-.99-.99h-1.01c-.55 0-.99.44-.99.99zM12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6s6-2.69 6-6s-2.69-6-6-6zm-.01 16.95H12c.55 0 .99-.44.99-.99v-.96c0-.55-.44-.99-.99-.99h-.01c-.55 0-.99.44-.99.99v.96c0 .55.44.99.99.99zm-7.74-3.21c.39.39 1.02.39 1.41 0l.39-.39a.993.993 0 0 0 0-1.4l-.01-.01a.996.996 0 0 0-1.41 0l-.39.39c-.38.4-.38 1.02.01 1.41z" fill="currentColor"></path></svg>`
+                        template: `<svg viewBox="0 0 24 24"><path d="M6.05 4.14l-.39-.39a.993.993 0 0 0-1.4 0l-.01.01a.984.984 0 0 0 0 1.4l.39.39c.39.39 1.01.39 1.4 0l.01-.01a.984.984 0 0 0 0-1.4zM3.01 10.5H1.99c-.55 0-.99.44-.99.99v.01c0 .55.44.99.99.99H3c.56.01 1-.43 1-.98v-.01c0-.56-.44-1-.99-1zm9-9.95H12c-.56 0-1 .44-1 .99v.96c0 .55.44.99.99.99H12c.56.01 1-.43 1-.98v-.97c0-.55-.44-.99-.99-.99zm7.74 3.21c-.39-.39-1.02-.39-1.41-.01l-.39.39a.984.984 0 0 0 0 1.4l.01.01c.39.39 1.02.39 1.4 0l.39-.39a.984.984 0 0 0 0-1.4zm-1.81 15.1l.39.39a.996.996 0 1 0 1.41-1.41l-.39-.39a.993.993 0 0 0-1.4 0c-.4.4-.4 1.02-.01 1.41zM20 11.49v.01c0 .55.44.99.99.99H22c.55 0 .99-.44.99-.99v-.01c0-.55-.44-.99-.99-.99h-1.01c-.55 0-.99.44-.99.99zM12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6s6-2.69 6-6s-2.69-6-6zm-.01 16.95H12c.55 0 .99-.44.99-.99v-.96c0-.55-.44-.99-.99-.99h-.01c-.55 0-.99.44-.99.99v.96c0 .55.44.99.99.99zm-7.74-3.21c.39.39 1.02.39 1.41 0l.39-.39a.993.993 0 0 0 0-1.4l-.01-.01a.996.996 0 0 0-1.41 0l-.39.39c-.38.4-.38 1.02.01 1.41z" fill="currentColor"></path></svg>`
                     })),
                     ico_moon: markRaw(Vue.defineComponent({
                         template: `<svg viewBox="0 0 24 24"><path d="M11.01 3.05C6.51 3.54 3 7.36 3 12a9 9 0 0 0 9 9c4.63 0 8.45-3.5 8.95-8c.09-.79-.78-1.42-1.54-.95A5.403 5.403 0 0 1 11.1 7.5c0-1.06.31-2.06.84-2.89c.45-.67-.04-1.63-.93-1.56z" fill="currentColor"></path></svg>`
-                    }))
+                    })),
+                    colors: [
+                        { color: '#6f7ad3', percentage: 20 },
+                        { color: '#1989fa', percentage: 40 },
+                        { color: '#5cb87a', percentage: 60 },
+                        { color: '#e6a23c', percentage: 80 },
+                        { color: '#f56c6c', percentage: 100 },
+                    ],
+                    cpuUsage: 0,
+                    ramUsage: 0,
+                    gpuUsage: 0,
+                    vramUsage: 0,
+                    tempUsage: 0,
                 }
             },
             methods: {
                 toggleTheme(newVal) {
                     localStorage.setItem('isDark', newVal);
                     document.documentElement.className = newVal ? 'dark' : '';
+                },
+                fetchSystemUsage() {
+                    axios.get('/system/usage')
+                        .then(response => {
+                            this.cpuUsage = response.data.cpu;
+                            this.ramUsage = response.data.ram;
+                            this.gpuUsage = response.data.gpu;
+                            this.vramUsage = response.data.vram;
+                            this.tempUsage = response.data.temp;
+                        })
+                        .catch(error => {
+                            ElMessage.error('获取系统使用情况失败');
+                            console.error(error);
+                        });
                 }
             },
             mounted() {
                 document.documentElement.className = this.isDark ? 'dark' : '';
+                this.fetchSystemUsage(); // 初始加载数据
+                this.intervalId = setInterval(this.fetchSystemUsage, 1000); // 每5秒刷新一次
+            },
+            beforeUnmount() {
+                clearInterval(this.intervalId); // 组件卸载时清除定时器
             },
             components: {
                 ElIcon, Document, Folder, ElCard, ElForm,
                 'ico_helpfilled': ElementPlusIconsVue.HelpFilled,
                 'ico_menu': ElementPlusIconsVue.Menu,
                 'ico_delete': ElementPlusIconsVue.Delete,
-                'ico_platform': ElementPlusIconsVue.Platform
+                'ico_platform': ElementPlusIconsVue.Platform,
+                'ico_trendcharts': ElementPlusIconsVue.TrendCharts,
+                'ico_expand': ElementPlusIconsVue.Expand,
             }
         })
         app.use(ElementPlus)

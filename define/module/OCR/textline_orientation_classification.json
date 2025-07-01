@@ -1,0 +1,15 @@
+{
+    "name": "文本行方向分类",
+    "id": "textline_orientation_classification",
+    "description": "文本行方向分类模块主要是将文本行的方向区分出来，并使用后处理将其矫正。在诸如文档扫描、证照拍摄等过程中，有时为了拍摄更清晰，会将拍摄设备进行旋转，导致得到的文本行也是不同方向的。此时，标准的OCR流程无法很好地应对这些数据。利用图像分类技术，可以预先判断文本行方向，并将其进行方向调整，从而提高OCR处理的准确性。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "PP-LCNet_x0_25_textline_ori",
+            "description": "基于PP-LCNet_x0_25的文本行分类模型，含有两个类别，即0度，180度",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LCNet_x0_25_textline_ori_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LCNet_x0_25_textline_ori_pretrained.pdparams",
+            "model_size": "0.32 M"
+        }
+    ]
+}

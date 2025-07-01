@@ -1,7 +1,6 @@
 <template>
     <div>
         <div class="page-header">
-            <h2 class="page-header h2">数据集</h2>
             <el-button type="primary" plain @click="showCreateDialog">创建数据集</el-button>
         </div>
         <el-row :gutter="20" class="list-container">

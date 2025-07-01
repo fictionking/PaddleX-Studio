@@ -56,7 +56,7 @@ export default {
                 return null;
             }
             // 数据加载完成后，使用defineAsyncComponent动态导入目标组件
-            return defineAsyncComponent(() => import(`/components/model/${this.currentModel.module_id}.vue`));
+            return defineAsyncComponent(() => import(`/components/model/${this.currentModel.category}.vue`));
         }
 
     },

@@ -1,68 +1,82 @@
 <style>
 .log-scrollbar {
-  height: calc(100vh - 300px);
-  width: 100%;
-  padding: 20px 0;
+    height: calc(100vh - 300px);
+    width: 100%;
+    padding: 20px 0;
 }
+
 .log-pre {
-  white-space: pre;
-  word-wrap: normal;
-  padding: 15px;
-  margin: 0;
+    white-space: pre;
+    word-wrap: normal;
+    padding: 15px;
+    margin: 0;
 }
+
 .steps {
-  margin: 20px auto;
-  max-width: 900px;
+    margin: 20px auto;
+    max-width: 900px;
 }
+
 .data-prep-container {
-  align-items: center;
-  text-align: center;
+    align-items: center;
+    text-align: center;
 }
+
 .dataset-selector {
-  margin: 20px auto;
-  max-width: 600px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    margin: 20px auto;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
+
 .check-result-card {
-  margin-top: 20px;
+    margin-top: 20px;
 }
+
 .sample-grid {
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #888888;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #888888;
 }
+
 .stat-chart-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .param-setting {
-  align-items: center;
-  text-align: center;
+    align-items: center;
+    text-align: center;
 }
+
 .step-footer {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
 }
+
 .sample-row {
-  height: 600px;
+    height: 600px;
 }
+
 .sample-section {
-  flex: 1;
+    flex: 1;
 }
+
 .train-section {
-  padding-bottom: 10px;
+    padding-bottom: 10px;
 }
+
 .val-section {
-  padding-top: 10px;
+    padding-top: 10px;
 }
+
 .image-item {
-    width: 100px; 
-    height: 100px; 
+    width: 100px;
+    height: 100px;
     margin: 5px
 }
 </style>
@@ -75,8 +89,8 @@
         </div>
         <div v-if="currentModel.status === 'config'">
             <div class="step-header">
-                <el-steps class="steps" :space="300" :active="currentModel.step"
-                    align-center finish-status="success" simple>
+                <el-steps class="steps" :space="300" :active="currentModel.step" align-center finish-status="success"
+                    simple>
                     <el-step title="数据准备"></el-step>
                     <el-step title="参数准备"></el-step>
                     <el-step title="提交训练"></el-step>
@@ -96,8 +110,7 @@
                             :disabled="!dataset_id || processing">检查数据集</el-button>
                     </div>
                     <div v-if="checking">
-                        <el-steps class="steps" :space="300" :active="checkstep"
-                            align-center finish-status="success">
+                        <el-steps class="steps" :space="300" :active="checkstep" align-center finish-status="success">
                             <el-step title="提交任务" description="提交数据集检查任务"></el-step>
                             <el-step title="格式校验" description="校验数据集格式是否正确"></el-step>
                             <el-step title="数据集保存" description="保存校验通过的数据集"></el-step>
@@ -133,8 +146,7 @@
                                             <div class="image-grid">
                                                 <el-image
                                                     v-for="(path, index) in checkResult.attributes.train_sample_paths"
-                                                    :key="path" :src="path" class="image-item"
-                                                    fit="cover"
+                                                    :key="path" :src="path" class="image-item" fit="cover"
                                                     :preview-src-list="checkResult.attributes.train_sample_paths"
                                                     :initial-index="index"></el-image>
                                             </div>
@@ -144,8 +156,7 @@
                                             <div class="image-grid">
                                                 <el-image
                                                     v-for="(path, index) in checkResult.attributes.val_sample_paths"
-                                                    :key="path" :src="path"  class="image-item"
-                                                    fit="cover"
+                                                    :key="path" :src="path" class="image-item" fit="cover"
                                                     :preview-src-list="checkResult.attributes.val_sample_paths"
                                                     :initial-index="index"></el-image>
                                             </div>
@@ -214,11 +225,10 @@
         </div>
         <div class="step-footer">
             <el-button type="primary" @click="handleModelCfgNext" :disabled="processing">{{
-                currentModel.status === 'config' ? (currentModel.step === 2 ? '提交训练' : '下一步') : currentModel.status ===
-                    'finished' || currentModel.status ===
-                    'aborted' ? '重新训练' : '中断训练'
+                currentModel.status === 'config' ? (currentModel.step === 2 ? '提交训练' : '下一步') :
+                    ['finished', 'aborted', 'failed'].includes(currentModel.status) ? '重新训练' : '中断训练'
             }}</el-button>
-            <el-button  v-if="currentModel.status ==='finished'" type="primary" @click="download">下载模型</el-button>
+            <el-button v-if="currentModel.status === 'finished'" type="primary" @click="download">下载模型</el-button>
         </div>
     </div>
 </template>
@@ -259,7 +269,11 @@ export default {
         // 如果当前模型是训练状态，启动日志轮询
         switch (this.currentModel.status) {
             case 'config':
-                this.loadDatasets();
+                if (this.currentModel.step === 1) {
+                    this.training.classNum = this.currentModel.num_classes;
+                } else {
+                    this.loadDatasets();
+                }
                 break;
             case 'queued':
             case 'training':
@@ -267,6 +281,7 @@ export default {
                 break;
             case 'finished':
             case 'aborted':
+            case 'failed':
                 this.fetchTrainLog();
                 break;
         }
@@ -428,6 +443,7 @@ export default {
                     break;
                 case 'finished':
                 case 'aborted':
+                case 'failed':
                     try {
                         const response = await axios.get(`/models/${this.currentModel.id}/config/1`);
                         if (response.data.code === 200) {

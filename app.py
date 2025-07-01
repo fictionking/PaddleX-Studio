@@ -1,10 +1,13 @@
-from flask import Flask, render_template, send_from_directory, send_file
+from flask import Flask, render_template, send_from_directory, jsonify
 import os
 from pxs.paddlexCfg import init as paddlexCfg_init
 from pxs.VueSFCRender import get_cached_vue_component
+import nvitop
 
 # 初始化Flask应用
 app = Flask(__name__, template_folder='templates')  # 明确模板目录
+from pxs.defineMgr import define_bp,init as defineMgr_init
+app.register_blueprint(define_bp)
 
 from pxs.modelMgr import model_bp,init as modelMgr_init
 app.register_blueprint(model_bp)
@@ -42,10 +45,41 @@ def send_libs(filename):
     filepath = os.path.join('templates', 'libs')
     return send_from_directory(filepath,filename)
 
-@app.route('/modules.json')
-def get_modules():
-    """返回modules.json文件内容"""
-    return send_file('modules.json', mimetype='application/json')
+@app.route('/system/usage')
+def system_usage():
+    """
+    获取系统资源使用情况API
+    返回CPU、RAM、GPU和VRAM的使用百分比
+    """
+    cpu_usage = nvitop.host.cpu_percent(interval=1)
+    
+    # 获取RAM使用率
+    ram_usage = nvitop.host.memory_percent()
+    
+    # 获取GPU使用率和VRAM使用率
+    gpus = nvitop.Device.all()
+    if gpus:
+        gpu_usage = gpus[0].gpu_percent()
+        gpu_usage = gpu_usage if gpu_usage != nvitop.NA else 0
+        vram_usage = gpus[0].memory_percent()
+        vram_usage = vram_usage if vram_usage != nvitop.NA else 0
+        temp_usage = gpus[0].temperature()
+        if temp_usage == nvitop.NA:
+            temp_usage= 0
+        if temp_usage>100:
+            temp_usage=100
+    else:
+        gpu_usage = 0
+        vram_usage = 0
+        temp_usage = 0
+    
+    return jsonify({
+        'cpu': cpu_usage,
+        'ram': ram_usage,
+        'gpu': gpu_usage,
+        'vram': vram_usage,
+        'temp': temp_usage
+    })
 
 def create_directories():
     # 检查并创建models、dataset、pretrained目录
@@ -64,6 +98,7 @@ if __name__ == '__main__':
     # 启动时执行目录检查
     paddlexCfg_init()
     create_directories()
+    defineMgr_init()
     modelMgr_init()
     datasetMgr_init()
     doc_init()

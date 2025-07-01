@@ -1,0 +1,15 @@
+{
+    "name": "文本图像矫正",
+    "id": "text_image_unwarping",
+    "description": "文本图像矫正的主要目的是针对图像进行几何变换，以纠正图像中的文档扭曲、倾斜、透视变形等问题，以供后续的文本识别进行更加准确。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "UVDoc",
+            "description": "高精度文本图像矫正模型",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/UVDoc_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/UVDoc_pretrained.pdparams",
+            "model_size": "30.3 M"
+        }
+    ]
+}

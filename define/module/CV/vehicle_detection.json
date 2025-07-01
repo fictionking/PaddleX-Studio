@@ -1,0 +1,22 @@
+{
+    "name": "车辆检测",
+    "id": "vehicle_detection",
+    "description": "车辆检测是目标检测的一个子任务，具体指使用计算机视觉技术来判断图像或视频中是否存在车辆，并给出每个车辆的具体位置信息（如边界框的坐标）。这些信息对于智能交通系统、自动驾驶、视频监控等多个领域具有重要意义。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "PP-YOLOE-S_vehicle",
+            "description": "基于PP-YOLOE的行人检测模型",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-S_vehicle_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE-S_vehicle_pretrained.pdparams",
+            "model_size": "28.79 M"
+        },
+        {
+            "name": "PP-YOLOE-L_vehicle",
+            "description": "基于PP-YOLOE的行人检测模型",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-L_vehicle_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE-L_vehicle_pretrained.pdparams",
+            "model_size": "196.02 M"
+        }
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "name": "行人属性识别",
+    "id": "pedestrian_attribute_recognition",
+    "description": "行人属性识别是计算机视觉系统中的关键组成部分，负责在图像或视频中定位和标记出行人的特定属性，如性别、年龄、衣物颜色和类型等。该模块的性能直接影响到整个计算机视觉系统的准确性和效率。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "PP-LCNet_x1_0_pedestrian_attribute",
+            "description": "PP-LCNet_x1_0_pedestrian_attribute 是一种基于PP-LCNet的轻量级行人属性识别模型，包含26个类别",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LCNet_x1_0_pedestrian_attribute_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LCNet_x1_0_pedestrian_attribute_pretrained.pdparams",
+            "model_size": "6.7 M"
+        }
+    ]
+}

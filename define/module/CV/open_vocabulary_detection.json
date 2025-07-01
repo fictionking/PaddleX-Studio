@@ -1,0 +1,22 @@
+{
+    "name": "开放词汇目标检测",
+    "id": "open_vocabulary_detection",
+    "description": "开放词汇目标检测模块突破传统目标检测局限性，允许模型识别未在训练中出现的物体。通过结合自然语言处理技术，利用文本描述定义新类别，使目标检测更具灵活性和泛化能力。",
+    "is_trainable": false,
+    "pretrained": [
+        {
+            "name": "GroundingDINO-T",
+            "description": "基于O365,GoldG,Cap4M三个数据集训练的开放词汇目标检测模型。文本编码器采用Bert，视觉模型部份整体采用DINO，额外设计了一些跨模态融合模块，在开放词汇目标检测领域取得了较好的效果。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/GroundingDINO-T_infer.tar",
+            "pretrained_model_url": "",
+            "model_size": "658.3 M"
+        },
+        {
+            "name": "YOLO-Worldv2-L",
+            "description": "基于O365,GoldG两个数据集训练的开放词汇目标检测模型。文本编码器采用CLIP，视觉模型部份整体采用YOLOv8，额外设计了一些轻量化的跨模态融合模块，在精度和速度取得了较好的均衡。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/YOLO-Worldv2-L_infer.tar",
+            "pretrained_model_url": "",
+            "model_size": "421.4 M"
+        }
+    ]
+}

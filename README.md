@@ -27,23 +27,23 @@ PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue
 
 * 提供图形化模型、数据、应用管理功能
 
-<img src="doc/readme/screen01.jpg" height="200">
+<img src="assets/readme/screen01.jpg" height="200">
 
 * 直接选择，查看说明，省去翻看文档
 
-<img src="doc/readme/screen02.jpg" height="200">
+<img src="assets/readme/screen02.jpg" height="200">
 
 * 数据检查结果可视化
 
-<img src="doc/readme/screen03.jpg" height="200">
+<img src="assets/readme/screen03.jpg" height="200">
 
 * 训练输出实时查看，模型打包下载，多个训练任务排队执行
 
-<img src="doc/readme/screen04.jpg" height="200">
+<img src="assets/readme/screen04.jpg" height="200">
 
 * 数据集提供目录化管理，zip/tar文件自动解压导入，文本文件和图片支持在线预览
 
-<img src="doc/readme/screen05.jpg" height="200">
+<img src="assets/readme/screen05.jpg" height="200">
 
 * ...未完待续
 

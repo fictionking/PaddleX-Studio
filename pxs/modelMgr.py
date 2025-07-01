@@ -6,6 +6,7 @@ import subprocess
 import sys
 import pxs.datasetMgr as datasetMgr
 import pxs.paddlexCfg as paddlexCfg
+import pxs.defineMgr as defineMgr
 from pxs.utils import copy_files
 import shutil
 import threading
@@ -20,20 +21,12 @@ lock = Lock()
 model_bp = Blueprint('model', __name__)
 
 # 全局模型数据变量
-modules = []
 models = {}
 models_root = os.path.join(os.getcwd(),'models')
 models_config_path = os.path.join(models_root, 'models_config.json')
 abort_model_id = None
 
 def init():
-    """初始化模型管理模块"""
-    global modules
-    # 从配置文件加载模块信息
-    config_path = os.path.join(os.getcwd(), 'modules.json')
-    with open(config_path, 'r', encoding='utf-8') as f:
-        modules = json.load(f)
-
     """初始化模型数据，从JSON文件加载或创建，并通过轮询监听配置文件变化"""
     global models
     models = load_or_create_models_config()
@@ -219,6 +212,9 @@ def get_models():
 @model_bp.route('/models/new', methods=['POST'])
 def new_model():
     model_data = request.get_json()
+    # 检查id是否已存在
+    if model_data['id'] in models:
+        return jsonify({'message': '唯一标识已存在'}), 400
     # 转换为符合models配置的格式（补充category和module字段）
     formatted_model = {
         'name': model_data['name'],
@@ -269,7 +265,10 @@ def checkDataSet(model_id):
         encoding='utf-8'
     )
     # 保存运行输出到日志文件
-    with open(os.path.join(check_path, 'check_dataset.log'), 'w', encoding='utf-8') as f:
+    # 确保日志目录存在
+    log_path = os.path.join(check_path, 'check_dataset.log')
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, 'w', encoding='utf-8') as f:
         # 处理可能的None值（subprocess可能返回None）
         stdout = result.stdout if result.stdout is not None else ''
         stderr = result.stderr if result.stderr is not None else ''
@@ -283,15 +282,18 @@ def checkDataSet(model_id):
         with open(os.path.join(check_path, 'check_dataset_result.json'), 'r', encoding='utf-8') as f:
             check_result = json.load(f)
         model['step'] = 1
+        model['num_classes'] = check_result['attributes']['num_classes']
+        model['dataset_type'] = check_result['dataset_type']
         save_model_config(model) 
         # 更新图像路径为包含model_id的完整路径
         base_path = f"models/{model_id}/check/"
         check_result['attributes']['train_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['train_sample_paths']]
         check_result['attributes']['val_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['val_sample_paths']]
         check_result['analysis']['histogram'] = base_path + check_result['analysis']['histogram'].replace("\\","/")
-
+        # 保存更新后的结果文件
+        with open(os.path.join(check_path, 'check_dataset_result.json'), 'w', encoding='utf-8') as f:
+            json.dump(check_result, f, ensure_ascii=False, indent=2)
         return jsonify({'code': 200,'message': '检查完成','data': check_result})
-
 
 @model_bp.route('/models/<model_id>/train', methods=['POST'])
 def train(model_id):
@@ -318,9 +320,9 @@ def train(model_id):
         shutil.rmtree(output_dir)
     # 逐级查找匹配的预训练模型路径
     pretrained_model = None
-    for category_item in modules:
+    for category_item in defineMgr.modules:
         # 匹配category
-        if category_item['category'] != model['category']:
+        if category_item['category']['id'] != model['category']:
             continue
         # 匹配module_id
         for module_item in category_item['modules']:
@@ -329,7 +331,7 @@ def train(model_id):
             # 匹配pretrained.name
             for pretrained_item in module_item['pretrained']:
                 if pretrained_item['name'] == model['pretrained']:
-                    pretrained_model = pretrained_item['pretrained_model']
+                    pretrained_model = pretrained_item['pretrained_model_url']
                     break
             if pretrained_model:
                 break
@@ -501,9 +503,11 @@ def copydataset(model_id):
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     model_path = os.path.join(models_root, model_id,'dataset')
     # 根据模型的类型选择复制方式
-    match model['module_id']:
-        case 'object_detection':
+    match model['dataset_type']:
+        case 'COCODetDataset':
             copyCOCODetDataset(dataset_path,model_path)
+        case 'SegDataset':
+            copySegDataset(dataset_path,model_path)
     model['update_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 更新时间
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
@@ -523,3 +527,18 @@ def copyCOCODetDataset(dataset_path,model_path):
              {"src":os.path.join(dataset_path, 'images'),"dst":images_path}]
     copy_files(files)
 
+def copySegDataset(dataset_path,model_path):
+    model_annotations_path = os.path.join(model_path, 'annotations')
+    images_path = os.path.join(model_path, 'images')
+    # 如果目录存在则清空
+    if os.path.exists(model_annotations_path):
+        shutil.rmtree(model_annotations_path)
+    if os.path.exists(images_path):
+        shutil.rmtree(images_path)
+    files = [{"src":os.path.join(dataset_path,'train.txt'),"dst":model_path},
+             {"src":os.path.join(dataset_path,'val.txt'),"dst":model_path},
+             {"src":os.path.join(dataset_path,'class_name.txt'),"dst":model_path},
+             {"src":os.path.join(dataset_path,'class_name_to_id.txt'),"dst":model_path},
+             {"src":os.path.join(dataset_path,'annotations'),"dst":model_annotations_path},
+             {"src":os.path.join(dataset_path,'images'),"dst":images_path}]
+    copy_files(files)

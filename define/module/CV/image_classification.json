@@ -1,0 +1,71 @@
+{
+    "name": "图像分类",
+    "id": "image_classification",
+    "description": "图像分类模块是计算机视觉系统中的关键组成部分，负责对输入的图像进行分类，通过深度学习或其他机器学习算法将图像分类到预定义类别中。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "CLIP_vit_base_patch16_224",
+            "description": "CLIP模型将文本和图像映射到同一嵌入空间，支持零样本图像分类。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/CLIP_vit_base_patch16_224_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/CLIP_vit_base_patch16_224_pretrained.pdparams",
+            "model_size": "306.5 M"
+        },
+        {
+            "name": "MobileNetV3_small_x1_0",
+            "description": "轻量级MobileNetV3模型，适用于移动设备上的图像分类任务。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/MobileNetV3_small_x1_0_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/MobileNetV3_small_x1_0_pretrained.pdparams",
+            "model_size": "10.5 M"
+        },
+        {
+            "name": "PP-HGNet_small",
+            "description": "百度自研高效网络PP-HGNet的小型版本，平衡精度和速度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-HGNet_small_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-HGNet_small_pretrained.pdparams",
+            "model_size": "86.5 M"
+        },
+        {
+            "name": "PP-HGNetV2-B0",
+            "description": "PP-HGNetV2系列的基础版本，优化了特征提取能力。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-HGNetV2-B0_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-HGNetV2-B0_pretrained.pdparams",
+            "model_size": "21.4 M"
+        },
+        {
+            "name": "PP-HGNetV2-B4",
+            "description": "PP-HGNetV2系列的中高级版本，适合高精度图像分类任务。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-HGNetV2-B4_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-HGNetV2-B4_pretrained.pdparams",
+            "model_size": "70.4 M"
+        },
+        {
+            "name": "PP-HGNetV2-B6",
+            "description": "PP-HGNetV2系列的高级版本，提供更高的分类精度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-HGNetV2-B6_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-HGNetV2-B6_pretrained.pdparams",
+            "model_size": "268.4 M"
+        },
+        {
+            "name": "PP-LCNet_x1_0",
+            "description": "轻量级PP-LCNet模型，专注于推理速度优化。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LCNet_x1_0_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LCNet_x1_0_pretrained.pdparams",
+            "model_size": "10.5 M"
+        },
+        {
+            "name": "ResNet50",
+            "description": "经典的ResNet系列模型，具有50层网络结构，广泛用于图像分类。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/ResNet50_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/ResNet50_pretrained.pdparams",
+            "model_size": "90.8 M"
+        },
+        {
+            "name": "SwinTransformer_tiny_patch4_window7_224",
+            "description": "基于Transformer的Swin模型的轻量版本，适用于图像分类任务。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/SwinTransformer_tiny_patch4_window7_224_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/SwinTransformer_tiny_patch4_window7_224_pretrained.pdparams",
+            "model_size": "100.1 M"
+        }
+    ]
+}

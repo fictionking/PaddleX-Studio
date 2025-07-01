@@ -1,0 +1,50 @@
+{
+    "name": "目标检测",
+    "id": "object_detection",
+    "description": "目标检测模块是计算机视觉系统中的关键组成部分，负责在图像或视频中定位和标记出包含特定目标的区域，输出目标区域的边界框作为后续处理的输入。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "PicoDet-L",
+            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，考虑移动端设备运算量，具有更小的模型尺寸和更低的计算复杂度，在保证检测精度的同时提供更高速度和更低延迟。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PicoDet-L_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PicoDet-L_pretrained.pdparams",
+            "model_size": "20.9 M"
+        },
+        {
+            "name": "PicoDet-S",
+            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，考虑移动端设备运算量，具有更小的模型尺寸和更低的计算复杂度，在保证检测精度的同时提供更高速度和更低延迟。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PicoDet-S_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PicoDet-S_pretrained.pdparams",
+            "model_size": "4.4 M"
+        },
+        {
+            "name": "PP-YOLOE_plus-L",
+            "description": "PP-YOLOE_plus是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE的迭代优化升级版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus-L_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus-L_pretrained.pdparams",
+            "model_size": "185.3 M"
+        },
+        {
+            "name": "PP-YOLOE_plus-S",
+            "description": "PP-YOLOE_plus是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE的迭代优化升级版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus-S_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus-S_pretrained.pdparams",
+            "model_size": "28.3 M"
+        },
+        {
+            "name": "RT-DETR-H",
+            "description": "RT-DETR是第一个实时端到端目标检测器，设计了高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出加速和优化的查询选择机制，支持通过使用不同的解码器实现灵活端到端推理速度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/RT-DETR-H_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/RT-DETR-H_pretrained.pdparams",
+            "model_size": "435.8 M"
+        },
+        {
+            "name": "RT-DETR-L",
+            "description": "RT-DETR是第一个实时端到端目标检测器，设计了高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出加速和优化的查询选择机制，支持通过使用不同的解码器实现灵活端到端推理速度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/RT-DETR-L_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/RT-DETR-L_pretrained.pdparams",
+            "model_size": "113.7 M"
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "name": "人脸特征",
+    "id": "face_feature",
+    "description": "人脸特征模块通常以经过检测提取和关键点矫正处理的标准化人脸图像作为输入，从这些图像中提取具有高度辨识性的人脸特征，以便供后续模块使用，如人脸匹配和验证等任务。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "MobileFaceNet",
+            "description": "基于MobileFaceNet在MS1Mv3数据集上训练的人脸特征提取模型",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/MobileFaceNet_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/MobileFaceNet_pretrained.pdparams",
+            "model_size": "4.1 M"
+        },
+        {
+            "name": "ResNet50_face",
+            "description": "基于ResNet50在MS1Mv3数据集上训练的人脸特征提取模型",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/ResNet50_face_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/ResNet50_face_pretrained.pdparams",
+            "model_size": "87.2 M"
+        }
+    ]
+}

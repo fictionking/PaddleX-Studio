@@ -1,0 +1,17 @@
+{
+    "name": "异常检测",
+    "id": "image_anomaly_detection",
+    "description": "异常检测模块是计算机视觉领域中的重要技术，用于识别图像或视频中与正常模式偏离的异常区域或目标。该模块广泛应用于工业质检、安防监控等场景，能够有效提高检测效率和准确性。",
+    "is_trainable": true,
+    "dataset_type":"SegDataset",
+    "pretrained": [
+        {
+            "name": "STFPM",
+            "description": "一种基于表示的图像异常检测算法，由预训练的教师网络和结构相同的学生网络组成。学生网络通过将自身特征与教师网络中的对应特征相匹配来检测异常。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/STFPM_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/STFPM_pretrained.pdparams",
+            "model_size": "22.5 M",
+            "mIoU": "0.9901 M"
+        }
+    ]
+}

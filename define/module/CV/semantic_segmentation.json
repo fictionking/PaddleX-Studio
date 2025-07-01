@@ -1,0 +1,22 @@
+{
+    "name": "语义分割",
+    "id": "semantic_segmentation",
+    "description": "语义分割是计算机视觉中的一种技术，它通过对图像中每个像素进行分类，将图像划分为不同的语义区域，每个区域对应一个具体的类别。这种技术能够生成精细的分割图，清晰地展现图像中的对象及其边界，为图像分析和理解提供有力支持。",
+    "is_trainable": true,
+    "pretrained": [
+        {
+            "name": "OCRNet_HRNet-W48",
+            "description": "基于HRNet-W48的OCRNet语义分割模型，具有较高的分割精度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/OCRNet_HRNet-W48_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/OCRNet_HRNet-W48_pretrained.pdparams",
+            "model_size": "249.8 M"
+        },
+        {
+            "name": "PP-LiteSeg-T",
+            "description": "轻量级语义分割模型PP-LiteSeg的T版本，兼顾精度和速度。",
+            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LiteSeg-T_infer.tar",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LiteSeg-T_pretrained.pdparams",
+            "model_size": "28.5 M"
+        }
+    ]
+}

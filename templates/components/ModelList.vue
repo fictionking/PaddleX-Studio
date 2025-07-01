@@ -1,10 +1,5 @@
 <template>
     <div id="modellist">
-        <div class="page-header">
-            <h2 class="page-header h2">模型空间</h2>
-            <el-button type="primary" plain @click="showCreateDialog">创建模型</el-button>
-        </div>
-
         <el-row :gutter="20" class="list-container">
             <el-col :span="24">
                 <el-card class="list-card" v-for="(model, index) in models" :key="index"
@@ -28,8 +23,8 @@
                             <p class="listcard updatetime" v-text="model.update_time"></p>
                             <div class="model-status">
                                 <el-tag round
-                                    :type="model.status === 'aborted' ? 'danger' : model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
-                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '训练完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : '未知'">
+                                    :type="['aborted','failed'].includes(model.status) ? 'danger' : model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
+                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '训练完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : model.status === 'failed' ? '失败' : '未知'">
                                 </el-tag>
                             </div>
                             <div class="listcard actions">
@@ -41,17 +36,13 @@
             </el-col>
         </el-row>
     </div>
-    <!-- 动态加载模型配置组件 -->
-    <component :is="configComponent" v-model="dialogVisible" :models="models" @close="handleClose">
-    </component>
 </template>
 <script type="module">
 
 export default {
     data() {
         return {
-            models: [],
-            dialogVisible: false
+            models: []
         }
     },
     mounted() {
@@ -64,12 +55,6 @@ export default {
             this.modelsPollingTimer = null;
         }
     },
-    computed: {
-        configComponent() {
-            const { defineAsyncComponent } = Vue
-            return defineAsyncComponent(() => import('/components/ModelCreate.vue'));
-        }
-    },
     methods: {
         autofresh() {
             this.modelsPollingTimer = setInterval(() => {
@@ -78,9 +63,6 @@ export default {
             this.loadModels();
         },
         loadModels() {
-            if (this.dialogVisible) {
-                return;
-            }
             // 调用API获取模型数据（使用axios）
             axios.get('/models')
                 .then(response => {
@@ -115,15 +97,7 @@ export default {
             }).catch(() => {
                 this.$message.info('已取消删除');
             });
-        },
-        showCreateDialog() {
-            this.dialogVisible = true;
-        },
-        handleClose() {
-            this.dialogVisible = false;
-            this.loadModels();
         }
     }
 }
 </script>
-
