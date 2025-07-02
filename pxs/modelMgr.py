@@ -14,6 +14,7 @@ import time
 # 初始化训练队列相关变量（全局作用域）
 import queue
 from threading import Lock
+import pxs.defineMgr as define
 
 task_queue = queue.Queue()
 lock = Lock()
@@ -236,6 +237,7 @@ def new_model():
         'category': model_data['category'],
         'module_id': model_data['module_id'], 
         'module_name': model_data['module_name'],
+        'dataset_type': model_data['dataset_type'],
         'pretrained': model_data['pretrained'],
         'update_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # 初始化为当前日期时间，精确到秒
         'status': 'config',  # 初始状态为配置中（数据准备阶段）,config:配置中、training:训练中、finished:运行完成
@@ -296,7 +298,6 @@ def checkDataSet(model_id):
             check_result = json.load(f)
         model['step'] = 1
         model['num_classes'] = check_result['attributes']['num_classes']
-        model['dataset_type'] = check_result['dataset_type']
         save_model_config(model) 
         # 更新图像路径为包含model_id的完整路径
         base_path = f"models/{model_id}/check/"
@@ -516,42 +517,23 @@ def copydataset(model_id):
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     model_path = os.path.join(models_root, model_id,'dataset')
     # 根据模型的类型选择复制方式
-    match model['dataset_type']:
-        case 'COCODetDataset':
-            copyCOCODetDataset(dataset_path,model_path)
-        case 'SegDataset':
-            copySegDataset(dataset_path,model_path)
+    copyDatasetFiles(model['category'],model['dataset_type'],dataset_path,model_path)
     model['update_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 更新时间
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
 
-def copyCOCODetDataset(dataset_path,model_path):
-    # 复制annotations和images目录到模型目录
-    annotations_path = os.path.join(dataset_path, 'annotations')
-    model_annotations_path = os.path.join(model_path, 'annotations')
-    images_path = os.path.join(model_path, 'images')
-    # 如果目录存在则清空
-    if os.path.exists(model_annotations_path):
-        shutil.rmtree(model_annotations_path)
-    if os.path.exists(images_path):
-        shutil.rmtree(images_path)
-    files = [{"src":os.path.join(annotations_path,'instance_train.json'),"dst":model_annotations_path},
-             {"src":os.path.join(annotations_path,'instance_val.json'),"dst":model_annotations_path},
-             {"src":os.path.join(dataset_path, 'images'),"dst":images_path}]
-    copy_files(files)
-
-def copySegDataset(dataset_path,model_path):
-    model_annotations_path = os.path.join(model_path, 'annotations')
-    images_path = os.path.join(model_path, 'images')
-    # 如果目录存在则清空
-    if os.path.exists(model_annotations_path):
-        shutil.rmtree(model_annotations_path)
-    if os.path.exists(images_path):
-        shutil.rmtree(images_path)
-    files = [{"src":os.path.join(dataset_path,'train.txt'),"dst":model_path},
-             {"src":os.path.join(dataset_path,'val.txt'),"dst":model_path},
-             {"src":os.path.join(dataset_path,'class_name.txt'),"dst":model_path},
-             {"src":os.path.join(dataset_path,'class_name_to_id.txt'),"dst":model_path},
-             {"src":os.path.join(dataset_path,'annotations'),"dst":model_annotations_path},
-             {"src":os.path.join(dataset_path,'images'),"dst":images_path}]
-    copy_files(files)
+def copyDatasetFiles(category_id,dataset_type,dataset_path,model_path):
+    filelist=[]
+    for category in define.dataset_types:
+        if category['value'] == category_id:
+            for module in category['modules']:
+                if module['value'] == dataset_type:
+                    files=module['files']
+                    for file in files:
+                        filelist.append({"src":os.path.join(dataset_path,file),"dst":os.path.join(model_path,file)})
+                    break
+            break
+    #如果filelist数组为空，则复制datset_path目录下所有内容
+    if not filelist:
+        filelist.append({"src":dataset_path,"dst":model_path})
+    copy_files(filelist)

@@ -2,6 +2,7 @@
     "name": "图像分类",
     "id": "image_classification",
     "description": "图像分类模块是计算机视觉系统中的关键组成部分，负责对输入的图像进行分类，通过深度学习或其他机器学习算法将图像分类到预定义类别中。",
+    "dataset_type":"image_classification",
     "is_trainable": true,
     "pretrained": [
         {

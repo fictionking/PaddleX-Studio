@@ -2,6 +2,7 @@
     "name": "实例分割",
     "id": "instance_segmentation",
     "description": "实例分割模块是计算机视觉系统中的关键组成部分，负责在图像或视频中确定并标记出包含特定对象实例的像素。",
+    "dataset_type":"instance_segmentation",
     "is_trainable": true,
     "pretrained": [
         {

@@ -333,7 +333,7 @@ export default {
         },
         loadDatasets() {
             // 调用API获取数据集数据
-            fetch('/datasets')
+            fetch(`/datasets?category=${this.currentModel.category}&dataset_type=${this.currentModel.dataset_type}`)
                 .then(response => response.json())
                 .then(data => {
                     this.datasets = data;

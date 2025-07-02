@@ -2,6 +2,7 @@
     "name": "图像多标签分类",
     "id": "image_multilabel_classification",
     "description": "图像多标签分类模块负责对输入的图像进行多标签分类，与传统单类别分类不同，可同时将图像分到多个相关类别，适用于包含多种对象的场景。",
+    "dataset_type":"ml_classification",
     "is_trainable": true,
     "pretrained": [
         {

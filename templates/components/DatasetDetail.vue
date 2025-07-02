@@ -95,7 +95,7 @@
         <h2 class="page-header h2" v-text="currentDataset.name"></h2>
         <el-tag type="info" effect="plain" class="tag-font" v-text="currentDataset.type"></el-tag>
         <el-tag type="success" v-text="currentDataset.category"></el-tag>
-        <el-tag type="success" v-text="currentDataset.module_name"></el-tag>
+        <el-tag type="success" v-text="currentDataset.dataset_type_name"></el-tag>
       </div>
       <el-button type="primary" plain @click="$router.push('/dataset')">返回</el-button>
     </div>

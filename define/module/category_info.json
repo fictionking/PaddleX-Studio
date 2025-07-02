@@ -2,37 +2,31 @@
     {
         "name": "计算机视觉",
         "id": "CV",
-        "description": "计算机视觉分类包含各类图像处理与分析模型，涵盖图像分类、目标检测、语义分割等任务，适用于视觉理解相关应用场景。",
-        "icon": "assets/icons/cv_category_icon.png"
+        "description": "计算机视觉分类包含各类图像处理与分析模型，涵盖图像分类、目标检测、语义分割等任务，适用于视觉理解相关应用场景。"
     },
     {
         "name": "光学字符识别",
         "id": "OCR",
-        "description": "光学字符识别分类包含各类文本处理与识别模型，涵盖文本检测、识别、表格结构分析等任务，适用于文档理解相关应用场景。",
-        "icon": "assets/icons/ocr_category_icon.png"
+        "description": "光学字符识别分类包含各类文本处理与识别模型，涵盖文本检测、识别、表格结构分析等任务，适用于文档理解相关应用场景。"
     },
     {
         "name": "语音处理",
         "id": "Speech",
-        "description": "语音处理分类包含各类语音信号处理模型，涵盖语音识别、语音合成等任务，适用于语音交互相关应用场景。",
-        "icon": "assets/icons/speech_category_icon.png"
+        "description": "语音处理分类包含各类语音信号处理模型，涵盖语音识别、语音合成等任务，适用于语音交互相关应用场景。"
     },
     {
         "name": "时间序列",
         "id": "TimeSeries",
-        "description": "时间序列分类包含各类时序数据处理模型，涵盖异常检测、分类、预测等任务，适用于时序数据分析相关应用场景。",
-        "icon": "assets/icons/time_series_category_icon.png"
+        "description": "时间序列分类包含各类时序数据处理模型，涵盖异常检测、分类、预测等任务，适用于时序数据分析相关应用场景。"
     },
     {
         "name": "视频处理",
         "id": "Video",
-        "description": "视频处理分类包含各类视频内容分析模型，涵盖视频分类、目标检测等任务，适用于视频理解相关应用场景。",
-        "icon": "assets/icons/video_category_icon.png"
+        "description": "视频处理分类包含各类视频内容分析模型，涵盖视频分类、目标检测等任务，适用于视频理解相关应用场景。"
     },
     {
         "name": "视觉语言模型",
         "id": "VLM",
-        "description": "视觉语言模型分类包含多模态处理模型，涵盖文档理解、跨模态推理等任务，适用于图文交互相关应用场景。",
-        "icon": "assets/icons/vlm_category_icon.png"
+        "description": "视觉语言模型分类包含多模态处理模型，涵盖文档理解、跨模态推理等任务，适用于图文交互相关应用场景。"
     }
 ]

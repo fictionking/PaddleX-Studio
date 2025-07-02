@@ -2,6 +2,7 @@
     "name": "图像特征",
     "id": "image_feature",
     "description": "图像特征模块是计算机视觉中的一项重要任务之一，主要指的是通过深度学习方法自动从图像数据中提取有用的特征，以便于后续的图像检索任务。",
+    "dataset_type":"image_feature",
     "is_trainable": true,
     "pretrained": [
         {

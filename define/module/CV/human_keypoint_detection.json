@@ -2,6 +2,7 @@
     "name": "人体关键点检测",
     "id": "human_keypoint_detection",
     "description": "人体关键点检测是计算机视觉领域中的一个重要任务，旨在识别图像或视频中人体的特定关键点位置。通过检测这些关键点，可以实现姿态估计、动作识别、人机交互、动画生成等多种应用。人体关键点检测在增强现实、虚拟现实、运动捕捉等领域都有广泛的应用。",
+    "dataset_type":"other",
     "is_trainable": true,
     "pretrained": [
         {

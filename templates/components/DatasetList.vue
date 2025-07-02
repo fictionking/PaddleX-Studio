@@ -18,7 +18,7 @@
                             <p class="listcard desc" v-text="dataset.description"></p>
                             <div class="listcard category">
                                 <el-tag type="success" v-text="dataset.category"></el-tag>
-                                <el-tag type="success" v-text="dataset.module_name"></el-tag>
+                                <el-tag type="success" v-text="dataset.dataset_type_name"></el-tag>
                             </div>
                         </div>
                         <!-- 右侧内容 -->
@@ -48,12 +48,12 @@
                 </el-form-item>
                 <el-form-item label="类别" prop="category">
                     <el-select v-model="form.category" placeholder="请选择类别" @change="handleCategoryChange">
-                        <el-option v-for="item in category_define" :key="item.value" :label="item.label"
+                        <el-option v-for="item in dataset_types" :key="item.value" :label="item.label"
                             :value="item.value"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="模块" prop="module_id">
-                    <el-select v-model="form.module_id" placeholder="请选择模块" @change="handleModuleChange">
+                <el-form-item label="模块" prop="dataset_type">
+                    <el-select v-model="form.dataset_type" placeholder="请选择模块" @change="handleModuleChange">
                         <el-option v-for="module in currentModules" :key="module.value" :label="module.label"
                             :value="module.value"></el-option>
                     </el-select>
@@ -85,8 +85,8 @@ export default {
                 name: '',
                 description: '',
                 category: '',
-                module_id: '',
-                module_name: '',
+                dataset_type: '',
+                dataset_type_name: '',
                 type: ''
             },
             rules: {  // 表单验证规则
@@ -95,52 +95,24 @@ export default {
                     { required: true, message: '请输入唯一标识', trigger: 'blur' },
                     { pattern: /^[a-zA-Z0-9-_]+$/, message: '仅支持大小写字母、数字、-、_', trigger: 'blur' }
                 ],
-                module_id: [{ required: true, message: '请选择模块', trigger: 'change' }],
+                dataset_type: [{ required: true, message: '请选择模块', trigger: 'change' }],
                 type: [{ required: true, message: '请选择数据类型', trigger: 'change' }],
                 category: [{ required: true, message: '请选择类别', trigger: 'change' }]
             },
             currentModules: [],
             currentTypes: [],
-            category_define: [
-                {
-                    label: 'CV',
-                    value: 'CV',
-                    modules: [
-                        { label: '图像分类', value: 'image_classification' },
-                        { label: '目标检测', value: 'object_detection' },
-                        { label: '图像分割', value: 'image_segmentation' }
-                    ],
-                    types: [
-                        { label: 'LabelMe标注集', value: 'LabelMe' },
-                        { label: 'COCO标注集', value: 'COCO' }
-                    ]
-                },
-                {
-                    label: 'NLP',
-                    value: 'NLP',
-                    modules: [
-                        { label: '文本分类', value: 'TextClassification' },
-                        { label: '文本生成', value: 'TextGeneration' },
-                        { label: '文本摘要', value: 'TextSummarization' }
-                    ],
-                    types: [
-                        { label: '文本文件', value: 'TextFile' }
-                    ]
-                },
-                {
-                    label: '其他',
-                    value: 'Other',
-                    modules: [
-                        { label: '自定义', value: 'Custom' }
-                    ],
-                    types: [
-                        { label: '自定义', value: 'Custom' }
-                    ]
-                }
-            ]
+            dataset_types: []
         }
     },
     mounted() {
+        fetch('/define/dataset_types')
+            .then(response => response.json())
+            .then(data => {
+                this.dataset_types = data;
+            })
+            .catch(error => {
+                console.error('获取数据集类型定义失败:', error);
+            });
         this.autofresh();  // 自动刷新数据集数据
     },
     beforeUnmount() {
@@ -176,22 +148,22 @@ export default {
         // 显示创建对话框
         // 处理类别变化
         handleCategoryChange() {
-            const category = this.category_define.find(item => item.value === this.form.category);
+            const category = this.dataset_types.find(item => item.value === this.form.category);
             if (category) {
                 this.currentModules = category.modules || [];
                 this.currentTypes = category.types || [];
                 // 重置模块和数据类型选择
-                this.form.module_id = '';
-                this.form.module_name = '';
+                this.form.dataset_type = '';
+                this.form.dataset_type_name = '';
                 this.form.type = '';
             }
         },
 
         // 处理模块变化
         handleModuleChange() {
-            const module = this.currentModules.find(item => item.value === this.form.module_id);
+            const module = this.currentModules.find(item => item.value === this.form.dataset_type);
             if (module) {
-                this.form.module_name = module.label;
+                this.form.dataset_type_name = module.label;
             }
         },
 

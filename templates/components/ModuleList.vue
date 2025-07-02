@@ -96,6 +96,7 @@ export default {
         category: '',
         module_id: '',
         module_name: '',
+        dataset_type: '',
         pretrained: ''
       },
       formRules: {
@@ -150,6 +151,7 @@ export default {
         category: categoryid,
         module_id: this.selectedModelType.id,
         module_name: this.selectedModelType.name,
+        dataset_type: this.selectedModelType.dataset_type,
         pretrained: model.name
       };
       this.showCreateDialog = true;
@@ -166,7 +168,7 @@ export default {
             this.showCreateDialog = false;
             this.$router.push(`/model/${this.newModelFormData.id}`);
           } catch (error) {
-            this.$message.error('模型创建失败:'+error.response.data.message);
+            this.$message.error('模型创建失败:' + error.response.data.message);
           }
         }
       });
@@ -276,7 +278,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  /* background-color: rgba(0, 0, 0, 0.5); */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -284,7 +286,11 @@ export default {
 }
 
 .modal-content {
-  background-color: var(--el-bg-color);
+  /* background-color: var(--el-bg-color); */
+  background-image: radial-gradient(transparent 1px, var(--el-bg-color) 1px);
+  background-size: 4px 4px;
+  backdrop-filter: saturate(50%) blur(4px);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 1);
   border-radius: 10px;
   width: 90%;
   max-width: 1000px;

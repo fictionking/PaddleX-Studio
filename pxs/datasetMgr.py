@@ -53,8 +53,17 @@ def load_or_create_dataset_config():
 
 @dataset_bp.route('/datasets')  # 数据集接口
 def get_datasets():
-    """返回JSON格式的数据集数据"""
-    return jsonify(datasets)
+    """返回JSON格式的数据集数据，支持按category和dataset_type过滤"""
+    category = request.args.get('category')
+    dataset_type = request.args.get('dataset_type')
+    
+    filtered_datasets = datasets
+    if category:
+        filtered_datasets = [d for d in filtered_datasets if d.get('category') == category]
+    if dataset_type:
+        filtered_datasets = [d for d in filtered_datasets if d.get('dataset_type') == dataset_type]
+    
+    return jsonify(filtered_datasets)
 
 @dataset_bp.route('/datasets/new', methods=['POST'])  # 新增数据集接口
 def add_dataset():
@@ -65,8 +74,8 @@ def add_dataset():
             'name': data.get('name'),
             'description': data.get('description'),
             'category': data.get('category', ''),
-            'module_id': data.get('module_id', ''),
-            'module_name': data.get('module_name', ''),
+            'dataset_type': data.get('dataset_type', ''),
+            'dataset_type_name': data.get('dataset_type_name', ''),
             'type': data.get('type', ''),
             'update_time': datetime.datetime.now().isoformat()
         }
@@ -100,8 +109,8 @@ def handle_dataset(dataset_id):
                 'name': data.get('name', dataset['name']),
                 'description': data.get('description', dataset['description']),
                 'category': data.get('category', dataset['category']),
-                'module_id': data.get('module_id', dataset['module_id']),
-                'module_name': data.get('module_name', dataset['module_name']),
+                'dataset_type': data.get('dataset_type', dataset['dataset_type']),
+                'dataset_type_name': data.get('mdataset_type_name', dataset['dataset_type_name']),
                 'type': data.get('type', dataset['type']),
                 'update_time': datetime.datetime.now().isoformat()       
             })

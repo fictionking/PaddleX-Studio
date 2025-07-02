@@ -2,6 +2,7 @@
     "name": "行人检测",
     "id": "human_detection",
     "description": "行人检测是目标检测的一个分支任务，指使用计算机视觉技术来判断图像或视频中是否存在行人，并给出每个行人的具体位置信息。这些信息对于智能视频监控、人体行为分析、智能驾驶、智能机器人等多种应用至关重要。",
+    "dataset_type":"object_detection",
     "is_trainable": true,
     "pretrained": [
         {

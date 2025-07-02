@@ -6,9 +6,13 @@ from flask import Blueprint, jsonify
 define_bp = Blueprint('define', __name__)
 
 modules = []
+dataset_types = []
 def init():
     global modules
+    global dataset_types
     modules = load_module_definitions()
+    dataset_types = load_dataset_type_definitions()
+
 
 def load_module_definitions():
     """加载模块定义的三级结构数据
@@ -67,6 +71,21 @@ def load_module_definitions():
 
     return result
 
+def load_dataset_type_definitions():
+    # 读取分类信息
+    define_path = os.path.join(os.getcwd(), 'define', 'dataset', 'dataset.json')
+    try:
+        with open(define_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"加载数据集类型定义文件失败: {str(e)}")
+        return []
+
+
 @define_bp.route('/define/modules', methods=['GET'])
 def get_module_definitions():
     return jsonify(modules)
+
+@define_bp.route('/define/dataset_types', methods=['GET'])
+def get_dataset_type_definitions():
+    return jsonify(dataset_types)
