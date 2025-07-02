@@ -44,7 +44,7 @@
             <div class="model-card-footer">
               <el-button v-if="model.pretrained_model_url" type="primary" round text
                 @click="openCreateModelDialog(model)">训练</el-button>
-              <el-button type="primary" round text @click="openCreateModelDialog(model)">应用</el-button>
+              <el-button type="primary" round text @click="">应用</el-button>
             </div>
           </div>
         </div>
