@@ -1,4 +1,5 @@
-<img src="doc/readme/banner.png" height="70">
+<img src="assets/readme/banner.png" height="70">
+
 
 # PaddleX Studio
 
