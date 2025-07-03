@@ -8,17 +8,20 @@ import shutil
 import zipfile
 import tarfile
 import mimetypes
+import pxs.paddlexCfg as cfg
 # 初始化数据集管理蓝图
 dataset_bp = Blueprint('dataset_bp', __name__)
 
 # 定义数据集列表
 datasets = []
-dataset_root = os.path.join(os.getcwd(),'dataset')
-dataset_config_path = os.path.join(dataset_root, 'dataset_config.json')
+dataset_root = None
+dataset_config_path = None
 
 def init():
     """初始化模型数据，从JSON文件加载或创建"""
-    global datasets
+    global datasets,dataset_root,dataset_config_path
+    dataset_root = cfg.datasets_root
+    dataset_config_path = os.path.join(dataset_root, 'dataset_config.json')
     datasets = load_or_create_dataset_config()
     # 获取初始修改时间
     last_modified = os.path.getmtime(dataset_config_path)

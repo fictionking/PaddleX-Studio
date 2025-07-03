@@ -15,6 +15,7 @@ import time
 import queue
 from threading import Lock
 import pxs.defineMgr as define
+import pxs.paddlexCfg as cfg
 
 task_queue = queue.Queue()
 lock = Lock()
@@ -24,13 +25,15 @@ model_bp = Blueprint('model', __name__)
 
 # 全局模型数据变量
 models = {}
-models_root = os.path.join(os.getcwd(),'models')
-models_config_path = os.path.join(models_root, 'models_config.json')
+models_root = None
+models_config_path = None
 abort_model_id = None
 
 def init():
     """初始化模型数据，从JSON文件加载或创建，并通过轮询监听配置文件变化"""
-    global models
+    global models,models_root,models_config_path
+    models_root = cfg.train_root
+    models_config_path = os.path.join(models_root, 'models_config.json')
     models = load_or_create_models_config()
     resetModelsStatus()
     # 获取初始修改时间

@@ -1,6 +1,6 @@
 from flask import Flask, send_from_directory, jsonify,send_file
 import os
-from pxs.paddlexCfg import init as paddlexCfg_init
+import pxs.paddlexCfg as cfg
 from pxs.VueSFCRender import get_cached_vue_component
 import nvitop
 
@@ -84,20 +84,18 @@ def system_usage():
 
 def create_directories():
     # 检查并创建models、dataset、pretrained目录
-    required_dirs = ['models', 'dataset', 'pretrained']
+    required_dirs = [cfg.train_root, cfg.datasets_root, cfg.weights_root]
     for dir_name in required_dirs:
-        # 获取当前文件所在目录的绝对路径，拼接目标目录路径
-        dir_path = os.path.join(os.getcwd(), dir_name)
-        if not os.path.exists(dir_path):
+        if not os.path.exists(dir_name):
             # 创建目录（允许已存在时不报错）
-            os.makedirs(dir_path, exist_ok=True)
-            print(f'成功创建目录：{dir_path}')
+            os.makedirs(dir_name, exist_ok=True)
+            print(f'成功创建目录：{dir_name}')
         else:
-            print(f'目录已存在：{dir_path}')
+            print(f'目录已存在：{dir_name}')
 
 if __name__ == '__main__':
     # 启动时执行目录检查
-    paddlexCfg_init()
+    cfg.init()
     create_directories()
     defineMgr_init()
     modelMgr_init()

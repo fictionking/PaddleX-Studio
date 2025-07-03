@@ -1,5 +1,7 @@
 {
     "paddlex_root": "C:\\UGit\\PaddleX\\",
+    "train_root": ".\\models\\",
+    "datasets_root": ".\\datasets\\",
     "weights_root": ".\\weights\\",
     "device": "gpu:0"
 }
