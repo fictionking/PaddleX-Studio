@@ -8,7 +8,7 @@
             "name": "DLinear_ad",
             "description": "DLinear_ad结构简单，效率高且易用的时序异常检测模型",
             "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/DLinear_ad_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/DLinear_ad_pretrained.pdparams",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/DLinear_ad.pdparams.tar",
             "model_size": "72.8 K"
         },
         {

@@ -1,12 +1,17 @@
 import os
 import json
-from flask import Blueprint, jsonify
+import requests
+import tarfile
+from flask import Blueprint, jsonify, stream_with_context, Response
+import pxs.paddlexCfg as paddlexCfg
+import time
 
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
 
 modules = []
 dataset_types = []
+cancel_cache=False
 def init():
     global modules
     global dataset_types
@@ -89,3 +94,175 @@ def get_module_definitions():
 @define_bp.route('/define/dataset_types', methods=['GET'])
 def get_dataset_type_definitions():
     return jsonify(dataset_types)
+
+@define_bp.route('/define/module/<category_id>/<module_id>/<model_id>/cacheModel', methods=['GET'])
+def get_module_cache_model(category_id, module_id, model_id):
+    """
+    下载模型文件并返回实时进度，支持同时下载pretrained和inference模型，tar格式自动解压
+    
+    参数:
+    - category_id: 类别ID
+    - module_id: 模块ID
+    - model_id: 模型ID
+    
+    返回:
+    - 流式响应，包含下载进度信息（text/event-stream）
+    """
+    # 从配置文件中获取缓存路径
+    cache_dir = paddlexCfg.weights_root
+    pretrained_model_url = None
+    inference_model_url = None 
+    for category in modules:
+        if category['category']['id'] == category_id:
+            for module in category['modules']:
+                if module['id'] == module_id:
+                    for model in module['pretrained']:
+                        if model['name'] == model_id:
+                            pretrained_model_url = model['pretrained_model_url']
+                            inference_model_url = model['inference_model_url']
+                            break
+                if pretrained_model_url or inference_model_url:
+                    break
+        if pretrained_model_url or inference_model_url:
+            break
+                    
+    # 收集需要下载的URL列表
+    download_urls = []
+    if pretrained_model_url:
+        #如果和cache_dir相同，则不下载
+        if not pretrained_model_url.startswith(cache_dir):
+            download_urls.append(('pretrained', pretrained_model_url))
+    if inference_model_url:
+        #如果和cache_dir相同，则不下载
+        if not inference_model_url.startswith(cache_dir):
+            download_urls.append(('inference', inference_model_url))
+        
+    if not download_urls:
+        return jsonify({'error': '没有可下载的模型URL'})
+    
+    # 确保缓存目录存在
+    os.makedirs(cache_dir, exist_ok=True)
+    
+    def extract_tar(file_path):
+        """解压tar文件到同名子目录并删除原tar文件
+
+        增强功能：如果tar包中只包含一个顶层目录，则将该目录下的内容直接解压到目标路径，
+        否则保持原行为（将所有内容解压到同名子目录）
+        """
+        if file_path.endswith('.tar'):
+            # 创建与文件名相同的目录
+            dir_name = os.path.splitext(os.path.basename(file_path))[0]
+            extract_path = os.path.join(os.path.dirname(file_path), dir_name)
+            os.makedirs(extract_path, exist_ok=True)
+            
+            # 解压文件
+            with tarfile.open(file_path, 'r') as tar:
+                # 获取所有成员并分析顶层目录
+                members = tar.getmembers()
+                top_level_dirs = set()
+                for member in members:
+                    # 分割路径并获取顶层目录（处理不同操作系统的路径分隔符）
+                    if '/' in member.name:
+                        parts = member.name.split('/')
+                    else:
+                        parts = member.name.split('\\')
+                    
+                    # 过滤空字符串和当前目录符号'.'
+                    filtered_parts = [p for p in parts if p not in ('', '.')]
+                    
+                    top_level = filtered_parts[0]
+                    top_level_dirs.add(top_level)
+                
+                # 如果只有一个顶层目录且存在文件
+                if len(top_level_dirs) == 1:
+                    top_dir = top_level_dirs.pop()
+                    # 提取该目录下的所有文件并调整路径
+                    for member in members:
+                        if member.name.startswith(f'./{top_dir}/') or member.name.startswith(f'.\\{top_dir}\\'):
+                            # 移除顶层目录
+                            member.name = member.name[len(top_dir)+3:]
+                            tar.extract(member, path=extract_path)
+                        elif member.name.startswith(f'{top_dir}/') or member.name.startswith(f'{top_dir}\\'):
+                            # 移除顶层目录
+                            member.name = member.name[len(top_dir)+1:]
+                            tar.extract(member, path=extract_path)
+                else:
+                    # 正常解压所有文件
+                    tar.extractall(path=extract_path)
+            
+            # 解压完成后删除tar文件
+            os.remove(file_path)
+            return extract_path, True
+        return None, False
+    
+    # 定义流式下载生成器函数
+    def download_generator():
+        for model_type, url in download_urls:
+            try:
+                # 从URL中提取文件名（处理可能的查询参数）
+                filename = os.path.basename(url.split('?')[0])
+                save_path = os.path.join(cache_dir, filename)
+                save_path_tmp = f"{save_path}.tmp"
+                
+                # 发送开始下载事件
+                yield f"data: {json.dumps({'status': 'starting', 'type': model_type, 'file': filename})}\n\n"
+                
+                # 发送GET请求，流式获取内容
+                with requests.get(url, stream=True, timeout=30) as r:
+                    r.raise_for_status()  # 检查HTTP错误状态码
+                    total_size = int(r.headers.get('content-length', 0))
+                    downloaded_size = 0
+                    block_size = 1024 * 10  # 10KB块大小
+                    
+                    with open(save_path_tmp, 'wb') as f:
+                        last_data_time = time.time()
+                        global cancel_cache
+                        cancel_cache=False
+                        for chunk in r.iter_content(chunk_size=block_size):
+                            if cancel_cache:
+                                raise Exception('取消下载')
+                            #超过30秒没有数据则发送心跳包
+                            if time.time() - last_data_time > 30:
+                                last_data_time = time.time()
+                                yield "data: {}\n\n"
+
+                            if chunk:  # 过滤掉保持连接的空块
+                                f.write(chunk)
+                                downloaded_size += len(chunk)
+                                
+                                # 计算进度并发送
+                                if total_size > 0:
+                                    progress = int((downloaded_size / total_size) * 100)
+                                    yield f"data: {json.dumps({'status': 'downloading', 'type': model_type, 'progress': progress, 'file': filename})}\n\n"
+                
+                # 下载完成，先删除已存在文件再重命名临时文件
+                if os.path.exists(save_path):
+                    os.remove(save_path)
+                os.rename(save_path_tmp, save_path)
+                
+                # 下载完成，检查是否需要解压
+                is_tar, extract_path = extract_tar(save_path)
+                if is_tar:
+                    yield f"data: {json.dumps({'status': 'extracted', 'model_type': model_type, 'filename': filename})}\n\n"
+                
+                # 发送完成事件
+                yield f"data: {json.dumps({'status': 'completed', 'type': model_type, 'progress': 100, 'file': filename})}\n\n"
+                
+            except Exception as e:
+                # 捕获并发送错误信息
+                if os.path.exists(save_path_tmp):
+                    os.remove(save_path_tmp)
+                yield f"data: {json.dumps({'status': 'failed', 'type': model_type, 'error': str(e)})}\n\n"
+                return
+        
+        # 所有文件处理完成
+        yield f"data: {json.dumps({'status': 'all_completed'})}\n\n"
+    
+    # 返回SSE响应
+    return Response(stream_with_context(download_generator()), mimetype='text/event-stream')
+
+@define_bp.route('/define/module/cacheModel/cancel', methods=['GET'])
+def cancel_cache_model():
+    global cancel_cache
+    cancel_cache=True
+    return jsonify({'status': 'success'})

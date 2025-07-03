@@ -354,7 +354,7 @@ def train(model_id):
     # 从url中提取文件名
     pretrained_file_name = os.path.basename(pretrained_model)
     # 构建完整的预训练模型路径
-    pretrain_weight_path = os.path.join(paddlexCfg.pretrained_root, pretrained_file_name)
+    pretrain_weight_path = os.path.join(paddlexCfg.weights_root, pretrained_file_name)
     # 检查预训练模型是否存在
     if not os.path.exists(pretrain_weight_path):
         pretrain_weight_path=pretrained_model

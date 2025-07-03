@@ -41,10 +41,13 @@
             <div class="model-card-body">
               <p v-if="model.description">{{ model.description }}</p>
             </div>
-            <div class="model-card-footer">
-              <el-button v-if="model.pretrained_model_url" type="primary" round text
-                @click="openCreateModelDialog(model)">训练</el-button>
-              <el-button type="primary" round text @click="">应用</el-button>
+            <div class="model-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+              <el-button type="primary" round text @click="handleUpdateModel(model)">更新模型</el-button>
+              <div>
+                <el-button v-if="model.pretrained_model_url" type="primary" round text
+                  @click="openCreateModelDialog(model)">训练</el-button>
+                <el-button type="primary" round text @click="">应用</el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -78,6 +81,15 @@
       </div>
     </el-dialog>
 
+    <!-- 下载进度对话框 -->
+    <el-dialog title="模型更新" v-model="updateDialogVisible" width="600px" align-center :close-on-click-modal="false"
+      @close="cancelUpdate">
+      <div class="progress-container">
+        <el-progress :percentage="downloadProgress" :stroke-width="10" striped striped-flow :duration="10"></el-progress>
+        <p class="progress-text">{{ progressText }}</p>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -102,7 +114,11 @@ export default {
       formRules: {
         name: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
         id: [{ required: true, message: '请输入唯一标识', trigger: 'blur' }]
-      }
+      },
+      // 更新模型相关数据
+      updateDialogVisible: false,
+      downloadProgress: 0,
+      progressText: ''
     };
   },
   computed: {
@@ -172,6 +188,75 @@ export default {
           }
         }
       });
+    },
+    /**
+     * 处理模型更新功能
+     * @param {Object} model - 要更新的模型对象
+     */
+    handleUpdateModel(model) {
+      this.updateDialogVisible = true;
+      this.downloadProgress = 0;
+      this.progressText = '准备开始下载...';
+      // 获取当前分类ID
+      const categoryId = this.definitions[this.activeCategoryIndex].category.id;
+      const eventSource = new EventSource(`/define/module/${categoryId}/${this.selectedModelType.id}/${model.name}/cacheModel`);
+
+      eventSource.onmessage = (event) => {
+        // 忽略心跳包空数据
+        if (!event.data.trim()) return;
+
+        const data = JSON.parse(event.data);
+        // 处理下载中状态（后端返回'downloading'而非'progress'）
+        if (data.status === 'downloading') {
+          this.downloadProgress = data.progress;
+          this.progressText = `正在下载${data.type}模型: ${data.file}`;
+        }
+        // 处理开始下载状态
+        else if (data.status === 'starting') {
+          this.progressText = `开始下载${data.type}模型: ${data.file}`;
+        }
+        // 处理解压完成状态
+        else if (data.status === 'extracted') {
+          this.progressText = `${data.model_type}模型解压完成: ${data.filename}`;
+        }
+        // 处理单个文件下载完成状态
+        else if (data.status === 'completed') {
+          this.progressText = `${data.type}模型下载完成`;
+        }
+        // 处理所有文件下载完成状态
+        else if (data.status === 'all_completed') {
+          this.downloadProgress = 100;
+          this.progressText = '所有模型更新完成';
+          eventSource.close();
+          setTimeout(() => {
+            this.updateDialogVisible = false;
+            this.$message.success('模型更新成功');
+          }, 1000);
+        }
+        // 处理错误状态（后端返回'failed'而非'error'）
+        else if (data.status === 'failed') {
+          eventSource.close();
+          this.$message.error(`下载失败: ${data.error}`);
+          this.updateDialogVisible = false;
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        this.$message.error('连接服务器失败');
+        this.updateDialogVisible = false;
+      };
+    },
+    /**
+     * 取消模型更新
+     */
+    cancelUpdate() {
+      fetch(`/define/module/cacheModel/cancel`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
     }
   }
 }
@@ -278,7 +363,6 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  /* background-color: rgba(0, 0, 0, 0.5); */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -286,7 +370,6 @@ export default {
 }
 
 .modal-content {
-  /* background-color: var(--el-bg-color); */
   background-image: radial-gradient(transparent 1px, var(--el-bg-color) 1px);
   background-size: 4px 4px;
   backdrop-filter: saturate(50%) blur(4px);
@@ -341,7 +424,6 @@ export default {
 .model-card-header h4 {
   margin: 0 0 10px 0;
   font-size: 16px;
-  /* color: var(--text-color); */
 }
 
 .model-card-metrics {
@@ -364,7 +446,17 @@ export default {
   display: flex;
   justify-content: flex-end;
   margin-top: auto;
-  /* gap: 2px; */
+}
+
+/* 进度对话框样式 */
+.progress-container {
+  padding: 20px 0;
+}
+
+.progress-text {
+  margin-top: 10px;
+  color: #606266;
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {

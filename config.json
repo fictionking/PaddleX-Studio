@@ -1,5 +1,5 @@
 {
     "paddlex_root": "C:\\UGit\\PaddleX\\",
-    "pretrained_root": ".\\pretrained\\",
+    "weights_root": ".\\weights\\",
     "device": "gpu:0"
 }
