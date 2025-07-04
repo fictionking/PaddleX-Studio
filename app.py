@@ -9,8 +9,8 @@ app = Flask(__name__, template_folder='templates')  # 明确模板目录
 from pxs.defineMgr import define_bp,init as defineMgr_init
 app.register_blueprint(define_bp)
 
-from pxs.modelMgr import model_bp,init as modelMgr_init,get_queue_size
-app.register_blueprint(model_bp)
+from pxs.trainMgr import train_bp,init as trainMgr_init,get_queue_size
+app.register_blueprint(train_bp)
 
 from pxs.datasetMgr import dataset_bp,init as datasetMgr_init
 app.register_blueprint(dataset_bp)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     cfg.init()
     create_directories()
     defineMgr_init()
-    modelMgr_init()
+    trainMgr_init()
     datasetMgr_init()
     doc_init()
     app.run(host='0.0.0.0', port=5000,debug=True)

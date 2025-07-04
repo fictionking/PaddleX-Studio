@@ -21,7 +21,7 @@ task_queue = queue.Queue()
 lock = Lock()
 is_training = False 
 # 初始化模型管理蓝图
-model_bp = Blueprint('model', __name__)
+train_bp = Blueprint('train', __name__)
 
 # 全局模型数据变量
 models = {}
@@ -202,7 +202,7 @@ def save_model_config(new_model=None):
         # 始终保存为数组格式
         json.dump(models_list, f, ensure_ascii=False, indent=4)
 
-@model_bp.route('/models/<modelId>', methods=['GET','DELETE'])
+@train_bp.route('/models/<modelId>', methods=['GET','DELETE'])
 def handle_model(modelId):
     model=models.get(modelId)
     if not model:
@@ -222,11 +222,11 @@ def handle_model(modelId):
         return jsonify({'message': '模型删除成功'}),204
     
 
-@model_bp.route('/models')
+@train_bp.route('/models')
 def get_models():
     return jsonify(list(models.values()))  # 返回JSON格式的模型数据
 
-@model_bp.route('/models/new', methods=['POST'])
+@train_bp.route('/models/new', methods=['POST'])
 def new_model():
     model_data = request.get_json()
     # 检查id是否已存在
@@ -249,12 +249,12 @@ def new_model():
     save_model_config(formatted_model)
     return {'code': 200, 'message': '保存成功'}
 
-@model_bp.route('/models/<model_id>/check/<path:filename>')
+@train_bp.route('/models/<model_id>/check/<path:filename>')
 def send_check_dataset_file(model_id, filename):
     check_path = os.path.join(models_root, model_id, 'check')
     return send_from_directory(check_path, filename)
 
-@model_bp.route('/models/<model_id>/check', methods=['POST'])
+@train_bp.route('/models/<model_id>/check', methods=['POST'])
 def checkDataSet(model_id):
     check_data = request.get_json()
     dataset_id = check_data.get('dataset_id')
@@ -312,7 +312,7 @@ def checkDataSet(model_id):
             json.dump(check_result, f, ensure_ascii=False, indent=2)
         return jsonify({'code': 200,'message': '检查完成','data': check_result})
 
-@model_bp.route('/models/<model_id>/train', methods=['POST'])
+@train_bp.route('/models/<model_id>/train', methods=['POST'])
 def train(model_id):
     # 获取请求参数（需与前端约定参数名）：
     # {
@@ -397,7 +397,7 @@ def train(model_id):
         'log_path': f'/models/{model_id}/train/log'
     })
 
-@model_bp.route('/models/<model_id>/train/log', methods=['GET'])
+@train_bp.route('/models/<model_id>/train/log', methods=['GET'])
 def get_train_log(model_id):
     """获取训练实时日志接口"""
     # 检查模型是否存在
@@ -424,7 +424,7 @@ def get_train_log(model_id):
     except FileNotFoundError:
         return jsonify({'code': 404, 'message': '日志文件未生成或训练未启动'}), 404
 
-@model_bp.route('/models/<model_id>/train/stop', methods=['GET'])
+@train_bp.route('/models/<model_id>/train/stop', methods=['GET'])
 def stop_train(model_id):
     """停止训练接口"""
     # 检查模型是否存在
@@ -455,7 +455,7 @@ def stop_train(model_id):
     else:
         return jsonify({'code': 400,'message': '当前训练状态无法停止'}), 400
 
-@model_bp.route('/models/<model_id>/<status>/<step>', methods=['GET'])
+@train_bp.route('/models/<model_id>/<status>/<step>', methods=['GET'])
 def setStatus(model_id,status,step):
     model = models[model_id]
     if not model:
@@ -468,7 +468,7 @@ def setStatus(model_id,status,step):
     except ValueError:
         return jsonify({'code': 400,'message': '无效的状态值'}), 400
 
-@model_bp.route('/models/<model_id>/download', methods=['GET'])
+@train_bp.route('/models/<model_id>/download', methods=['GET'])
 def download_model(model_id):
     """下载训练好的最佳模型打包文件
 
@@ -504,7 +504,7 @@ def download_model(model_id):
         return jsonify({'code': 500, 'message': f'模型打包失败: {str(e)}'}), 500
 
 
-@model_bp.route('/models/<model_id>/copyds', methods=['POST'])
+@train_bp.route('/models/<model_id>/copyds', methods=['POST'])
 def copydataset(model_id):
     check_data = request.get_json()
     dataset_id = check_data.get('dataset_id')
