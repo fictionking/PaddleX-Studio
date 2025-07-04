@@ -129,12 +129,14 @@ def get_module_cache_model(category_id, module_id, model_id):
     # 收集需要下载的URL列表
     download_urls = []
     if pretrained_model_url:
+        absurl=os.path.abspath(pretrained_model_url)
         #如果和cache_dir相同，则不下载
-        if not pretrained_model_url.startswith(cache_dir):
+        if not absurl.startswith(cache_dir):
             download_urls.append(('pretrained', pretrained_model_url))
     if inference_model_url:
+        absurl=os.path.abspath(inference_model_url)
         #如果和cache_dir相同，则不下载
-        if not inference_model_url.startswith(cache_dir):
+        if not absurl.startswith(cache_dir):
             download_urls.append(('inference', inference_model_url))
         
     if not download_urls:
