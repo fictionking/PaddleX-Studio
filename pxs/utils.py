@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging
 
 def copy_files(files):
     """输入复制文件路径数组，可以使用通配符,格式为：[{'src':'','dst':''}]"""
@@ -23,4 +24,4 @@ def copy_files(files):
             os.makedirs(dst, exist_ok=True)
             shutil.copytree(src, dst, dirs_exist_ok=True)
         else:
-            print(f"路径 {src} 不存在")
+            logging.error(f"路径 {src} 不存在")

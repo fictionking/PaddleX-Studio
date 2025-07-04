@@ -3,5 +3,6 @@
     "train_root": ".\\models\\",
     "datasets_root": ".\\datasets\\",
     "weights_root": ".\\weights\\",
+    "app_root":".\\apps\\",
     "device": "gpu:0"
 }

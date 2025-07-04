@@ -5,6 +5,7 @@ import tarfile
 from flask import Blueprint, jsonify, stream_with_context, Response
 import pxs.paddlexCfg as paddlexCfg
 import time
+import logging
 
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
@@ -41,7 +42,7 @@ def load_module_definitions():
         with open(category_info_path, 'r', encoding='utf-8') as f:
             categories = json.load(f)
     except Exception as e:
-        print(f"加载分类信息失败: {str(e)}")
+        logging.error(f"加载分类信息失败: {str(e)}")
         return []
 
     result = []
@@ -66,7 +67,7 @@ def load_module_definitions():
                         # 提取模型类型基本信息和预训练模型列表
                         modules_define.append(module)
                 except Exception as e:
-                    print(f"加载模型定义文件 {filename} 失败: {str(e)}")
+                    logging.error(f"加载模型定义文件 {filename} 失败: {str(e)}")
                     continue
 
         result.append({
@@ -83,7 +84,7 @@ def load_dataset_type_definitions():
         with open(define_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"加载数据集类型定义文件失败: {str(e)}")
+        logging.error(f"加载数据集类型定义文件失败: {str(e)}")
         return []
 
 

@@ -8,6 +8,7 @@ import shutil
 import zipfile
 import tarfile
 import mimetypes
+import logging
 import pxs.paddlexCfg as cfg
 # 初始化数据集管理蓝图
 dataset_bp = Blueprint('dataset_bp', __name__)
@@ -33,7 +34,7 @@ def init():
                 global datasets
                 datasets = load_or_create_dataset_config()
                 last_modified = current_modified
-                print("数据集配置文件已更新，重新加载成功")
+                logging.info("数据集配置文件已更新，重新加载成功")
             time.sleep(5)  # 每5秒检查一次
     # 启动配置文件检查后台线程
     threading.Thread(target=check_modification, daemon=True).start()
@@ -43,13 +44,13 @@ def load_or_create_dataset_config():
     if not os.path.exists(dataset_config_path):
         with open(dataset_config_path, 'w', encoding='utf-8') as f:
             json.dump([], f, ensure_ascii=False, indent=4)
-        print(f'创建空数据集配置文件：{dataset_config_path}')
+        logging.info(f'创建空数据集配置文件：{dataset_config_path}')
         return []
     try:
         with open(dataset_config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except json.JSONDecodeError:
-        print(f'配置文件 {dataset_config_path} 格式错误，重置为空文件')
+        logging.error(f'配置文件 {dataset_config_path} 格式错误，重置为空文件')
         with open(dataset_config_path, 'w', encoding='utf-8') as f:
             json.dump([], f, ensure_ascii=False, indent=4)
         return []
@@ -89,9 +90,9 @@ def add_dataset():
         # 使用安全目录创建函数
         success, message, error = _create_directory_safely(dataset_root, new_dataset['id'])
         if success:
-            print(f"已创建数据集目录: {store_dir}")
+            logging.info(f"已创建数据集目录: {store_dir}")
         else:
-            print(f"创建数据集目录失败: {error}")
+            logging.error(f"创建数据集目录失败: {error}")
             # 回滚数据集添加操作
             datasets.remove(new_dataset)
             save_dataset_config()
@@ -123,7 +124,7 @@ def handle_dataset(dataset_id):
         store_dir = os.path.join(dataset_root, dataset_id)
         if os.path.exists(store_dir):
             shutil.rmtree(store_dir)  # 删除模型目录及其内容
-            print(f"已删除数据集目录: {store_dir}")
+            logging.info(f"已删除数据集目录: {store_dir}")
         datasets.remove(dataset)
         save_dataset_config()
         return jsonify({'message': 'Dataset deleted'}), 204

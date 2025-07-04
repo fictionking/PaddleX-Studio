@@ -1,17 +1,19 @@
 import os
 import json
 import sys
+import logging
 # 定义PaddleX相关路径配置
 paddlex_root = None
 paddlex_main = None
 train_root = None
 datasets_root = None
 weights_root = None
+app_root = None
 device = 'cpu'
 
 def init():
     """从配置文件初始化PaddleX路径"""
-    global paddlex_root, paddlex_main,device,weights_root,train_root,datasets_root
+    global paddlex_root, paddlex_main,device,weights_root,train_root,datasets_root,app_root
     # 获取当前文件所在目录的绝对路径，拼接配置文件路径
     config_path = os.path.join(os.getcwd(), 'config.json')
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -29,7 +31,10 @@ def init():
     datasets_root = config['datasets_root']
     if datasets_root.startswith('.\\') or datasets_root.startswith('./') or datasets_root.startswith('..\\') or datasets_root.startswith('../'):
         datasets_root = os.path.abspath(os.path.join(os.getcwd(), datasets_root))
+    app_root = config['app_root']
+    if app_root.startswith('.\\') or app_root.startswith('./') or app_root.startswith('..\\') or app_root.startswith('../'):
+        app_root = os.path.abspath(os.path.join(os.getcwd(), app_root))
     # 检查PaddleX主文件是否存在
     if not os.path.exists(paddlex_main):
-        print(f"错误：PaddleX主文件不存在，路径：{paddlex_main}")
+        logging.error(f"错误：PaddleX主文件不存在，路径：{paddlex_main}")
         sys.exit(1)

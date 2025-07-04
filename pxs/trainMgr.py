@@ -11,7 +11,7 @@ from pxs.utils import copy_files
 import shutil
 import threading
 import time
-# 初始化训练队列相关变量（全局作用域）
+import logging
 import queue
 from threading import Lock
 import pxs.defineMgr as define
@@ -47,7 +47,7 @@ def init():
                 global models
                 models = load_or_create_models_config()
                 last_modified = current_modified
-                print("模型配置文件已更新，重新加载成功")
+                logging.info("模型配置文件已更新，重新加载成功")
             time.sleep(5)  # 每5秒检查一次
     # 启动训练队列处理线程
     threading.Thread(target=process_tasks, daemon=True).start()
@@ -134,7 +134,7 @@ def run_subprocess(modelid,command,log_path):
                 # 更新模型状态
                 model['status'] = 'finished' if process.returncode == 0 else 'failed'
                 save_model_config(model)  # 保存模型配置
-                print(f"模型 {modelid} 训练完成")
+                logging.info(f"模型 {modelid} 训练完成")
                 break
             # 检查是否收到中止指令（假设abort_model_id是全局共享的中止标记）
             if abort_model_id == modelid:
@@ -163,7 +163,7 @@ def load_or_create_models_config():
     if not os.path.exists(models_config_path):
         with open(models_config_path, 'w', encoding='utf-8') as f:
             json.dump([], f, ensure_ascii=False, indent=4)
-        print(f'创建空模型配置文件：{models_config_path}')
+        logging.info(f'创建空模型配置文件：{models_config_path}')
         return {}
     try:
         with open(models_config_path, 'r', encoding='utf-8') as f:
@@ -171,17 +171,17 @@ def load_or_create_models_config():
             # 将列表转换为以id为键的字典（假设每个model都有唯一的id字段）
             return {model['id']: model for model in models_list}
     except json.JSONDecodeError:
-        print(f'配置文件 {models_config_path} 格式错误，重置为空文件')
+        logging.error(f'配置文件 {models_config_path} 格式错误，重置为空文件')
         with open(models_config_path, 'w', encoding='utf-8') as f:
             json.dump([], f, ensure_ascii=False, indent=4)
         return {}
     except KeyError as e:
-        print(f'模型配置文件中存在缺失id字段的模型：{str(e)}，重置为空文件')
+        logging.error(f'模型配置文件中存在缺失id字段的模型：{str(e)}，重置为空文件')
         with open(models_config_path, 'w', encoding='utf-8') as f:
             json.dump([], f, ensure_ascii=False, indent=4)
         return {}
     except Exception as e:
-        print(f'加载模型配置文件时发生未知错误：{str(e)}，返回空字典')
+        logging.error(f'加载模型配置文件时发生未知错误：{str(e)}，返回空字典')
         return {}
 
 
@@ -215,7 +215,7 @@ def handle_model(modelId):
         model_dir = os.path.join(models_root, modelId)
         if os.path.exists(model_dir):
             shutil.rmtree(model_dir)  # 删除模型目录及其内容
-            print(f"已删除模型目录: {model_dir}")
+            logging.info(f"已删除模型目录: {model_dir}")
         models.pop(modelId, None)  # 从模型字典中删除
         # 保存更新后的模型列表
         save_model_config(None)  # 传入None触发全量保存
@@ -293,7 +293,7 @@ def checkDataSet(model_id):
         f.write(f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}")
         
     if result.returncode != 0:
-        print(f"检查失败: {result.stderr}")
+        logging.error(f"检查失败: {result.stderr}")
         return jsonify({'code': 500,'message': '检查失败'}), 200
     else:
         # 读取检查结果文件内容
@@ -441,7 +441,7 @@ def stop_train(model_id):
             # 过滤目标任务并重新入队其他任务
             for task in temp_tasks:
                 if task[0] == model_id:
-                    print(f"已从队列中删除模型 {model_id} 的训练任务")
+                    logging.info(f"已从队列中删除模型 {model_id} 的训练任务")
                 else:
                     task_queue.put(task)
         model['status'] = 'config'

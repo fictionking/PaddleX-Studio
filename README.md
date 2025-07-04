@@ -19,7 +19,7 @@ PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue
 
 #### 使用说明
 
-1. 启动应用：`python app.py`
+1. 启动应用：`python main.py`
 2. 在浏览器中访问：http://localhost:5000
 3. 首次使用需在设置中确认PaddleX路径是否正确配置
 4. 按照界面指引创建项目、导入数据并开始模型训练
