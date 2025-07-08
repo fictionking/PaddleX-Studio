@@ -378,7 +378,7 @@ def train(model_id):
         '-o', f'Train.warmup_steps={params.get("warmUpSteps")}',
         '-o', f'Train.log_interval={params.get("logInterval")}',
         '-o', f'Train.eval_interval={params.get("trainEvalInterval")}',
-        '-o', f'Train.pretrain_weight_path="{pretrain_weight_path}"'
+        '-o', f'Train.pretrain_weight_path={pretrain_weight_path}'
     ]
 
     # 创建训练日志目录
