@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import threading
 from io import BytesIO
 import pxs.paddlexCfg as cfg
-from pxs.model_thread import ModelThread
+from pxs.model_infer import ModelProcess
 
 # 全局变量跟踪当前运行的应用和模型
 current_app_id = None
@@ -284,12 +284,12 @@ def start_application(app_id):
             model_params['device'] = cfg.device
 
             # 创建并启动模型线程
-            current_model_thread = ModelThread(model_params)
+            current_model_thread = ModelProcess(model_params, cwd=os.getcwd())
             current_model_thread.start()
 
-            # 等待模型加载完成（最多等待30秒）
+            # 等待模型加载完成（最多等待300秒）
             start_time = time.time()
-            while not current_model_thread.is_loaded() and time.time() - start_time < 30:
+            while not current_model_thread.is_loaded() and time.time() - start_time < 300:
                 if current_model_thread.get_error():
                     raise RuntimeError(f'模型加载失败: {current_model_thread.get_error()}')
                 time.sleep(0.5)
@@ -422,14 +422,24 @@ def infer_application(app_id, result_type):
 
             # 提交推理任务
             task_data = {'input': input, 'predict_params': predict_params, 'result_type': result_type}
-            success, msg = current_model_thread.submit_task('infer', task_data, callback)
+            success, task_id = current_model_thread.submit_task(task_data)
             if not success:
-                return jsonify({"error": msg}), 500
+                return jsonify({"error": task_id}), 500
 
             # 等待结果（设置超时）
-            if not event.wait(timeout=30):
+            start_time = time.time()
+            result = None
+            error = None
+            while time.time() - start_time < 30:
+                result_data = current_model_thread.get_result(timeout=1)
+                if result_data:
+                    task_id_result, result, error = result_data
+                    if task_id_result == task_id:
+                        break
+                time.sleep(0.1)
+            
+            if not result and not error:
                 return jsonify({"error": "推理超时"}), 504
-
             if error:
                 return jsonify({"error": error}), 500
 
