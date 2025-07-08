@@ -1,181 +1,559 @@
+from flask import Blueprint, jsonify, request,Response
 import os
-import subprocess
 import json
 import logging
-from typing import Dict, List, Optional
+import time
+from werkzeug.utils import secure_filename
+import threading
+from io import BytesIO
+import pxs.paddlexCfg as cfg
+from pxs.model_thread import ModelThread
 
-class AppManager:
-    """应用管理类，负责应用的列表、配置、启动、停止和日志管理"""
-    def __init__(self):
-        """初始化应用管理器
-        - 设置应用根目录为工程下的apps目录
-        - 初始化进程管理字典
-        - 配置日志
-        """
-        self.apps_root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'apps')
-        self.running_apps: Dict[str, subprocess.Popen] = {}
-        self._init_logging()
+# 全局变量跟踪当前运行的应用和模型
+current_app_id = None
+current_model_thread = None
+current_result_types = None
+current_predict_params = None
+app_lock = threading.Lock()
+# 线程锁用于确保启动/停止操作的原子性
+app_lock = threading.Lock()
 
-    def _init_logging(self):
-        """初始化日志配置"""
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[logging.FileHandler('app_manager.log'), logging.StreamHandler()]
-        )
-        self.logger = logging.getLogger('AppManager')
+# 创建Flask蓝图
+app_mgr = Blueprint('app_mgr', __name__)
+apps_root = None
+apps_config_path = None
+apps = {}
 
-    def get_app_list(self) -> List[str]:
-        """获取所有应用列表
-        Returns:
-            List[str]: 应用ID列表
-        """
-        if not os.path.exists(self.apps_root):
-            self.logger.warning(f"应用根目录不存在: {self.apps_root}")
-            return []
 
-        app_list = []
-        for item in os.listdir(self.apps_root):
-            item_path = os.path.join(self.apps_root, item)
-            if os.path.isdir(item_path):
-                app_list.append(item)
-        return app_list
+def init():
+    """初始化应用管理器，加载应用配置"""
+    global apps_root, apps_config_path, apps
+    apps_root = cfg.app_root
+    # 加载应用配置
+    apps_config_path = os.path.join(apps_root, 'apps_config.json')
+    apps = load_or_create_apps_config()
 
-    def get_app_config(self, app_id: str) -> Optional[Dict]:
-        """获取指定应用的配置
-        Args:
-            app_id: 应用ID
-        Returns:
-            Optional[Dict]: 应用配置字典，如果配置文件不存在则返回None
-        """
-        app_dir = os.path.join(self.apps_root, app_id)
+def load_or_create_apps_config():
+    """加载或创建应用配置文件，并返回以app id为键的字典"""
+    if not os.path.exists(apps_config_path):
+        with open(apps_config_path, 'w', encoding='utf-8') as f:
+            json.dump([], f, ensure_ascii=False, indent=4)
+        logging.info(f'创建空应用配置文件：{apps_config_path}')
+        return {}
+    try:
+        with open(apps_config_path, 'r', encoding='utf-8') as f:
+            apps_list = json.load(f)
+            # 将列表转换为以id为键的字典（假设每个app都有唯一的id字段）
+            return {app['id']: app for app in apps_list}
+    except json.JSONDecodeError:
+        logging.error(f'配置文件 {apps_config_path} 格式错误，重置为空文件')
+        return {}
+    except KeyError as e:
+        logging.error(f'应用配置文件中存在缺失id字段的应用：{str(e)}，重置为空文件')
+        return {}
+    except Exception as e:
+        logging.error(f'加载应用配置文件时发生未知错误：{str(e)}，返回空字典')
+        return {}
+
+def save_app_config(new_app=None):
+    """
+    保存应用配置信息到JSON文件（存在则更新，不存在则添加），始终保存为数组格式
+    :param new_app: 要保存的应用配置字典（需包含'id'属性）
+    """
+    global apps
+    if new_app is not None:
+        app_id = new_app.get('id')
+        # 更新或添加应用到字典
+        apps[app_id] = new_app
+    # 转换为数组用于保存
+    apps_list = list(apps.values())
+    with open(apps_config_path, 'w', encoding='utf-8') as f:
+        # 始终保存为数组格式
+        json.dump(apps_list, f, ensure_ascii=False, indent=4)
+    logging.info(f'应用配置已保存到 {apps_config_path}')
+
+@app_mgr.route('/apps', methods=['GET'])
+def list_applications():
+    return jsonify(apps.values())
+
+@app_mgr.route('/apps/new', methods=['POST'])
+def new_applications():
+    """
+    创建新应用
+    ---
+    请求体包含:
+    - app_name: 应用名称
+    - app_id: 应用ID（需唯一）
+    - app_type: 应用类型
+    - app_config: 应用配置
+    返回:
+    - 成功: {success: true, app: {...}}
+    - 失败: {success: false, error: "..."}
+    """
+    # 获取请求数据
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Invalid request data'}), 400
+
+    # 验证必填字段
+    required_fields = ['app_name', 'app_id', 'app_type', 'app_config']
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+
+    app_id = data['app_id']
+    app_name = data['app_name']
+    app_type = data['app_type']
+    app_config = data['app_config']
+
+    # 检查ID唯一性
+    global apps
+    if app_id in apps:
+        return jsonify({'success': False, 'error': f'App ID {app_id} already exists'}), 409
+
+    # 创建新应用对象
+    new_app = {
+        'id': app_id,
+        'name': app_name,
+        'type': app_type
+    }
+    app_dir = os.path.join(apps_root, app_id)
+    try:
+        # 保存apps数据
+        save_app_config(new_app)
+        # 创建应用目录
+        os.makedirs(app_dir, exist_ok=True)
+
+        # 创建配置文件
         config_path = os.path.join(app_dir, 'config.json')
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(app_config, f, ensure_ascii=False, indent=2)
 
-        if not os.path.exists(config_path):
-            self.logger.error(f"应用配置文件不存在: {config_path}")
-            return None
+        return jsonify({'success': True, 'app': new_app}), 201
 
-        try:
+    except Exception as e:
+        # 发生错误时回滚
+        if app_id in apps:
+            del apps[app_id]
+            os.rmdir(app_dir)
+            save_app_config()
+        return jsonify({'success': False, 'error': f'Failed to create app: {str(e)}'}), 500
+
+@app_mgr.route('/apps/delete/<app_id>', methods=['GET'])
+def del_applcation(app_id):
+    global apps
+    if app_id in apps:
+        app_dir = os.path.join(apps_root, app_id)
+        del apps[app_id]
+        save_app_config()
+        os.rmdir(app_dir)
+        return jsonify({'success': True, 'app': app_id}), 201
+    else:
+        return jsonify({'success': False, 'error': f'App ID {app_id} not exists'}), 404
+
+@app_mgr.route('/apps/config/<app_id>', methods=['GET'])
+def get_application_config(app_id):
+    """获取指定应用的配置信息
+
+    Args:
+        app_id: 应用ID
+
+    Returns:
+        json: 应用配置信息或错误消息
+    """
+    global apps_root
+    # 构建应用配置文件路径
+    app_dir = os.path.join(apps_root, app_id)
+    config_path = os.path.join(app_dir, 'config.json')
+    
+    # 检查应用目录是否存在
+    if not os.path.exists(app_dir):
+        return jsonify({
+            'status': 'error',
+            'message': f'应用 {app_id} 不存在',
+            'data': None
+        }), 404
+    
+    # 检查配置文件是否存在，不存在则返回空配置
+    if not os.path.exists(config_path):
+        return jsonify({
+            'status': 'success',
+            'message': f'应用 {app_id} 配置文件不存在，返回默认配置',
+            'data': {}
+        })
+    
+    # 读取并返回配置文件
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        return jsonify({
+            'status': 'success',
+            'message': f'获取应用 {app_id} 配置成功',
+            'data': config
+        })
+    except json.JSONDecodeError:
+        return jsonify({
+            'status': 'error',
+            'message': f'应用 {app_id} 配置文件格式错误',
+            'data': None
+        }), 500
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'读取应用 {app_id} 配置失败: {str(e)}',
+            'data': None
+        }), 500
+
+@app_mgr.route('/apps/config/<app_id>', methods=['POST'])
+def save_application_config(app_id):
+    """保存指定应用的配置信息
+
+    Args:
+        app_id: 应用ID
+
+    Returns:
+        json: 保存结果消息
+    """
+    global apps_root, apps
+    # 获取请求中的配置数据
+    config_data = request.get_json()
+    if not config_data:
+        return jsonify({
+            'status': 'error',
+            'message': '配置数据不能为空',
+            'data': None
+        }), 400
+    
+    # 构建应用配置文件路径
+    app_dir = os.path.join(apps_root, app_id)
+    config_path = os.path.join(app_dir, 'config.json')
+    
+    # 确保应用目录存在
+    os.makedirs(app_dir, exist_ok=True)
+    
+    # 保存配置文件
+    try:
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f, ensure_ascii=False, indent=4)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'应用 {app_id} 配置保存成功',
+            'data': config_data
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'保存应用 {app_id} 配置失败: {str(e)}',
+            'data': None
+        }), 500
+
+def start_application(app_id):
+    """
+    启动指定应用的模型，在独立线程中运行
+    
+    Args:
+        app_id: 要启动的应用ID
+        
+    Returns:
+        tuple: (状态消息, HTTP状态码)
+    """
+    global current_app_id, current_model_thread, current_result_types, current_predict_params
+    # 停止当前运行的应用
+    stop_current_application()
+
+    try:
+        with app_lock:
+
+            if app_id not in apps:
+                raise ValueError(f'应用 {app_id} 不存在')
+
+            # 构建应用目录路径
+            app_dir = os.path.join(apps_root, app_id)
+            config_path = os.path.join(app_dir, 'config.json')
+
+            # 读取推理配置参数
+            if not os.path.exists(config_path):
+                raise ValueError('配置文件不存在')
+
             with open(config_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except json.JSONDecodeError as e:
-            self.logger.error(f"解析配置文件失败: {e}")
-            return None
+                config = json.load(f)
 
-    def start_app(self, app_id: str) -> bool:
-        """启动指定应用
-        Args:
-            app_id: 应用ID
-        Returns:
-            bool: 启动成功返回True，否则返回False
-        """
-        if app_id in self.running_apps and self.running_apps[app_id].poll() is None:
-            self.logger.warning(f"应用{app_id}已经在运行中")
-            return True
+            # 提取推理所需参数
+            model_params = config.get('model_params', {})
+            model_params['device'] = cfg.device
 
-        app_dir = os.path.join(self.apps_root, app_id)
-        if not os.path.exists(app_dir):
-            self.logger.error(f"应用目录不存在: {app_dir}")
-            return False
+            # 创建并启动模型线程
+            current_model_thread = ModelThread(model_params)
+            current_model_thread.start()
 
-        # 获取应用配置，确定入口文件
-        config = self.get_app_config(app_id)
-        entry_file = config.get('entry_file', 'main.py') if config else 'main.py'
-        entry_path = os.path.join(app_dir, entry_file)
+            # 等待模型加载完成（最多等待30秒）
+            start_time = time.time()
+            while not current_model_thread.is_loaded() and time.time() - start_time < 30:
+                if current_model_thread.get_error():
+                    raise RuntimeError(f'模型加载失败: {current_model_thread.get_error()}')
+                time.sleep(0.5)
 
-        if not os.path.exists(entry_path):
-            self.logger.error(f"应用入口文件不存在: {entry_path}")
-            return False
+            if not current_model_thread.is_loaded():
+                raise RuntimeError('模型加载超时')
 
-        # 创建日志目录
-        log_dir = os.path.join(app_dir, 'logs')
-        os.makedirs(log_dir, exist_ok=True)
-        log_path = os.path.join(log_dir, 'app.log')
+            # 更新全局状态
+            current_app_id = app_id
+            current_predict_params = config.get('predict_params', {})
+            current_result_types = config.get('result_types', {})
 
+        logging.info(f'应用 {app_id} 已在独立线程启动')
+        return (f'Application {app_id} started successfully', 200)
+
+    except Exception as e:
+        logging.error(f'启动应用失败: {str(e)}', exc_info=True)
+        # 确保线程被正确清理
+        if current_model_thread:
+            current_model_thread.stop()
+            current_model_thread = None
+        return (f'Failed to start application: {str(e)}', 500)
+
+
+def stop_current_application():
+    """
+    停止当前运行的应用线程
+    
+    Returns:
+        tuple: (状态消息, HTTP状态码)
+    """
+    global current_app_id, current_model_thread
+
+    try:
+        with app_lock:
+            if current_model_thread and current_model_thread.is_alive():
+                current_model_thread.stop()
+                current_model_thread = None
+            current_app_id = None
+        logging.info('当前应用已停止')
+        return ('Application stopped successfully', 200)
+    except Exception as e:
+        logging.error(f'停止应用失败: {str(e)}', exc_info=True)
+        return (f'Failed to stop application: {str(e)}', 500)
+
+
+@app_mgr.route('/apps/start/<app_id>', methods=['GET'])
+def start_application_api(app_id):
+    """
+    启动指定应用的API端点
+    """
+    try:
+        start_application(app_id)
+        return json.dumps({'status': 'success', 'message': f'Application {app_id} started successfully'}), 200
+    except Exception as e:
+        logging.error(f'Failed to start application: {str(e)}')
+        return json.dumps({'status': 'error', 'message': f'Failed to start application: {str(e)}'}), 500
+
+
+@app_mgr.route('/apps/stop', methods=['GET'])
+def stop_application_api():
+    """
+    停止当前应用的API端点
+    """
+    try:
+        stop_current_application()
+        return json.dumps({'status': 'success', 'message': f'Application stopped successfully'}), 200
+    except Exception as e:
+        logging.error(f'Failed to stop application: {str(e)}')
+        return json.dumps({'status': 'error', 'message': f'Failed to stop application: {str(e)}'}), 500
+
+
+@app_mgr.route('/apps/infer/<app_id>/<result_type>', methods=['POST'])
+@app_mgr.route('/apps/infer', defaults={'app_id': None, 'result_type': 'json'}, methods=['POST'])
+def infer_application(app_id, result_type):
+    global current_model_thread, current_app_id, current_result_types, apps, current_predict_params
+ 
+    # 处理默认路由情况
+    if app_id is None:
+        app_id = current_app_id
+        if not app_id:
+            return jsonify({"error": "未指定应用ID且没有当前活动应用"}), 400
+
+    # 1. 验证应用是否存在
+    if app_id not in apps:
+        return jsonify({"error": f"应用 {app_id} 不存在"}), 404
+
+    # 2. 确保模型线程已加载且为当前应用
+    if current_app_id != app_id or not current_model_thread or not current_model_thread.is_alive() or not current_model_thread.is_loaded():
         try:
-            # 启动独立进程运行应用，并将输出重定向到日志文件
-            with open(log_path, 'a', encoding='utf-8') as log_file:
-                process = subprocess.Popen(
-                    ['python', entry_path],
-                    cwd=app_dir,
-                    stdout=log_file,
-                    stderr=subprocess.STDOUT,
-                    text=True
-                )
-            self.running_apps[app_id] = process
-            self.logger.info(f"应用{app_id}启动成功，进程ID: {process.pid}")
-            return True
+            start_application(app_id)
         except Exception as e:
-            self.logger.error(f"应用{app_id}启动失败: {str(e)}")
-            return False
+            logging.error(f"启动应用 {app_id} 失败: {str(e)}")
+            return jsonify({"error": f"启动应用失败: {str(e)}"}), 500
+    
+    # 3. 验证结果类型是否支持
+    if not current_result_types.get(result_type, False):
+        return jsonify({
+            "error": f"不支持的结果类型: {result_type}",
+            "supported_types": [k for k, v in current_result_types.items() if v]
+        }), 400
+    
+    # 4. 获取请求数据
+    try:
+        # 处理请求输入数据
+        input, temp_files, error_response = process_request_input(request, app_id, apps_root)
+        if error_response:
+            return error_response
+        
+        # 从post中获取预测参数
+        predict_params = request.get_json().get('predict_params', {})
+            
+        valid,predict_params, error_msg = check_predict_params(predict_params, current_predict_params)
+        if not valid:
+            return jsonify({"error": f"预测参数格式错误: {error_msg}"}), 400
 
-    def get_app_log(self, app_id: str, lines: int = 100) -> str:
-        """获取应用运行日志
-        Args:
-            app_id: 应用ID
-            lines: 要获取的日志行数，默认100行
-        Returns:
-            str: 日志内容
-        """
-        app_dir = os.path.join(self.apps_root, app_id)
-        log_path = os.path.join(app_dir, 'logs', 'app.log')
-
-        if not os.path.exists(log_path):
-            return f"日志文件不存在: {log_path}"
-
+        # 调用模型线程进行推理
         try:
-            with open(log_path, 'r', encoding='utf-8') as f:
-                return ''.join(f.readlines()[-lines:])
+            # 创建结果存储和事件
+            result = []
+            error = None
+            event = threading.Event()
+
+            # 定义回调函数
+            def callback(infer_result, infer_error):
+                nonlocal result, error
+                result = infer_result
+                error = infer_error
+                event.set()
+
+            # 提交推理任务
+            task_data = {'input': input, 'predict_params': predict_params, 'result_type': result_type}
+            success, msg = current_model_thread.submit_task('infer', task_data, callback)
+            if not success:
+                return jsonify({"error": msg}), 500
+
+            # 等待结果（设置超时）
+            if not event.wait(timeout=30):
+                return jsonify({"error": "推理超时"}), 504
+
+            if error:
+                return jsonify({"error": error}), 500
+
+            # 处理不同结果类型
+            if result_type == 'img':
+                img = result.get('img')
+                if img:
+                    img_byte_arr = BytesIO()
+                    img.save(img_byte_arr, format='PNG')
+                    img_byte_arr.seek(0)
+                    return Response(img_byte_arr, mimetype='image/png', headers={
+                        'Content-Disposition': 'inline; filename="result.png"'
+                    })
+                else:
+                    return jsonify({"error": "未生成图像结果"}), 500
+            else:
+                # 根据结果类型返回对应数据
+                output = result.get(result_type, [])
+                sample_count = len(output) if isinstance(output, list) else 1
+                logging.info(f"推理完成，共处理 {sample_count} 个样本")
+                return jsonify({"status": "success", "data": output})
         except Exception as e:
-            return f"读取日志失败: {str(e)}"
+            logging.error(f"推理过程发生错误: {str(e)}", exc_info=True)
+            raise
+        finally:
+            # 清理临时文件
+            for temp_file in temp_files:
+                if os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                        logging.info(f"临时文件已清理: {temp_file}")
+                    except Exception as e:
+                        logging.warning(f"清理临时文件失败: {str(e)}")
 
-    def stop_app(self, app_id: str) -> bool:
-        """停止指定应用
-        Args:
-            app_id: 应用ID
-        Returns:
-            bool: 停止成功返回True，否则返回False
-        """
-        if app_id not in self.running_apps:
-            self.logger.warning(f"应用{app_id}未在运行中")
-            return True
+    except Exception as e:
+        logging.error(f"解析请求数据失败: {str(e)}")
+        return jsonify({"error": "解析请求数据失败，确保请求为JSON格式且包含input_data字段"}), 400
 
-        process = self.running_apps[app_id]
-        if process.poll() is not None:
-            # 进程已经结束
-            del self.running_apps[app_id]
-            self.logger.info(f"应用{app_id}进程已结束")
-            return True
 
+def process_request_input(request, app_id, apps_root):
+    """
+    处理请求输入数据，支持文件上传和JSON输入
+    :param request: Flask请求对象
+    :param app_id: 当前应用ID
+    :param apps_root: 应用根目录
+    :return: tuple(input_data, temp_files, error_response)
+             - input_data: 处理后的输入数据
+             - temp_files: 需要清理的临时文件列表
+             - error_response: 错误响应元组 (response, status_code)，无错误则为None
+    """
+    temp_files = []
+    input_data = None
+    
+    # 1. 优先处理文件上传
+    if 'file' in request.files and request.files['file'].filename != '':
+        file = request.files['file']
+        # 确保upload目录存在
+        upload_dir = os.path.join(apps_root, app_id, 'upload')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # 保存上传文件到临时路径
+        filename = secure_filename(file.filename)
+        temp_file_path = os.path.join(upload_dir, filename)
+        file.save(temp_file_path)
+        input_data = temp_file_path
+        logging.info(f"上传文件已保存至临时路径: {temp_file_path}")
+        
+        # 添加临时文件清理标记
+        temp_files.append(temp_file_path)
+    
+    # 2. 如果没有文件上传，则尝试从JSON获取输入数据
+    if input_data is None:
         try:
-            # 尝试优雅终止进程
-            process.terminate()
-            # 等待进程结束
-            process.wait(timeout=5)
-            del self.running_apps[app_id]
-            self.logger.info(f"应用{app_id}已成功停止")
-            return True
-        except subprocess.TimeoutExpired:
-            # 超时则强制终止
-            process.kill()
-            del self.running_apps[app_id]
-            self.logger.warning(f"应用{app_id}强制终止")
-            return True
+            data = request.get_json()
+            if not data or 'input' not in data:
+                return None, temp_files, (jsonify({"error": "请求数据中缺少input字段"}), 400)
+            input_data = data['input']
+            logging.info(f"使用JSON输入: {str(input_data)[:100]}...")
         except Exception as e:
-            self.logger.error(f"停止应用{app_id}失败: {str(e)}")
-            return False
+            return None, temp_files, (jsonify({"error": "解析JSON请求失败: " + str(e)}), 400)
+    
+    # 验证输入是否有效
+    if input_data is None:
+        return None, temp_files, (jsonify({"error": "未提供有效的输入数据"}), 400)
+    
+    return input_data, temp_files, None
 
-    def get_running_apps(self) -> Dict[str, int]:
-        """获取当前运行中的应用
-        Returns:
-            Dict[str, int]: 应用ID到进程ID的映射
-        """
-        # 清理已结束的进程
-        to_remove = []
-        for app_id, process in self.running_apps.items():
-            if process.poll() is not None:
-                to_remove.append(app_id)
-        for app_id in to_remove:
-            del self.running_apps[app_id]
 
-        return {app_id: process.pid for app_id, process in self.running_apps.items()}
+# 检测预测参数是否符合current_predict_params定义
+def check_predict_params(predict_params, current_predict_params):
+    """
+    验证预测参数是否符合定义要求
+    :param predict_params: 待验证的参数字典
+    :param current_predict_params: 参数定义字典
+    :return: (bool, str) 验证结果和错误信息
+    """
+    errors = []
+    params = {}
+    for param_name, param_def in current_predict_params.items():
+        # 获取参数值，不存在则使用默认值
+        param_value = predict_params.get(param_name, param_def.get('default'))
+        # 如果参数值为None跳过
+        if param_value is None:
+            continue
+        # 类型检查
+        expected_type = param_def['type']
+        if expected_type == 'int':
+            if not isinstance(param_value, int):
+                errors.append(f"{param_name}必须为整数")
+        elif expected_type == 'float':
+            if not isinstance(param_value, (int, float)):
+                errors.append(f"{param_name}必须为数字")
+            else:
+                param_value = float(param_value)
+        
+        # 最小值检查
+        if 'min' in param_def and param_def['min'] is not None:
+            if param_value < param_def['min']:
+                errors.append(f"{param_name}不能小于{param_def['min']}")
+        
+        # 最大值检查
+        if 'max' in param_def and param_def['max'] is not None:
+            if param_value > param_def['max']:
+                errors.append(f"{param_name}不能大于{param_def['max']}")
+        
+        params[param_name] = param_value
+    return len(errors) == 0,params, ", ".join(errors)
