@@ -33,7 +33,7 @@
         <div class="pretrained-models-grid">
           <div v-for="model in selectedModelType.pretrained" :key="model.id" class="pretrained-model-card">
             <div class="model-card-header">
-              <h4>{{ model.name }}</h4>
+              <h4 style="word-break: break-all;">{{ model.name }}</h4>
               <div class="model-card-metrics">
                 <span v-if="model.model_size">{{ model.model_size }}</span>
               </div>
