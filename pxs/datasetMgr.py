@@ -378,6 +378,10 @@ def delete_dataset_files(dataset_id):
             'error': None
         }
         
+        # 如果是datset_dir则不能删除
+        if os.path.abspath(full_path) == os.path.abspath(dataset_dir):
+            return jsonify({'error': 'Root directory cannot be deleted'}), 400
+
         # 安全检查：确保在数据集目录内
         if not os.path.abspath(full_path).startswith(os.path.abspath(dataset_dir)):
             result['error'] = 'Access denied: path outside dataset directory'

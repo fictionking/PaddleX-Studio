@@ -483,7 +483,7 @@ export default {
           this.fetchFileTree();
         })
         .catch(error => {
-          this.$message.error(`删除失败: ${error.message}`);
+          this.$message.error(`删除失败: ${error.response?.data?.error || error.message}`);
         });
     },
 
@@ -504,7 +504,7 @@ export default {
           this.fetchFileTree();
         })
         .catch(error => {
-          this.$message.error(`删除失败: ${error.message}`);
+          this.$message.error(`删除失败: ${error.response?.data?.error || error.message}`);
         });
     },
 
