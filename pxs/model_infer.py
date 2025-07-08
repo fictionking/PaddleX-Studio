@@ -6,6 +6,7 @@ from paddlex import create_model
 import gc
 import time
 
+# 使用独立进程运行模型，确保可以完全释放占用资源
 class ModelProcess(mp.Process):
     """
     模型运行进程类，负责模型的加载、推理和销毁
