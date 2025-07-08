@@ -47,5 +47,39 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/RT-DETR-L_pretrained.pdparams",
             "model_size": "113.7 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "batch_size": {
+                "type": "int",
+                "min": 1,
+                "max": null,
+                "default": 1
+            },
+            "threshold": {
+                "type": "float",
+                "min": 0.0,
+                "max": 1.0,
+                "default": null
+            }
+        },
+        "predict_params": {
+            "batch_size": {
+                "type": "int",
+                "min": 1,
+                "max": null,
+                "default": 1
+            },
+            "threshold": {
+                "type": "float",
+                "min": 0.0,
+                "max": 1.0,
+                "default": null
+            }
+        },
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }
