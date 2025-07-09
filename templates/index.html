@@ -278,7 +278,8 @@
                 { path: '/dataset', component: () => import('/components/DatasetList.vue') },
                 { path: '/app', component: () => import('/components/AppList.vue') },
                 { path: '/dataset/:datasetId', component: () => import('/components/DatasetDetail.vue') },
-                { path: '/model/:modelId', component: () => import('/components/ModelDetail.vue') }
+                { path: '/model/:modelId', component: () => import('/components/ModelDetail.vue') },
+                { path: '/app/:appId', component: () => import('/components/AppDetail.vue') }
             ]
         })
         const colors = [

@@ -69,20 +69,22 @@ def system_usage():
     
     # 获取GPU使用率和VRAM使用率
     gpus = nvitop.Device.all()
-    if gpus:
-        gpu_usage = gpus[0].gpu_percent()
+    # cfg.device = "gpu:0"中提取gpu编号，如果是CPU则为-1
+    gpu_id = int(cfg.device.split(":")[1]) if cfg.device.startswith("gpu") else -1
+    gpu_usage = 0
+    vram_usage = 0
+    temp_usage = 0
+    if gpu_id >= 0 and gpu_id < len(gpus):
+        gpu_usage = gpus[gpu_id].gpu_percent()
         gpu_usage = gpu_usage if gpu_usage != nvitop.NA else 0
-        vram_usage = gpus[0].memory_percent()
+        vram_usage = gpus[gpu_id].memory_percent()
         vram_usage = vram_usage if vram_usage != nvitop.NA else 0
-        temp_usage = gpus[0].temperature()
+        temp_usage = gpus[gpu_id].temperature()
         if temp_usage == nvitop.NA:
             temp_usage= 0
         if temp_usage>100:
             temp_usage=100
-    else:
-        gpu_usage = 0
-        vram_usage = 0
-        temp_usage = 0
+
     queue_size = get_queue_size()
     apps_status = get_apps_status()
     return jsonify({

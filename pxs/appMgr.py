@@ -189,6 +189,16 @@ def get_application_config(app_id):
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
+        #将app的所有属性添加到config
+        app=apps[app_id]
+        for key in app:
+            config[key]=app[key]
+        
+        if app_id == current_app_id:
+            config['status']='running'
+        else:
+            config['status']='stopped'
+        
         return jsonify({
             'status': 'success',
             'message': f'获取应用 {app_id} 配置成功',
@@ -284,10 +294,14 @@ def start_application(app_id):
 
             # 提取推理所需参数
             model_params = config.get('model_params', {})
-            model_params['device'] = cfg.device
+            params={}
+            for key, value in model_params.items():
+                if 'value' in value:
+                    params[key] = value['value']
+            params['device'] = cfg.device
 
             # 创建并启动模型线程
-            current_model_thread = ModelProcess(model_params)
+            current_model_thread = ModelProcess(params)
             current_model_thread.start()
 
             # 等待模型加载完成（最多等待300秒）
