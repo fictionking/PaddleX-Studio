@@ -284,7 +284,7 @@ def start_application(app_id):
             model_params['device'] = cfg.device
 
             # 创建并启动模型线程
-            current_model_thread = ModelProcess(model_params, cwd=os.getcwd())
+            current_model_thread = ModelProcess(model_params)
             current_model_thread.start()
 
             # 等待模型加载完成（最多等待300秒）

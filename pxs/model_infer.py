@@ -11,7 +11,7 @@ class ModelProcess(mp.Process):
     """
     模型运行进程类，负责模型的加载、推理和销毁
     """
-    def __init__(self, model_params, cwd=None):
+    def __init__(self, model_params):
         """
         初始化模型进程
         
@@ -20,7 +20,6 @@ class ModelProcess(mp.Process):
             cwd: 进程工作目录，默认为None
         """
         super().__init__()
-        self.cwd = cwd  # 保存工作目录
         self.model_params = model_params    # 模型参数
         self.model = None                   # 模型实例
         self.task_queue = Queue()           # 推理任务队列
@@ -47,9 +46,6 @@ class ModelProcess(mp.Process):
         """进程主循环，处理模型加载和推理任务"""
         self.running.value = True
         try:
-            # 设置工作目录
-            if self.cwd:
-                os.chdir(self.cwd)
             # 加载模型
             print(f"模型进程 {os.getpid()} 开始加载模型")
             print(self.model_params)

@@ -30,6 +30,10 @@ mainapp.register_blueprint(app_mgr)
 def index():
     """首页路由，返回平台介绍信息"""
     return send_file('templates/index.html')  # 仅渲染模板
+    
+@mainapp.route('/favicon.ico')
+def favico():
+    return send_file('assets/favicon.ico')  # 仅渲染模板
 
 @mainapp.route('/components/<path:filename>')
 def send_components(filename):
