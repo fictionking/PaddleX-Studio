@@ -215,7 +215,7 @@
                     <div style="display: flex; gap: 16px; align-items: center;">
                         <div style="display: flex; flex-direction: column; align-items: center;">
                             <span style="font-size: 9px;">App</span>
-                            <span style="font-size: 12px;font-weight: bold;color: #00c58d;">运行中</span>
+                            <span :style="{ fontSize: '12px', fontWeight: 'bold', color: appsStatus === '运行中' ? '#00c58d' : '#005baa' }">{{appsStatus}}</span>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: center;">
                             <span style="font-size: 9px;">Queue</span>
@@ -276,6 +276,7 @@
                 { path: '/module', component: () => import('/components/ModuleList.vue') },
                 { path: '/model', component: () => import('/components/ModelList.vue') },
                 { path: '/dataset', component: () => import('/components/DatasetList.vue') },
+                { path: '/app', component: () => import('/components/AppList.vue') },
                 { path: '/dataset/:datasetId', component: () => import('/components/DatasetDetail.vue') },
                 { path: '/model/:modelId', component: () => import('/components/ModelDetail.vue') }
             ]
@@ -310,7 +311,8 @@
                     gpuUsage: 0,
                     vramUsage: 0,
                     tempUsage: 0,
-                    queueSize: 0
+                    queueSize: 0,
+                    appsStatus: '未运行'
                 }
             },
             methods: {
@@ -327,6 +329,7 @@
                             this.vramUsage = response.data.vram;
                             this.tempUsage = response.data.temp;
                             this.queueSize = response.data.queue_size;
+                            this.appsStatus = response.data.apps_status;
                         })
                         .catch(error => {
                             ElMessage.error('获取系统使用情况失败');

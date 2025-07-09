@@ -74,7 +74,10 @@ def save_app_config(new_app=None):
 
 @app_mgr.route('/apps', methods=['GET'])
 def list_applications():
-    return jsonify(apps.values())
+    apps_list = list(apps.values())
+    for app in apps_list:
+        app['status'] = 'running' if app['id'] == current_app_id else 'stopped'
+    return jsonify(apps_list)
 
 @app_mgr.route('/apps/new', methods=['POST'])
 def new_applications():
@@ -335,6 +338,10 @@ def stop_current_application():
         logging.error(f'停止应用失败: {str(e)}', exc_info=True)
         return (f'Failed to stop application: {str(e)}', 500)
 
+def get_apps_status():
+    if current_model_thread:
+        return '运行中'
+    return '未运行'
 
 @app_mgr.route('/apps/start/<app_id>', methods=['GET'])
 def start_application_api(app_id):

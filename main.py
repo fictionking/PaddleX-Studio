@@ -23,7 +23,7 @@ mainapp.register_blueprint(dataset_bp)
 from pxs.doc import doc_bp,init as doc_init
 mainapp.register_blueprint(doc_bp)
 
-from pxs.appMgr import app_mgr,init as appMgr_init
+from pxs.appMgr import app_mgr,get_apps_status,init as appMgr_init
 mainapp.register_blueprint(app_mgr)
 
 @mainapp.route('/')
@@ -84,13 +84,15 @@ def system_usage():
         vram_usage = 0
         temp_usage = 0
     queue_size = get_queue_size()
+    apps_status = get_apps_status()
     return jsonify({
         'cpu': cpu_usage,
         'ram': ram_usage,
         'gpu': gpu_usage,
         'vram': vram_usage,
         'temp': temp_usage,
-        'queue_size':queue_size
+        'queue_size':queue_size,
+        'apps_status':apps_status
     })
 
 
