@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request,Response
+from flask import Blueprint, jsonify, request,send_file
 import os
 import json
 import logging
@@ -384,33 +384,23 @@ def stop_application_api():
 
 
 @app_mgr.route('/apps/infer/<app_id>/<result_type>', methods=['POST'])
-@app_mgr.route('/apps/infer', defaults={'app_id': None, 'result_type': 'json'}, methods=['POST'])
 def infer_application(app_id, result_type):
     global current_model_thread, current_app_id, current_result_types, apps, current_predict_params
  
-    # 处理默认路由情况
-    if app_id is None:
-        app_id = current_app_id
-        if not app_id:
-            return jsonify({"error": "未指定应用ID且没有当前活动应用"}), 400
-
     # 1. 验证应用是否存在
     if app_id not in apps:
         return jsonify({"error": f"应用 {app_id} 不存在"}), 404
 
     # 2. 确保模型线程已加载且为当前应用
     if current_app_id != app_id or not current_model_thread or not current_model_thread.is_alive() or not current_model_thread.is_loaded():
-        try:
-            start_application(app_id)
-        except Exception as e:
-            logging.error(f"启动应用 {app_id} 失败: {str(e)}")
-            return jsonify({"error": f"启动应用失败: {str(e)}"}), 500
+        logging.error(f"应用 {app_id} 未启动")
+        return jsonify({"error": "应用未启动"}), 500
     
     # 3. 验证结果类型是否支持
-    if not current_result_types.get(result_type, False):
+    if result_type not in current_result_types:
         return jsonify({
             "error": f"不支持的结果类型: {result_type}",
-            "supported_types": [k for k, v in current_result_types.items() if v]
+            "supported_types": current_result_types
         }), 400
     
     # 4. 获取请求数据
@@ -420,8 +410,12 @@ def infer_application(app_id, result_type):
         if error_response:
             return error_response
         
-        # 从post中获取预测参数
-        predict_params = request.get_json().get('predict_params', {})
+        # 从FormData中获取预测参数（支持multipart/form-data格式）
+        predict_params_str = request.form.get('predict_params', '{}')
+        try:
+            predict_params = json.loads(predict_params_str)
+        except json.JSONDecodeError:
+            return jsonify({"error": "预测参数格式错误: 无效的JSON字符串"}), 400
             
         valid,predict_params, error_msg = check_predict_params(predict_params, current_predict_params)
         if not valid:
@@ -432,17 +426,12 @@ def infer_application(app_id, result_type):
             # 创建结果存储和事件
             result = []
             error = None
-            event = threading.Event()
-
-            # 定义回调函数
-            def callback(infer_result, infer_error):
-                nonlocal result, error
-                result = infer_result
-                error = infer_error
-                event.set()
 
             # 提交推理任务
-            task_data = {'input': input, 'predict_params': predict_params, 'result_type': result_type}
+            # 创建结果文件存储目录
+            result_dir = os.path.join(apps_root, app_id, 'results')
+            os.makedirs(result_dir, exist_ok=True)
+            task_data = {'input': input, 'predict_params': predict_params, 'result_type': result_type, 'result_dir': result_dir}
             success, task_id = current_model_thread.submit_task(task_data)
             if not success:
                 return jsonify({"error": task_id}), 500
@@ -465,23 +454,22 @@ def infer_application(app_id, result_type):
                 return jsonify({"error": error}), 500
 
             # 处理不同结果类型
-            if result_type == 'img':
-                img = result.get('img')
-                if img:
-                    img_byte_arr = BytesIO()
-                    img.save(img_byte_arr, format='PNG')
-                    img_byte_arr.seek(0)
-                    return Response(img_byte_arr, mimetype='image/png', headers={
-                        'Content-Disposition': 'inline; filename="result.png"'
-                    })
-                else:
-                    return jsonify({"error": "未生成图像结果"}), 500
-            else:
-                # 根据结果类型返回对应数据
-                output = result.get(result_type, [])
-                sample_count = len(output) if isinstance(output, list) else 1
-                logging.info(f"推理完成，共处理 {sample_count} 个样本")
-                return jsonify({"status": "success", "data": output})
+            match result_type:
+                case 'img':
+                    if result:
+                        return send_file(result)
+                    else:
+                        return jsonify({"error": "未生成图像结果"}), 500
+                case 'json':
+                    if result:
+                        return jsonify(result), 200
+                    else:
+                        return jsonify({"error": "未生成json结果"}), 500
+                case 'html':
+                    if result:
+                        return result, 200
+                    else:
+                        return jsonify({"error": "未生成html结果"}), 500
         except Exception as e:
             logging.error(f"推理过程发生错误: {str(e)}", exc_info=True)
             raise
@@ -531,16 +519,22 @@ def process_request_input(request, app_id, apps_root):
         # 添加临时文件清理标记
         temp_files.append(temp_file_path)
     
-    # 2. 如果没有文件上传，则尝试从JSON获取输入数据
+    # 2. 如果没有文件上传，则尝试从form或JSON获取输入数据
     if input_data is None:
         try:
-            data = request.get_json()
-            if not data or 'input' not in data:
-                return None, temp_files, (jsonify({"error": "请求数据中缺少input字段"}), 400)
-            input_data = data['input']
-            logging.info(f"使用JSON输入: {str(input_data)[:100]}...")
+            # 先尝试从form获取input
+            input_data = request.form.get('input')
+            if input_data is None:
+                # form中没有则尝试从JSON获取
+                data = request.get_json()
+                if not data or 'input' not in data:
+                    return None, temp_files, (jsonify({"error": "请求数据中缺少input字段"}), 400)
+                input_data = data['input']
+                logging.info(f"使用JSON输入: {str(input_data)[:100]}...")
+            else:
+                logging.info(f"使用Form输入: {str(input_data)[:100]}...")
         except Exception as e:
-            return None, temp_files, (jsonify({"error": "解析JSON请求失败: " + str(e)}), 400)
+            return None, temp_files, (jsonify({"error": "解析请求失败: " + str(e)}), 400)
     
     # 验证输入是否有效
     if input_data is None:

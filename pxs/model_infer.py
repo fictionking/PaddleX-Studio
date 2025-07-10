@@ -1,7 +1,10 @@
 import multiprocessing as mp
 from multiprocessing import Queue
+from queue import Empty
 import os
 import logging
+
+from jinja2.nodes import Output
 from paddlex import create_model
 import gc
 import time
@@ -36,7 +39,6 @@ class ModelProcess(mp.Process):
         # 清空任务队列
         while not self.task_queue.empty():
             self.task_queue.get()
-            self.task_queue.task_done()
         # 等待线程退出
         self.join(timeout=5)
         if self.is_alive():
@@ -61,9 +63,24 @@ class ModelProcess(mp.Process):
                         time.sleep(1)
                         continue
                     task = self.task_queue.get(timeout=1)
-                    result = self.model.infer(task['data'])
-                    self.result_queue.put((task['task_id'], result, None))
-                    self.task_queue.task_done()
+                    task_data=task['data']
+                    input=task_data['input']
+                    params=task_data['predict_params']
+                    result_type=task_data['result_type']
+                    result_dir=task_data['result_dir']
+                    output = self.model.predict(input,**params)
+                    for res in output:
+                        result = res
+                    match result_type:
+                        case 'img':
+                            file_path=os.path.join(result_dir,'result.png')
+                            result.save_to_img(file_path)
+                            result_data = file_path
+                        case 'json':
+                            result_data = result.json
+                        case 'html':
+                            result_data = result.html
+                    self.result_queue.put((task['task_id'], result_data, None))
                 except Exception as e:
                     self.error = str(e)
                     logging.error(f"任务处理错误: {str(e)}", exc_info=True)
@@ -71,7 +88,6 @@ class ModelProcess(mp.Process):
             while not self.task_queue.empty():
                 task = self.task_queue.get()
                 self.result_queue.put((task['task_id'], None, str(e)))
-                self.task_queue.task_done()
         finally:
             # 释放模型资源
             if self.model:
@@ -104,11 +120,15 @@ class ModelProcess(mp.Process):
         return True, task_id
 
     def get_result(self, timeout=None):
-        """获取推理结果"""
+        """获取推理结果
+
+        Returns:
+            tuple: 推理结果、错误信息等
+        """
         try:
             return self.result_queue.get(timeout=timeout)
-        except Queue.Empty:
-            return None, None, "超时未获取到结果"
+        except Empty:
+            return None
 
     def is_loaded(self):
         """检查模型是否加载完成"""
