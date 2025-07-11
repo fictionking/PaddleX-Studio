@@ -1,12 +1,11 @@
-from multiprocessing import Value
 from flask import Blueprint, jsonify, request,send_file
 import os
+import shutil
 import json
 import logging
 import time
 from werkzeug.utils import secure_filename
 import threading
-from io import BytesIO
 import pxs.paddlexCfg as cfg
 from pxs.model_infer import ModelProcess
 
@@ -80,46 +79,20 @@ def list_applications():
         app['status'] = 'running' if app['id'] == current_app_id else 'stopped'
     return jsonify(apps_list)
 
-@app_mgr.route('/apps/new', methods=['POST'])
-def new_applications():
-    """
-    创建新应用
-    ---
-    请求体包含:
-    - app_name: 应用名称
-    - app_id: 应用ID（需唯一）
-    - app_type: 应用类型
-    - app_config: 应用配置
-    返回:
-    - 成功: {success: true, app: {...}}
-    - 失败: {success: false, error: "..."}
-    """
-    # 获取请求数据
-    data = request.get_json()
-    if not data:
-        return jsonify({'success': False, 'error': 'Invalid request data'}), 400
-
-    # 验证必填字段
-    required_fields = ['app_name', 'app_id', 'app_type', 'app_config']
-    for field in required_fields:
-        if field not in data or not data[field]:
-            return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
-
-    app_id = data['app_id']
-    app_name = data['app_name']
-    app_type = data['app_type']
-    app_config = data['app_config']
-
+def new_applications(app_id,app_name,app_type,app_category,app_module_name,app_model_name,app_config):
     # 检查ID唯一性
     global apps
     if app_id in apps:
-        return jsonify({'success': False, 'error': f'App ID {app_id} already exists'}), 409
+        return False, f'App ID {app_id} already exists'
 
     # 创建新应用对象
     new_app = {
         'id': app_id,
         'name': app_name,
-        'type': app_type
+        'type': app_type,
+        'category': app_category,
+        'module_name': app_module_name,
+        'model_name': app_model_name
     }
     app_dir = os.path.join(apps_root, app_id)
     try:
@@ -133,7 +106,7 @@ def new_applications():
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(app_config, f, ensure_ascii=False, indent=2)
 
-        return jsonify({'success': True, 'app': new_app}), 201
+        return True,'success'
 
     except Exception as e:
         # 发生错误时回滚
@@ -141,17 +114,20 @@ def new_applications():
             del apps[app_id]
             os.rmdir(app_dir)
             save_app_config()
-        return jsonify({'success': False, 'error': f'Failed to create app: {str(e)}'}), 500
+        return False,f'Failed to create app: {str(e)}'
 
-@app_mgr.route('/apps/delete/<app_id>', methods=['GET'])
+@app_mgr.route('/apps/delete/<app_id>', methods=['DELETE'])
 def del_applcation(app_id):
     global apps
     if app_id in apps:
         app_dir = os.path.join(apps_root, app_id)
         del apps[app_id]
         save_app_config()
-        os.rmdir(app_dir)
-        return jsonify({'success': True, 'app': app_id}), 201
+        try:
+            shutil.rmtree(app_dir)
+            return jsonify({'success': True, 'app': app_id}), 204
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
     else:
         return jsonify({'success': False, 'error': f'App ID {app_id} not exists'}), 404
 

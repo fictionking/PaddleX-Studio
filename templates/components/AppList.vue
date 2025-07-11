@@ -118,7 +118,7 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                axios.delete(`/apps/${appId}`)
+                axios.delete(`/apps/delete/${appId}`)
                     .then(response => {
                         if (response.status === 204) {
                             this.loadApps();  // 删除成功后刷新应用列表

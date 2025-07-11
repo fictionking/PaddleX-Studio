@@ -5,7 +5,7 @@ import datetime
 import subprocess
 import sys
 import pxs.datasetMgr as datasetMgr
-import pxs.paddlexCfg as paddlexCfg
+import pxs.paddlexCfg as cfg
 import pxs.defineMgr as defineMgr
 from pxs.utils import copy_files
 import shutil
@@ -14,8 +14,6 @@ import time
 import logging
 import queue
 from threading import Lock
-import pxs.defineMgr as define
-import pxs.paddlexCfg as cfg
 
 task_queue = queue.Queue()
 lock = Lock()
@@ -267,11 +265,11 @@ def checkDataSet(model_id):
     if not dataset:
         return jsonify({'code': 404,'message': '未找到指定数据集'}), 404
     # 运行检查命令
-    yaml_path = os.path.join(paddlexCfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     check_path = os.path.join(models_root, model_id, 'check')
     result = subprocess.run(
-        [sys.executable, paddlexCfg.paddlex_main, 
+        [sys.executable, cfg.paddlex_main, 
         "-c",yaml_path,
         "-o", "Global.mode=check_dataset",
         "-o","Global.output="+check_path,
@@ -329,7 +327,7 @@ def train(model_id):
     model = models[model_id]
     if not model:
         return jsonify({'code': 404,'message': '未找到指定模型'}), 404
-    yaml_path = os.path.join(paddlexCfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
     output_dir = os.path.join(models_root, model_id, 'train')
     dataset_dir = os.path.join(models_root, model_id, 'dataset')
     # 删除已存在的训练目录
@@ -337,27 +335,13 @@ def train(model_id):
         shutil.rmtree(output_dir)
     # 逐级查找匹配的预训练模型路径
     pretrained_model = None
-    for category_item in defineMgr.modules:
-        # 匹配category
-        if category_item['category']['id'] != model['category']:
-            continue
-        # 匹配module_id
-        for module_item in category_item['modules']:
-            if module_item['id'] != model['module_id']:
-                continue
-            # 匹配pretrained.name
-            for pretrained_item in module_item['pretrained']:
-                if pretrained_item['name'] == model['pretrained']:
-                    pretrained_model = pretrained_item['pretrained_model_url']
-                    break
-            if pretrained_model:
-                break
-        if pretrained_model:
-            break
+    model=defineMgr.getModel(model['category'],model['module_id'],model['pretrained'])
+    if model:
+        pretrained_model = model['pretrained_model_url']
     # 从url中提取文件名
     pretrained_file_name = os.path.basename(pretrained_model)
     # 构建完整的预训练模型路径
-    pretrain_weight_path = os.path.join(paddlexCfg.weights_root, pretrained_file_name)
+    pretrain_weight_path = os.path.join(cfg.weights_root,model['pretrained'],'pretrained', pretrained_file_name)
     # 检查预训练模型是否存在
     if not os.path.exists(pretrain_weight_path):
         pretrain_weight_path=pretrained_model
@@ -365,12 +349,12 @@ def train(model_id):
     # 构建训练命令（参考checkDataSet使用sys.executable和paddlex_main）
     cmd = [
         sys.executable,  # 使用当前环境的Python解释器（替代硬编码的'python'）
-        paddlexCfg.paddlex_main,  # 使用paddlex主脚本路径（替代硬编码的'main.py'）
+        cfg.paddlex_main,  # 使用paddlex主脚本路径（替代硬编码的'main.py'）
         '-c', yaml_path,
         '-o', f'Global.mode=train',
         '-o', f'Global.output={output_dir}',
         '-o', f'Global.dataset_dir={dataset_dir}',
-        '-o', f'Global.device={paddlexCfg.device}',
+        '-o', f'Global.device={cfg.device}',
         '-o', f'Train.epochs_iters={params.get("epochs")}',
         '-o', f'Train.batch_size={params.get("batchSize")}',
         '-o', f'Train.num_classes={params.get("classNum")}',
@@ -527,7 +511,7 @@ def copydataset(model_id):
 
 def copyDatasetFiles(category_id,dataset_type,dataset_path,model_path):
     filelist=[]
-    for category in define.dataset_types:
+    for category in defineMgr.dataset_types:
         if category['value'] == category_id:
             for module in category['modules']:
                 if module['value'] == dataset_type:

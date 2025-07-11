@@ -46,7 +46,7 @@
               <div>
                 <el-button v-if="model.pretrained_model_url" type="primary" round text
                   @click="openCreateModelDialog(model)">训练</el-button>
-                <el-button type="primary" round text @click="">应用</el-button>
+                <el-button type="primary" round text @click="openCreateAppDialog(model)">应用</el-button>
               </div>
             </div>
           </div>
@@ -55,7 +55,7 @@
     </div>
 
     <!-- 新增模型创建对话框 -->
-    <el-dialog v-model="showCreateDialog" title="训练模型" width="600px">
+    <el-dialog v-model="showCreateTrainDialog" title="训练模型" width="600px">
       <div style="margin-bottom: 20px;">
         <el-breadcrumb separator="/">
           <el-breadcrumb-item>{{ newModelFormData.category }}</el-breadcrumb-item>
@@ -76,8 +76,32 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="showCreateDialog = false">取消</el-button>
+        <el-button @click="showCreateTrainDialog = false">取消</el-button>
         <el-button type="primary" @click="submitModelForm">确定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 新增应用创建对话框 -->
+    <el-dialog v-model="showCreateAppDialog" title="模型应用" width="600px">
+      <div style="margin-bottom: 20px;">
+        <el-breadcrumb separator="/">
+          <el-breadcrumb-item>{{ newAppFormData.category }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ newAppFormData.module_name }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ newAppFormData.pretrained }}</el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
+
+      <el-form ref="appForm" :model="newAppFormData" :rules="formRules" label-width="100px">
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="newAppFormData.name" placeholder="请输入应用名称"></el-input>
+        </el-form-item>
+        <el-form-item label="唯一标识" prop="id">
+          <el-input v-model="newAppFormData.id" placeholder="请输入唯一标识"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showCreateAppDialog = false">取消</el-button>
+        <el-button type="primary" @click="submitAppForm">确定</el-button>
       </div>
     </el-dialog>
 
@@ -100,7 +124,8 @@ export default {
       definitions: [],
       activeCategoryIndex: 0,
       selectedModelType: null,
-      showCreateDialog: false,
+      showCreateTrainDialog: false,
+      showCreateAppDialog: false,
       newModelFormData: {
         name: '',
         id: '',
@@ -111,8 +136,16 @@ export default {
         dataset_type: '',
         pretrained: ''
       },
+      newAppFormData: {
+        name: '',
+        id: '',
+        category_id: '',
+        module_id: '',
+        module_name: '',
+        pretrained: '',
+      },
       formRules: {
-        name: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
         id: [{ required: true, message: '请输入唯一标识', trigger: 'blur' }]
       },
       // 更新模型相关数据
@@ -170,7 +203,23 @@ export default {
         dataset_type: this.selectedModelType.dataset_type,
         pretrained: model.name
       };
-      this.showCreateDialog = true;
+      this.showCreateTrainDialog = true;
+    },
+    /**
+     * 打开创建应用对话框并初始化数据
+     * @param {Object} model - 选中的预训练模型
+     */
+    openCreateAppDialog(model) {
+      let categoryid = this.definitions[this.activeCategoryIndex].category.id
+      this.newAppFormData = {
+        name: '',
+        id: '',
+        category_id: categoryid,
+        module_id: this.selectedModelType.id,
+        module_name: this.selectedModelType.name,
+        pretrained: model.name
+      };
+      this.showCreateAppDialog = true;
     },
     /**
      * 提交模型表单数据到后端
@@ -181,10 +230,27 @@ export default {
           try {
             await axios.post('/models/new', this.newModelFormData);
             this.$message.success('模型创建成功');
-            this.showCreateDialog = false;
+            this.showCreateTrainDialog = false;
             this.$router.push(`/model/${this.newModelFormData.id}`);
           } catch (error) {
             this.$message.error('模型创建失败:' + error.response.data.message);
+          }
+        }
+      });
+    },
+    /**
+     * 提交应用表单数据到后端
+     */
+    async submitAppForm() {
+      this.$refs.appForm.validate(async (valid) => {
+        if (valid) {
+          try {
+            await axios.post('/define/module/createapp', this.newAppFormData);
+            this.$message.success('应用创建成功');
+            this.showCreateAppDialog = false;
+            this.$router.push(`/app/${this.newAppFormData.id}`);
+          } catch (error) {
+            this.$message.error('应用创建失败:' + error.response.data.message);
           }
         }
       });

@@ -2,8 +2,9 @@ import os
 import json
 import requests
 import tarfile
-from flask import Blueprint, jsonify, stream_with_context, Response
-import pxs.paddlexCfg as paddlexCfg
+from flask import Blueprint, jsonify, stream_with_context, Response,request
+import pxs.paddlexCfg as cfg
+from pxs.appMgr import new_applications
 import time
 import logging
 
@@ -87,6 +88,28 @@ def load_dataset_type_definitions():
         logging.error(f"加载数据集类型定义文件失败: {str(e)}")
         return []
 
+def getModule(category_id,module_id):
+    for category in modules:
+        if category['category']['id'] == category_id:
+            for module in category['modules']:
+                if module['id'] == module_id:
+                    return module
+    return None
+
+def getModel(category_id,module_id,model_id):
+    module=getModule(category_id,module_id)
+    if module:
+        for model in module['pretrained']:
+            if model['name'] == model_id:
+                return model
+    return None
+
+def getModel(module,model_name):
+    if module:
+        for model in module['pretrained']:
+            if model['name'] == model_name:
+                return model
+    return None
 
 @define_bp.route('/define/modules', methods=['GET'])
 def get_module_definitions():
@@ -110,22 +133,13 @@ def get_module_cache_model(category_id, module_id, model_id):
     - 流式响应，包含下载进度信息（text/event-stream）
     """
     # 从配置文件中获取缓存路径
-    cache_dir = paddlexCfg.weights_root
+    cache_dir = os.path.join(cfg.weights_root,model_id)
     pretrained_model_url = None
     inference_model_url = None 
-    for category in modules:
-        if category['category']['id'] == category_id:
-            for module in category['modules']:
-                if module['id'] == module_id:
-                    for model in module['pretrained']:
-                        if model['name'] == model_id:
-                            pretrained_model_url = model['pretrained_model_url']
-                            inference_model_url = model['inference_model_url']
-                            break
-                if pretrained_model_url or inference_model_url:
-                    break
-        if pretrained_model_url or inference_model_url:
-            break
+    model=getModel(category_id,module_id,model_id)
+    if model:
+        pretrained_model_url = model['pretrained_model_url']
+        inference_model_url = model['inference_model_url']
                     
     # 收集需要下载的URL列表
     download_urls = []
@@ -146,18 +160,14 @@ def get_module_cache_model(category_id, module_id, model_id):
     # 确保缓存目录存在
     os.makedirs(cache_dir, exist_ok=True)
     
-    def extract_tar(file_path):
+    def extract_tar(file_path,dest_path):
         """解压tar文件到同名子目录并删除原tar文件
 
         增强功能：如果tar包中只包含一个顶层目录，则将该目录下的内容直接解压到目标路径，
         否则保持原行为（将所有内容解压到同名子目录）
         """
         if file_path.endswith('.tar'):
-            # 创建与文件名相同的目录
-            dir_name = os.path.splitext(os.path.basename(file_path))[0]
-            extract_path = os.path.join(os.path.dirname(file_path), dir_name)
-            os.makedirs(extract_path, exist_ok=True)
-            
+            os.makedirs(dest_path, exist_ok=True)
             # 解压文件
             with tarfile.open(file_path, 'r') as tar:
                 # 获取所有成员并分析顶层目录
@@ -184,19 +194,19 @@ def get_module_cache_model(category_id, module_id, model_id):
                         if member.name.startswith(f'./{top_dir}/') or member.name.startswith(f'.\\{top_dir}\\'):
                             # 移除顶层目录
                             member.name = member.name[len(top_dir)+3:]
-                            tar.extract(member, path=extract_path)
+                            tar.extract(member, path=dest_path)
                         elif member.name.startswith(f'{top_dir}/') or member.name.startswith(f'{top_dir}\\'):
                             # 移除顶层目录
                             member.name = member.name[len(top_dir)+1:]
-                            tar.extract(member, path=extract_path)
+                            tar.extract(member, path=dest_path)
                 else:
                     # 正常解压所有文件
-                    tar.extractall(path=extract_path)
+                    tar.extractall(path=dest_path)
             
             # 解压完成后删除tar文件
             os.remove(file_path)
-            return extract_path, True
-        return None, False
+            return True
+        return False
     
     # 定义流式下载生成器函数
     def download_generator():
@@ -204,9 +214,10 @@ def get_module_cache_model(category_id, module_id, model_id):
             try:
                 # 从URL中提取文件名（处理可能的查询参数）
                 filename = os.path.basename(url.split('?')[0])
-                save_path = os.path.join(cache_dir, filename)
+                extract_path = os.path.join(cache_dir, model_type)
+                save_path = os.path.join(extract_path,filename)
                 save_path_tmp = f"{save_path}.tmp"
-                
+                os.makedirs(extract_path, exist_ok=True)
                 # 发送开始下载事件
                 yield f"data: {json.dumps({'status': 'starting', 'type': model_type, 'file': filename})}\n\n"
                 
@@ -244,7 +255,7 @@ def get_module_cache_model(category_id, module_id, model_id):
                 os.rename(save_path_tmp, save_path)
                 
                 # 下载完成，检查是否需要解压
-                is_tar, extract_path = extract_tar(save_path)
+                is_tar = extract_tar(save_path,extract_path)
                 if is_tar:
                     yield f"data: {json.dumps({'status': 'extracted', 'model_type': model_type, 'filename': filename})}\n\n"
                 
@@ -269,3 +280,37 @@ def cancel_cache_model():
     global cancel_cache
     cancel_cache=True
     return jsonify({'status': 'success'})
+
+@define_bp.route('/define/module/createapp', methods=['POST'])
+def create_module_app():
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': '请提供应用配置'}),400
+    app_id = data['id']
+    app_name = data['name']
+    category_id=data['category_id']
+    module_id=data['module_id']
+    model_name=data['pretrained']
+
+    module = getModule(category_id,module_id)
+    if not module:
+        return jsonify({'message': '模块不存在'}),400
+    model = getModel(module,model_name)
+    if not model:
+        return jsonify({'message': '模型不存在'}),400
+    config=module['infer_params']
+    config['model_params']['model_name']={
+      "config_able": False,
+      "value": model['name']
+    }
+    infer_path=os.path.join('weights',model['name'],'inference')
+    if not os.path.exists(infer_path):
+        infer_path=''
+    config['model_params']['model_dir']={
+      "config_able": False,
+      "value": infer_path
+    }
+    succ,msg=new_applications(app_id,app_name,"module",category_id,module['name'],model['name'],config)
+    if succ:
+        return jsonify({'message': '应用创建成功'}),200
+    return jsonify({'message': msg}),400

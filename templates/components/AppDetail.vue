@@ -176,7 +176,7 @@ export default {
             this.formData[key] = this.modelParams[key].value;
           });
           Object.keys(this.predict_params).forEach(key => {
-            this.predictFormData[key] = this.predict_params[key].default;
+            this.predictFormData[key] = this.predict_params[key].value;
           });
         } else {
           alert('获取配置失败：' + response.data.message);
