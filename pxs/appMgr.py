@@ -1,3 +1,4 @@
+from multiprocessing import Value
 from flask import Blueprint, jsonify, request,send_file
 import os
 import json
@@ -241,14 +242,17 @@ def save_application_config(app_id):
     app_dir = os.path.join(apps_root, app_id)
     config_path = os.path.join(app_dir, 'config.json')
     
-    # 确保应用目录存在
-    os.makedirs(app_dir, exist_ok=True)
-    
     # 保存配置文件
     try:
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(config_data, f, ensure_ascii=False, indent=4)
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        #将config_data中的属性添加到config
+        for key in config_data['model_params']:
+            config['model_params'][key]['value']=config_data['model_params'][key]
         
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+
         return jsonify({
             'status': 'success',
             'message': f'应用 {app_id} 配置保存成功',

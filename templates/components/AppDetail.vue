@@ -45,7 +45,23 @@
             </el-form-item>
           </el-form>
         </div>
+        <div class="part-container">
+          <h3>Api</h3>
+          <el-form :model="predictFormData" label-width="120px">
+            <el-form-item label="启动服务">
+              <el-text>GET /apps/start/{{appConfig.id}}</el-text>
+            </el-form-item>
+            <el-form-item label="停止服务">
+              <el-text>GET /apps/stop</el-text>
+            </el-form-item>
+            <el-form-item label="推理">
+              <el-text>POST /apps/infer/{{appConfig.id}}/{{current_result_type}}</el-text>
+            </el-form-item>
+          </el-form>
+        </div>
+        <el-text>💡不推荐在生产环境使用，只用于简单测试，具体可参考PaddleX文档。</el-text>
       </div>
+
       <div class="right-column">
         <div class="part-container">
           <h3>推理输入配置</h3>
@@ -53,8 +69,8 @@
             <!-- 图片上传组件 -->
             <el-form-item v-if="input_types.includes('img') && !input_types.includes('file')" label="上传图片">
               <el-upload class="upload-demo" action="#" :limit="1" :auto-upload="false" :on-change="handleImageChange"
-                style="width: 100%">
-                <div style="display: flex; align-items: center; justify-content: center;">
+                style="width: 400px">
+                <div style="display: flex; align-items: center;">
                   <el-button size="small" type="primary">点击上传图片</el-button>
                   <span class="el-upload__tip" style="padding-left: 10px;">只能上传jpg/png文件，且不超过2MB</span>
                 </div>
@@ -434,7 +450,7 @@ export default {
   padding-bottom: 15px;
   padding-left: 15px;
   padding-right: 15px;
-  border: 1px solid;
+  border: 1px solid var(--el-border-color);
 
   border-radius: 4px;
   margin: 20px auto;
