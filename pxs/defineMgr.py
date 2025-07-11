@@ -104,7 +104,7 @@ def getModel(category_id,module_id,model_id):
                 return model
     return None
 
-def getModel(module,model_name):
+def getModelByModule(module,model_name):
     if module:
         for model in module['pretrained']:
             if model['name'] == model_name:
@@ -295,7 +295,7 @@ def create_module_app():
     module = getModule(category_id,module_id)
     if not module:
         return jsonify({'message': '模块不存在'}),400
-    model = getModel(module,model_name)
+    model = getModelByModule(module,model_name)
     if not model:
         return jsonify({'message': '模型不存在'}),400
     config=module['infer_params']

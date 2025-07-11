@@ -46,7 +46,7 @@
           </el-form>
         </div>
         <div class="part-container">
-          <h3>Api</h3>
+          <h3>API</h3>
           <el-form :model="predictFormData" label-width="120px">
             <el-form-item label="启动服务">
               <el-text>GET /apps/start/{{appConfig.id}}</el-text>
