@@ -19,5 +19,24 @@
             "pretrained_model_url": "",
             "model_size": "2433.7 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+        },
+        "predict_params": {
+            "prompts": {
+                "config_able": true,
+                "type": "dict",
+                "desc": "<span>如{\"box_prompt\": [[float, float, float, float], ...]}，表示推理时使用的多个bbox作为prompt<br>如{\"point_prompt\": [[float, float], ...]}，表示推理时使用的多个点作为prompt</span>",
+                "value": null
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

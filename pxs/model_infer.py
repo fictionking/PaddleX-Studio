@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import ctypes
 from multiprocessing import Queue
 from queue import Empty
 import os
@@ -27,10 +28,10 @@ class ModelProcess(mp.Process):
         self.model = None                   # 模型实例
         self.task_queue = Queue()           # 推理任务队列
         self.result_queue = Queue()         # 结果返回队列
-        self.running = mp.Value('b', False)  # 进程运行标志(共享内存)
         self.lock = mp.Lock()               # 进程锁
-        self.loaded = mp.Value('b', False)  # 模型加载完成标志(共享内存)
-        self.error = None                   # 错误信息
+        self.running = mp.Manager().Value(ctypes.c_bool, False)  # 进程运行标志(共享内存)
+        self.loaded = mp.Manager().Value(ctypes.c_bool, False)  # 模型加载完成标志(共享内存)
+        self.error = mp.Manager().Value(ctypes.c_char_p, '')
 
     def stop(self):
         """停止进程并释放资源"""
@@ -82,9 +83,11 @@ class ModelProcess(mp.Process):
                             result_data = result.html
                     self.result_queue.put((task['task_id'], result_data, None))
                 except Exception as e:
-                    self.error = str(e)
                     logging.error(f"任务处理错误: {str(e)}", exc_info=True)
+                    self.result_queue.put((task['task_id'], None, str(e)))
         except Exception as e:
+            logging.error(f"任务运行错误: {str(e)}", exc_info=True)
+            self.error.value = str(e)
             while not self.task_queue.empty():
                 task = self.task_queue.get()
                 self.result_queue.put((task['task_id'], None, str(e)))
@@ -94,7 +97,8 @@ class ModelProcess(mp.Process):
                 del self.model
                 self.model = None
                 gc.collect()
-            self.loaded = False
+            self.loaded.value = False
+            self.running.value = False
             print(f"模型进程 {os.getpid()} 已退出")
 
     def submit_task(self,data):
@@ -107,10 +111,10 @@ class ModelProcess(mp.Process):
         Returns:
             tuple: (bool, task_id/error_msg) 任务提交是否成功和任务ID或错误信息
         """
-        if not self.running:
+        if not self.running.value:
             return False, "模型进程未运行"
-        if not self.loaded and self.error:
-            return False, f"模型加载失败: {self.error}"
+        if not self.loaded.value and self.error.value:
+            return False, f"模型加载失败: {self.error.value}"
             
         task_id = id(data)
         self.task_queue.put({
@@ -136,4 +140,4 @@ class ModelProcess(mp.Process):
 
     def get_error(self):
         """获取错误信息"""
-        return self.error
+        return self.error.value

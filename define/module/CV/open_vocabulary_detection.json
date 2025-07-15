@@ -19,5 +19,23 @@
             "pretrained_model_url": "",
             "model_size": "421.4 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+        },
+        "predict_params": {
+            "prompt": {
+                "config_able": true,
+                "type": "str",
+                "value": null
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

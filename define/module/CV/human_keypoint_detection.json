@@ -19,5 +19,23 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-TinyPose_256x192_pretrained.pdparams",
             "model_size": "4.9 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "flip": {
+                "config_able": true,
+                "type": "bool",
+                "value": false
+            }
+        },
+        "predict_params": {
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

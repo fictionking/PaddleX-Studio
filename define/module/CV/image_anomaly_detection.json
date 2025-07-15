@@ -13,5 +13,18 @@
             "model_size": "22.5 M",
             "mIoU": "0.9901 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+        },
+        "predict_params": {
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

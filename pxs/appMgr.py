@@ -300,7 +300,6 @@ def start_application(app_id):
             current_result_types = config.get('result_types', {})
 
         logging.info(f'应用 {app_id} 已在独立线程启动')
-        return (f'Application {app_id} started successfully', 200)
 
     except Exception as e:
         logging.error(f'启动应用失败: {str(e)}', exc_info=True)
@@ -308,7 +307,7 @@ def start_application(app_id):
         if current_model_thread:
             current_model_thread.stop()
             current_model_thread = None
-        return (f'Failed to start application: {str(e)}', 500)
+        raise e
 
 
 def stop_current_application():
@@ -327,10 +326,9 @@ def stop_current_application():
                 current_model_thread = None
             current_app_id = None
         logging.info('当前应用已停止')
-        return ('Application stopped successfully', 200)
     except Exception as e:
         logging.error(f'停止应用失败: {str(e)}', exc_info=True)
-        return (f'Failed to stop application: {str(e)}', 500)
+        raise e
 
 def get_apps_status():
     if current_model_thread:
@@ -549,7 +547,13 @@ def check_predict_params(predict_params, current_predict_params):
                 errors.append(f"{param_name}必须为数字")
             else:
                 param_value = float(param_value)
-        
+        elif expected_type == 'dict':
+            if not isinstance(param_value, dict):
+                errors.append(f"{param_name}必须为字典")
+        elif expected_type == 'list':
+            if not isinstance(param_value, list):
+                errors.append(f"{param_name}必须为列表")
+
         # 最小值检查
         if 'min' in param_def and param_def['min'] is not None:
             if param_value < param_def['min']:

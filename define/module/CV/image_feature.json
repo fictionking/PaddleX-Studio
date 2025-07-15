@@ -26,5 +26,17 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-ShiTuV2_rec_CLIP_vit_large_pretrained.pdparams",
             "model_size": "1.05 G"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+        },
+        "predict_params": {
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "json"
+        ]
+    }
 }

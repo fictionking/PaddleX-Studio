@@ -38,24 +38,32 @@
           <h3>推理参数配置</h3>
           <el-form :model="predictFormData" label-width="120px">
             <el-form-item v-for="(param, key) in predict_params" :key="key" :label="key">
-              <el-input-number v-if="param.type === 'int' || param.type === 'float'" v-model="predictFormData[key]"
-                :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
-                :max="param.max !== null ? param.max : undefined" controls-position="right"></el-input-number>
-              <el-input v-else v-model="predictFormData[key]"></el-input>
+              <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content >
+                <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="predictFormData[key]"
+                  :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
+                  :max="param.max !== null ? param.max : undefined" controls-position="right"></el-input-number>
+                <el-switch v-else-if="param.type === 'bool'" v-model="predictFormData[key]" active-text="True"
+                  inactive-text="False"></el-switch>
+                <el-input v-else-if="param.type === 'dict'" v-model="predictFormData[key]" type="textarea"
+                  placeholder="请输入JSON格式的字典，例如: {&quot;key&quot;: &quot;value&quot;}" :rows=4></el-input>
+                <el-input v-else-if="param.type === 'list'" v-model="predictFormData[key]" type="textarea"
+                  placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4></el-input>
+                <el-input v-else v-model="predictFormData[key]"></el-input>
+              </el-tooltip>
             </el-form-item>
           </el-form>
         </div>
         <div class="part-container">
           <h3>API</h3>
-          <el-form :model="predictFormData" label-width="120px">
+          <el-form label-width="120px">
             <el-form-item label="启动服务">
-              <el-text>GET /apps/start/{{appConfig.id}}</el-text>
+              <el-text>GET /apps/start/{{ appConfig.id }}</el-text>
             </el-form-item>
             <el-form-item label="停止服务">
               <el-text>GET /apps/stop</el-text>
             </el-form-item>
             <el-form-item label="推理">
-              <el-text>POST /apps/infer/{{appConfig.id}}/{{current_result_type}}</el-text>
+              <el-text>POST /apps/infer/{{ appConfig.id }}/{{ current_result_type }}</el-text>
             </el-form-item>
           </el-form>
         </div>
@@ -300,7 +308,10 @@ export default {
         const value = this.predictFormData[key];
         // 仅添加非null值
         if (value !== null && value !== undefined) {
-          predict_params[key] = value;
+          if (this.predict_params[key].type === 'dict' || this.predict_params[key].type === 'list')
+            predict_params[key] = JSON.parse(value);
+          else
+            predict_params[key] = value;
         }
       });
       formData.append('predict_params', JSON.stringify(predict_params));
@@ -455,4 +466,5 @@ export default {
   border-radius: 4px;
   margin: 20px auto;
 }
+
 </style>

@@ -42,7 +42,7 @@
               <p v-if="model.description">{{ model.description }}</p>
             </div>
             <div class="model-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
-              <el-button type="primary" round text @click="handleUpdateModel(model)">更新模型</el-button>
+              <el-button type="primary" round text @click="handleUpdateModel(model)">缓存模型</el-button>
               <div>
                 <el-button v-if="model.pretrained_model_url" type="primary" round text
                   @click="openCreateModelDialog(model)">训练</el-button>
