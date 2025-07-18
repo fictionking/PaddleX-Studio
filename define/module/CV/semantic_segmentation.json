@@ -19,5 +19,18 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LiteSeg-T_pretrained.pdparams",
             "model_size": "28.5 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+        },
+        "predict_params": {
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

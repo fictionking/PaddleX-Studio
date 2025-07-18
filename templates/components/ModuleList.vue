@@ -31,7 +31,7 @@
           <button class="close-btn" @click="selectedModelType = null">×</button>
         </div>
         <div class="pretrained-models-grid">
-          <div v-for="model in selectedModelType.pretrained" :key="model.id" class="pretrained-model-card">
+          <div v-for="model in selectedModelType.pretrained" :key="model.name" class="pretrained-model-card">
             <div class="model-card-header">
               <h4 style="word-break: break-all;">{{ model.name }}</h4>
               <div class="model-card-metrics">
@@ -42,7 +42,12 @@
               <p v-if="model.description">{{ model.description }}</p>
             </div>
             <div class="model-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
-              <el-button type="primary" round text @click="handleUpdateModel(model)">缓存模型</el-button>
+              <el-button type="primary" round text @click="handleUpdateModel(model)">
+                缓存模型
+                <el-icon v-if="cachedModels.includes(model.name)" style="color:#00c58d;">
+                  <SuccessFilled />
+                </el-icon>
+              </el-button>
               <div>
                 <el-button v-if="model.pretrained_model_url" type="primary" round text
                   @click="openCreateModelDialog(model)">训练</el-button>
@@ -109,7 +114,8 @@
     <el-dialog title="模型更新" v-model="updateDialogVisible" width="600px" align-center :close-on-click-modal="false"
       @close="cancelUpdate">
       <div class="progress-container">
-        <el-progress :percentage="downloadProgress" :stroke-width="10" striped striped-flow :duration="10"></el-progress>
+        <el-progress :percentage="downloadProgress" :stroke-width="10" striped striped-flow
+          :duration="10"></el-progress>
         <p class="progress-text">{{ progressText }}</p>
       </div>
     </el-dialog>
@@ -122,6 +128,7 @@ export default {
   data() {
     return {
       definitions: [],
+      cachedModels: [],
       activeCategoryIndex: 0,
       selectedModelType: null,
       showCreateTrainDialog: false,
@@ -154,6 +161,9 @@ export default {
       progressText: ''
     };
   },
+  components: {
+    SuccessFilled: ElementPlusIconsVue.SuccessFilled
+  },
   computed: {
     categories() {
       return this.definitions.map(item => item.category);
@@ -165,6 +175,7 @@ export default {
   },
   mounted() {
     this.fetchModelDefinitions();
+    this.fetchCachedModels();
   },
   methods: {
     async fetchModelDefinitions() {
@@ -176,6 +187,18 @@ export default {
         this.$notify.error({
           title: '错误',
           message: '获取模型定义失败，请刷新页面重试'
+        });
+      }
+    },
+    async fetchCachedModels() {
+      try {
+        const response = await axios.get('/define/modules/cached');
+        this.cachedModels = response.data;
+      } catch (error) {
+        console.error('获取模型缓存状态失败:', error);
+        this.$notify.error({
+          title: '错误',
+          message: '获取模型缓存状态失败，请刷新页面重试'
         });
       }
     },
@@ -294,6 +317,7 @@ export default {
           this.downloadProgress = 100;
           this.progressText = '所有模型更新完成';
           eventSource.close();
+          this.fetchCachedModels();
           setTimeout(() => {
             this.updateDialogVisible = false;
             this.$message.success('模型更新成功');

@@ -63,7 +63,7 @@
                 "config_able": true,
                 "type": "float",
                 "min": 0.0,
-                "max": 1.0,
+                "max": 0.99,
                 "value": null
             }
         },

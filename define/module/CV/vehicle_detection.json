@@ -7,17 +7,44 @@
     "pretrained": [
         {
             "name": "PP-YOLOE-S_vehicle",
-            "description": "基于PP-YOLOE的行人检测模型",
+            "description": "基于PP-YOLOE的车辆检测模型",
             "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-S_vehicle_infer.tar",
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE-S_vehicle_pretrained.pdparams",
             "model_size": "28.79 M"
         },
         {
             "name": "PP-YOLOE-L_vehicle",
-            "description": "基于PP-YOLOE的行人检测模型",
+            "description": "基于PP-YOLOE的车辆检测模型",
             "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-L_vehicle_infer.tar",
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE-L_vehicle_pretrained.pdparams",
             "model_size": "196.02 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": null
+            }
+        },
+        "predict_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 1.0,
+                "value": null
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

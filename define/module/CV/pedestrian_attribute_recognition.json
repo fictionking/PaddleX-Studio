@@ -12,5 +12,32 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LCNet_x1_0_pedestrian_attribute_pretrained.pdparams",
             "model_size": "6.7 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": 0.5
+            }
+        },
+        "predict_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": 0.5
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

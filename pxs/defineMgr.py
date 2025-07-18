@@ -115,6 +115,15 @@ def getModelByModule(module,model_name):
 def get_module_definitions():
     return jsonify(modules)
 
+@define_bp.route('/define/modules/cached', methods=['GET'])
+def get_module_cached_models():
+    #获取weights所有子目录名称返回
+    cached_models=[]
+    weights_dir=os.path.join(cfg.weights_root)
+    for dir in os.listdir(weights_dir):
+        cached_models.append(dir)
+    return jsonify(cached_models)
+
 @define_bp.route('/define/dataset_types', methods=['GET'])
 def get_dataset_type_definitions():
     return jsonify(dataset_types)

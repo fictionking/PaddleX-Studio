@@ -12,5 +12,32 @@
             "pretrained_model_url": "https://paddledet.bj.bcebos.com/models/ppyoloe_r_crn_l_3x_dota.pdparams",
             "model_size": "211.0 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": null
+            }
+        },
+        "predict_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": null
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }
