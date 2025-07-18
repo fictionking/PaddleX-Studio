@@ -5,9 +5,7 @@
         <h2 class="page-header h2" v-text="appConfig.name"></h2>
         <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="appConfig.id"></el-tag>
         <el-tag type="success" v-text="appConfig.type === 'module' ? '模型' : '产线'"></el-tag>
-        <el-tag type="success" v-text="appConfig.category"></el-tag>
-        <el-tag type="success" v-text="appConfig.module_name"></el-tag>
-        <el-tag type="success" v-text="appConfig.model_name"></el-tag>
+        <el-tag type="success" v-for="tag in appConfig.tags" :key="tag">{{ tag }}</el-tag>
         <el-tag :class="appConfig.status === 'running' ? 'status_running' : 'status_stopped'"
           :type="appConfig.status == 'stopped' ? 'primary' : 'success'"
           v-text="appConfig.status === 'running' ? '运行中' : '未运行'"></el-tag>

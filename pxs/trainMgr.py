@@ -14,6 +14,7 @@ import time
 import logging
 import queue
 from threading import Lock
+from pxs.appMgr import new_applications
 
 task_queue = queue.Queue()
 lock = Lock()
@@ -524,3 +525,42 @@ def copyDatasetFiles(category_id,dataset_type,dataset_path,model_path):
     if not filelist:
         filelist.append({"src":dataset_path,"dst":model_path})
     copy_files(filelist)
+
+@train_bp.route('/models/<model_id>/createapp', methods=['POST'])
+def create_app(model_id):
+     # 检查模型是否存在
+    model = models.get(model_id)
+    if not model:
+        return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+
+    if model['status'] != 'finished':
+        return jsonify({'code': 400, 'message': '当前模型状态未训练完成，不支持创建应用'}), 400
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': '请提供应用配置'}),400
+    app_id = data['id']
+    app_name = data['name']
+    category_id=model['category']
+    module_id=model['module_id']
+    model_name=model['pretrained']
+
+    module = defineMgr.getModule(category_id,module_id)
+    if not module:
+        return jsonify({'message': '模块不存在'}),400
+    config=module['infer_params']
+    config['model_params']['model_name']={
+      "config_able": False,
+      "value": model_name
+    }
+    infer_path=os.path.join('models',model_id,'train','best_model','inference')
+    if not os.path.exists(infer_path):
+        return jsonify({'message': '模型推理目录不存在'}),400
+    config['model_params']['model_dir']={
+      "config_able": False,
+      "value": infer_path
+    }
+    succ,msg=new_applications(app_id,app_name,"module",[category_id,module['name'],model_name,model['name']],config)
+    if succ:
+        return jsonify({'message': '应用创建成功'}),200
+    return jsonify({'message': msg}),400

@@ -1,85 +1,3 @@
-<style>
-.log-scrollbar {
-    height: calc(100vh - 300px);
-    width: 100%;
-    padding: 20px 0;
-}
-
-.log-pre {
-    white-space: pre;
-    word-wrap: normal;
-    padding: 15px;
-    margin: 0;
-}
-
-.steps {
-    margin: 20px auto;
-    max-width: 900px;
-}
-
-.data-prep-container {
-    align-items: center;
-    text-align: center;
-}
-
-.dataset-selector {
-    margin: 20px auto;
-    max-width: 600px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.check-result-card {
-    margin-top: 20px;
-}
-
-.sample-grid {
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #888888;
-}
-
-.stat-chart-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.param-setting {
-    align-items: center;
-    text-align: center;
-}
-
-.step-footer {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.sample-row {
-    height: 600px;
-}
-
-.sample-section {
-    flex: 1;
-}
-
-.train-section {
-    padding-bottom: 10px;
-}
-
-.val-section {
-    padding-top: 10px;
-}
-
-.image-item {
-    width: 100px;
-    height: 100px;
-    margin: 5px
-}
-</style>
 <template>
     <div>
         <div v-if="currentModel.status !== 'config'">
@@ -229,8 +147,25 @@
                     ['finished', 'aborted', 'failed'].includes(currentModel.status) ? '重新训练' : '中断训练'
             }}</el-button>
             <el-button v-if="currentModel.status === 'finished'" type="primary" @click="download">下载模型</el-button>
+            <el-button v-if="currentModel.status === 'finished'" type="primary"
+                @click="openCreateAppDialog">创建应用</el-button>
         </div>
     </div>
+    <!-- 新增应用创建对话框 -->
+    <el-dialog v-model="showCreateAppDialog" title="模型应用" width="600px">
+        <el-form ref="appForm" :model="newAppFormData" :rules="formRules" label-width="100px">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="newAppFormData.name" placeholder="请输入应用名称"></el-input>
+            </el-form-item>
+            <el-form-item label="唯一标识" prop="id">
+                <el-input v-model="newAppFormData.id" placeholder="请输入唯一标识"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="showCreateAppDialog = false">取消</el-button>
+            <el-button type="primary" @click="submitAppForm">确定</el-button>
+        </div>
+    </el-dialog>
 </template>
 
 <script type="module">
@@ -262,7 +197,13 @@ export default {
                 trainEvalInterval: 1
             },
             trainLog: '',  // 训练日志内容
-            runLocation: 'local'  // 训练运行位置默认值（local/dock）
+            runLocation: 'local',  // 训练运行位置默认值（local/dock）
+            newAppFormData: {
+                name: '',
+                id: '',
+                model_id: ''
+            },
+            showCreateAppDialog: false,
         }
     },
     mounted() {
@@ -461,7 +402,118 @@ export default {
         download() {
             // 调用API获取模型文件
             window.open(`/models/${this.currentModel.id}/download`, '_blank');
+        },
+        /**
+        * 打开创建应用对话框并初始化数据
+        * @param {Object} model - 选中的预训练模型
+        */
+        openCreateAppDialog(model) {
+            this.newAppFormData = {
+                name: '',
+                id: '',
+                model_id: this.currentModel.id
+            };
+            this.showCreateAppDialog = true;
+        },
+        /**
+        * 提交应用表单数据到后端
+        */
+        async submitAppForm() {
+            this.$refs.appForm.validate(async (valid) => {
+                if (valid) {
+                    try {
+                        await axios.post(`/models/${this.newAppFormData.model_id}/createapp`, this.newAppFormData);
+                        this.$message.success('应用创建成功');
+                        this.showCreateAppDialog = false;
+                        this.$router.push(`/app/${this.newAppFormData.id}`);
+                    } catch (error) {
+                        this.$message.error('应用创建失败:' + error.response.data.message);
+                    }
+                }
+            });
         }
     }
 }
 </script>
+<style>
+.log-scrollbar {
+    height: calc(100vh - 300px);
+    width: 100%;
+    padding: 20px 0;
+}
+
+.log-pre {
+    white-space: pre;
+    word-wrap: normal;
+    padding: 15px;
+    margin: 0;
+}
+
+.steps {
+    margin: 20px auto;
+    max-width: 900px;
+}
+
+.data-prep-container {
+    align-items: center;
+    text-align: center;
+}
+
+.dataset-selector {
+    margin: 20px auto;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.check-result-card {
+    margin-top: 20px;
+}
+
+.sample-grid {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #888888;
+}
+
+.stat-chart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.param-setting {
+    align-items: center;
+    text-align: center;
+}
+
+.step-footer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.sample-row {
+    height: 600px;
+}
+
+.sample-section {
+    flex: 1;
+}
+
+.train-section {
+    padding-bottom: 10px;
+}
+
+.val-section {
+    padding-top: 10px;
+}
+
+.image-item {
+    width: 100px;
+    height: 100px;
+    margin: 5px
+}
+</style>

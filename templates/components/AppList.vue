@@ -13,9 +13,7 @@
                             <p class="listcard desc" v-text="app.description"></p>
                             <div class="listcard category">
                                 <el-tag type="success" v-text="app.type === 'module' ? '模型' : '产线'"></el-tag>
-                                <el-tag type="success" v-text="app.category"></el-tag>
-                                <el-tag type="success" v-text="app.module_name"></el-tag>
-                                <el-tag type="success" v-text="app.model_name"></el-tag>
+                                <el-tag type="success" v-for="tag in app.tags" :key="tag">{{ tag }}</el-tag>
                             </div>
                         </div>
                         <!-- 右侧内容 -->

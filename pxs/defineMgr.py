@@ -310,7 +310,7 @@ def create_module_app():
       "config_able": False,
       "value": infer_path
     }
-    succ,msg=new_applications(app_id,app_name,"module",category_id,module['name'],model['name'],config)
+    succ,msg=new_applications(app_id,app_name,"module",[category_id,module['name'],model['name']],config)
     if succ:
         return jsonify({'message': '应用创建成功'}),200
     return jsonify({'message': msg}),400

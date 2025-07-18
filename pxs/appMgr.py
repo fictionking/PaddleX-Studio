@@ -79,7 +79,7 @@ def list_applications():
         app['status'] = 'running' if app['id'] == current_app_id else 'stopped'
     return jsonify(apps_list)
 
-def new_applications(app_id,app_name,app_type,app_category,app_module_name,app_model_name,app_config):
+def new_applications(app_id,app_name,app_type,tags,app_config):
     # 检查ID唯一性
     global apps
     if app_id in apps:
@@ -90,9 +90,7 @@ def new_applications(app_id,app_name,app_type,app_category,app_module_name,app_m
         'id': app_id,
         'name': app_name,
         'type': app_type,
-        'category': app_category,
-        'module_name': app_module_name,
-        'model_name': app_model_name
+        'tags':tags,
     }
     app_dir = os.path.join(apps_root, app_id)
     try:
@@ -277,7 +275,9 @@ def start_application(app_id):
             params={}
             for key, value in model_params.items():
                 if 'value' in value:
-                    params[key] = value['value']
+                    v = value['value']
+                    if v and v!='':
+                        params[key] = v
             params['device'] = cfg.device
 
             # 创建并启动模型线程

@@ -23,12 +23,13 @@
                             <p class="listcard updatetime" v-text="model.update_time"></p>
                             <div class="model-status">
                                 <el-tag round
-                                    :type="['aborted','failed'].includes(model.status) ? 'danger' : model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
-                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '训练完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : model.status === 'failed' ? '失败' : '未知'">
-                                </el-tag>
+                                    :type="['aborted', 'failed'].includes(model.status) ? 'danger' : model.status === 'finished' ? 'success' : model.status === 'training' ? 'warning' : model.status === 'queued' ? 'primary' : 'info'"
+                                    v-text="model.status === 'aborted' ? '中止' : model.status === 'finished' ? '训练完成' : model.status === 'training' ? '训练中' : model.status === 'queued' ? '排队中' : model.status === 'config' ? '配置中' : model.status === 'failed' ? '失败' : '未知'"></el-tag>
                             </div>
                             <div class="listcard actions">
                                 <el-button type="text" @click.stop="handleModelDelete(model.id)">删除</el-button>
+                                <el-button type="primary" round text
+                                    @click.stop="openCreateAppDialog(model)">应用</el-button>
                             </div>
                         </div>
                     </div>
@@ -36,13 +37,34 @@
             </el-col>
         </el-row>
     </div>
+    <!-- 新增应用创建对话框 -->
+    <el-dialog v-model="showCreateAppDialog" title="模型应用" width="600px">
+        <el-form ref="appForm" :model="newAppFormData" :rules="formRules" label-width="100px">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="newAppFormData.name" placeholder="请输入应用名称"></el-input>
+            </el-form-item>
+            <el-form-item label="唯一标识" prop="id">
+                <el-input v-model="newAppFormData.id" placeholder="请输入唯一标识"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="showCreateAppDialog = false">取消</el-button>
+            <el-button type="primary" @click="submitAppForm">确定</el-button>
+        </div>
+    </el-dialog>
 </template>
 <script type="module">
 
 export default {
     data() {
         return {
-            models: []
+            models: [],
+            newAppFormData: {
+                name: '',
+                id: '',
+                model_id: ''
+            },
+            showCreateAppDialog: false,
         }
     },
     mounted() {
@@ -96,6 +118,35 @@ export default {
                     });
             }).catch(() => {
                 this.$message.info('已取消删除');
+            });
+        },
+        /**
+        * 打开创建应用对话框并初始化数据
+        * @param {Object} model - 选中的预训练模型
+        */
+        openCreateAppDialog(model) {
+            this.newAppFormData = {
+                name: '',
+                id: '',
+                model_id: model.id
+            };
+            this.showCreateAppDialog = true;
+        },
+        /**
+        * 提交应用表单数据到后端
+        */
+        async submitAppForm() {
+            this.$refs.appForm.validate(async (valid) => {
+                if (valid) {
+                    try {
+                        await axios.post(`/models/${this.newAppFormData.model_id}/createapp`, this.newAppFormData);
+                        this.$message.success('应用创建成功');
+                        this.showCreateAppDialog = false;
+                        this.$router.push(`/app/${this.newAppFormData.id}`);
+                    } catch (error) {
+                        this.$message.error('应用创建失败:' + error.response.data.message);
+                    }
+                }
             });
         }
     }
