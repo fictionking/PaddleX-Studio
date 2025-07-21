@@ -32,5 +32,104 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv3_server_det_pretrained.pdparams",
             "model_size": "102.1 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "limit_side_len": {
+                "config_able": true,
+                "type": "int",
+                "min": 0,
+                "max": null,
+                "value": null,
+                "desc": "<span>检测的图像边长限制,如果设置为None, 将默认使用PaddleX官方模型配置中的该参数值</span>"
+            },
+            "limit_type": {
+                "config_able": true,
+                "type": "enum",
+                "enum": [
+                    null,
+                    "min",
+                    "max"
+                ],
+                "value": null,
+                "desc": "<span>检测的边长限制类型，支持min和max. min表示保证图像最短边不小于det_limit_side_len, max: 表示保证图像最长边不大于limit_side_len</span>"
+            },
+            "thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": null,
+                "value": null,
+                "desc": "<span>输出的概率图中，得分大于该阈值的像素点才会被认为是文字像素点</span>"
+            },
+            "box_thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": null,
+                "value": null,
+                "desc": "<span>检测结果边框内，所有像素点的平均得分大于该阈值时，该结果会被认为是文字区域</span>"
+            },
+            "unclip_ratio": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": null,
+                "value": null,
+                "desc": "<span>Vatti clipping算法的扩张系数，使用该方法对文字区域进行扩张 </span>"
+            }
+        },
+        "predict_params": {
+            "limit_side_len": {
+                "config_able": true,
+                "type": "int",
+                "min": 0,
+                "max": null,
+                "value": null,
+                "desc": "<span>检测的图像边长限制,如果设置为None, 将默认使用PaddleX官方模型配置中的该参数值</span>"
+            },
+            "limit_type": {
+                "config_able": true,
+                "type": "enum",
+                "enum": [
+                    null,
+                    "min",
+                    "max"
+                ],
+                "value": null,
+                "desc": "<span>检测的边长限制类型，支持min和max. min表示保证图像最短边不小于det_limit_side_len, max: 表示保证图像最长边不大于limit_side_len</span>"
+            },
+            "thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": null,
+                "value": null,
+                "desc": "<span>输出的概率图中，得分大于该阈值的像素点才会被认为是文字像素点</span>"
+            },
+            "box_thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": null,
+                "value": null,
+                "desc": "<span>检测结果边框内，所有像素点的平均得分大于该阈值时，该结果会被认为是文字区域</span>"
+            },
+            "unclip_ratio": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": null,
+                "value": null,
+                "desc": "<span>Vatti clipping算法的扩张系数，使用该方法对文字区域进行扩张 </span>"
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }

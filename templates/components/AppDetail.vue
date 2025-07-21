@@ -16,13 +16,26 @@
       <div class="left-column">
         <div class="part-container">
           <h3>模型参数配置</h3>
-          <el-form :model="formData" label-width="120px" @submit.prevent="saveConfig">
+          <el-form :model="formData" label-width="220px" @submit.prevent="saveConfig">
             <el-form-item v-for="(param, key) in modelParams" :key="key" :label="key">
-              <el-input-number v-if="param.type === 'int' || param.type === 'float'" v-model="formData[key]"
-                :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
-                :max="param.max !== null ? param.max : undefined" :readonly="!param.config_able"
-                controls-position="right"></el-input-number>
-              <el-input v-else v-model="formData[key]" :readonly="!param.config_able"></el-input>
+              <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
+                <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="formData[key]"
+                  :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
+                  :max="param.max !== null ? param.max : undefined" controls-position="right"
+                  :readonly="!param.config_able"></el-input-number>
+                <el-switch v-else-if="param.type === 'bool'" v-model="formData[key]" active-text="True"
+                  inactive-text="False" :readonly="!param.config_able"></el-switch>
+                <el-input v-else-if="param.type === 'dict'" v-model="formData[key]" type="textarea"
+                  placeholder="请输入JSON格式的字典，例如: {&quot;key&quot;: &quot;value&quot;}" :rows=4
+                  :readonly="!param.config_able"></el-input>
+                <el-input v-else-if="param.type === 'list'" v-model="formData[key]" type="textarea"
+                  placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4
+                  :readonly="!param.config_able"></el-input>
+                <el-select v-else-if="param.type === 'enum'" v-model="formData[key]" :readonly="!param.config_able">
+                  <el-option v-for="item in param.enum" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
+                <el-input v-else v-model="formData[key]" :readonly="!param.config_able"></el-input>
+              </el-tooltip>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="saveConfig">保存配置</el-button>
@@ -34,26 +47,32 @@
         </div>
         <div class="part-container">
           <h3>推理参数配置</h3>
-          <el-form :model="predictFormData" label-width="120px">
+          <el-form :model="predictFormData" label-width="220px">
             <el-form-item v-for="(param, key) in predict_params" :key="key" :label="key">
-              <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content >
+              <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
                 <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="predictFormData[key]"
                   :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
-                  :max="param.max !== null ? param.max : undefined" controls-position="right"></el-input-number>
+                  :max="param.max !== null ? param.max : undefined" controls-position="right"
+                  :readonly="!param.config_able"></el-input-number>
                 <el-switch v-else-if="param.type === 'bool'" v-model="predictFormData[key]" active-text="True"
-                  inactive-text="False"></el-switch>
+                  inactive-text="False" :readonly="!param.config_able"></el-switch>
                 <el-input v-else-if="param.type === 'dict'" v-model="predictFormData[key]" type="textarea"
-                  placeholder="请输入JSON格式的字典，例如: {&quot;key&quot;: &quot;value&quot;}" :rows=4></el-input>
+                  placeholder="请输入JSON格式的字典，例如: {&quot;key&quot;: &quot;value&quot;}" :rows=4
+                  :readonly="!param.config_able"></el-input>
                 <el-input v-else-if="param.type === 'list'" v-model="predictFormData[key]" type="textarea"
-                  placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4></el-input>
-                <el-input v-else v-model="predictFormData[key]"></el-input>
+                  placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4
+                  :readonly="!param.config_able"></el-input>
+                <el-select v-else-if="param.type === 'enum'" v-model="predictFormData[key]" :readonly="!param.config_able">
+                  <el-option v-for="item in param.enum" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
+                <el-input v-else v-model="predictFormData[key]" :readonly="!param.config_able"></el-input>
               </el-tooltip>
             </el-form-item>
           </el-form>
         </div>
         <div class="part-container">
           <h3>API</h3>
-          <el-form label-width="120px">
+          <el-form label-width="220px">
             <el-form-item label="启动服务">
               <el-text>GET /apps/start/{{ appConfig.id }}</el-text>
             </el-form-item>
@@ -119,10 +138,11 @@
               style="max-width: 100%; max-height: 500px;">
             <div v-if="!inferenceResult.data && !inferenceResult.loading" class="image-error">图片加载失败，请重试</div>
           </div>
-          <!-- JSON结果展示 -->
+          <!-- JSON结果展示 - 虚拟滚动优化版 -->
           <div v-else-if="inferenceResult.type === 'json'" class="result-json">
-            <el-input type="textarea" :rows="10" :value="JSON.stringify(inferenceResult.data, null, 2)" readonly
-              style="width: 100%;" :autosize="{ minRows: 10, maxRows: 20 }" />
+            <el-scrollbar class="json-native-scrollbar">
+              <pre><code>{{ inferenceResult.data.join('\n') }}</code></pre>
+            </el-scrollbar>
           </div>
           <!-- HTML结果展示 -->
           <div v-else-if="inferenceResult.type === 'html'" class="result-html" v-html="inferenceResult.data"></div>
@@ -151,7 +171,7 @@ export default {
       uploadedFile: null,
       inferenceResult: { type: '', data: null, loading: false },
       urlReferences: new Map(),
-      current_result_type: 'json'
+      current_result_type: 'json',
     }
   },
   beforeUnmount() {
@@ -363,13 +383,6 @@ export default {
       }
     },
     /**
-     * 处理推理结果
-     */
-    /**
-     * 根据结果类型展示推理结果
-     * @param {Object} result - 推理结果数据
-     */
-    /**
        * 根据响应类型和结果类型处理并展示推理结果
        * @param {Object} response - Axios响应对象，可能包含文件或文本数据
        */
@@ -384,18 +397,24 @@ export default {
         this.inferenceResult.data = this.createSafeObjectURL(response.data);
         this.inferenceResult.loading = false;
       } else {
-        // 处理文本类型响应
-        let resultData = response.data;
-        // 尝试解析JSON（如果是JSON字符串）
-        if (typeof resultData === 'string' && contentType.includes('application/json')) {
-          try {
-            resultData = JSON.parse(resultData);
-          } catch (e) {
-            console.warn('无法解析JSON响应:', e);
+        // // 处理文本类型响应
+        if (this.inferenceResult.type === 'json') {
+          const jsonData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+          const formatted = JSON.stringify(jsonData, null, 2);
+          const jsonLines = formatted.split('\n');
+          if (jsonLines.length > 500) {
+            this.inferenceResult.data = jsonLines.slice(0, 500);
+            // 添加超长提示文本到数组末尾
+            this.inferenceResult.data.push('...(超长未显示)');
           }
+          else
+            this.inferenceResult.data = jsonLines;
+          this.inferenceResult.loading = false;
+        } else {
+          this.inferenceResult.data = response.data;
+          this.inferenceResult.loading = false;
         }
-        this.inferenceResult.data = resultData;
-        this.inferenceResult.loading = false;
+
       }
     },
   }
@@ -427,15 +446,42 @@ export default {
 }
 
 .result-image,
-.result-json,
 .result-html {
   margin-top: 10px;
+}
+
+.result-json {
+  position: relative;
+}
+
+.json-native-scrollbar {
+  height: 500px;
+  width: 100%;
+  overflow: auto;
+}
+
+.json-native-scrollbar .el-scrollbar__wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.json-native-scrollbar .el-scrollbar__bar.is-vertical {
+  width: 6px;
+  right: 0;
+}
+
+.json-native-scrollbar .el-scrollbar__thumb {
+  background-color: rgba(144, 147, 153, 0.5);
+  border-radius: 3px;
+}
+
+.json-native-scrollbar .el-scrollbar__thumb:hover {
+  background-color: rgba(144, 147, 153, 0.7);
 }
 
 .result-html {
   min-height: 200px;
   padding: 10px;
-  background-color: #f9f9f9;
 }
 
 .layout-container {
@@ -445,7 +491,7 @@ export default {
 }
 
 .left-column {
-  width: 500px;
+  width: 600px;
   margin: 20px auto;
 }
 
@@ -464,5 +510,4 @@ export default {
   border-radius: 4px;
   margin: 20px auto;
 }
-
 </style>

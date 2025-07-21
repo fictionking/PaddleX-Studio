@@ -7,7 +7,7 @@ import pxs.paddlexCfg as cfg
 from pxs.appMgr import new_applications
 import time
 import logging
-
+from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
 
@@ -149,6 +149,8 @@ def get_module_cache_model(category_id, module_id, model_id):
     if model:
         pretrained_model_url = model['pretrained_model_url']
         inference_model_url = model['inference_model_url']
+    else:
+        return jsonify({'error': '没有可下载的模型URL'})
                     
     # 收集需要下载的URL列表
     download_urls = []
@@ -157,6 +159,9 @@ def get_module_cache_model(category_id, module_id, model_id):
         #如果和cache_dir相同，则不下载
         if not absurl.startswith(cache_dir):
             download_urls.append(('pretrained', pretrained_model_url))
+    
+    if inference_model_url=='':
+        inference_model_url=OFFICIAL_MODELS_INFER[model_id]
     if inference_model_url:
         absurl=os.path.abspath(inference_model_url)
         #如果和cache_dir相同，则不下载
@@ -323,3 +328,4 @@ def create_module_app():
     if succ:
         return jsonify({'message': '应用创建成功'}),200
     return jsonify({'message': msg}),400
+

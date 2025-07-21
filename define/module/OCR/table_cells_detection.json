@@ -18,5 +18,32 @@
             "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/RT-DETR-L_wireless_table_cell_det_pretrained.pdparams",
             "model_size": "124 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": null
+            }
+        },
+        "predict_params": {
+            "threshold": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.0,
+                "max": 0.99,
+                "value": null
+            }
+        },
+        "input_types": [
+            "img"
+        ],
+        "result_types": [
+            "img",
+            "json"
+        ]
+    }
 }
