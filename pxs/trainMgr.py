@@ -336,9 +336,9 @@ def train(model_id):
         shutil.rmtree(output_dir)
     # 逐级查找匹配的预训练模型路径
     pretrained_model = None
-    model=defineMgr.getModel(model['category'],model['module_id'],model['pretrained'])
-    if model:
-        pretrained_model = model['pretrained_model_url']
+    model_def=defineMgr.getModel(model['category'],model['module_id'],model['pretrained'])
+    if model_def:
+        pretrained_model = model_def['pretrained_model_url']
     # 从url中提取文件名
     pretrained_file_name = os.path.basename(pretrained_model)
     # 构建完整的预训练模型路径
