@@ -95,7 +95,9 @@
           <el-breadcrumb-item>{{ newAppFormData.pretrained }}</el-breadcrumb-item>
         </el-breadcrumb>
       </div>
-
+      <div v-if="newAppFormData.tip" style="margin-bottom:20px;">
+        {{ newAppFormData.tip }}
+      </div>
       <el-form ref="appForm" :model="newAppFormData" :rules="formRules" label-width="100px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="newAppFormData.name" placeholder="请输入应用名称"></el-input>
@@ -239,11 +241,15 @@ export default {
       this.newAppFormData = {
         name: '',
         id: '',
-        category_id: categoryid,
+        category: categoryid,
         module_id: this.selectedModelType.id,
         module_name: this.selectedModelType.name,
         pretrained: model.name
       };
+      if (categoryid==='TimeSeries')
+      {
+        this.newAppFormData.tip = '此应用只能使用官方示例数据，自定义数据需要使用自训练模型。'
+      }
       this.showCreateAppDialog = true;
     },
     /**

@@ -327,7 +327,7 @@ def create_module_app():
         return jsonify({'message': '请提供应用配置'}),400
     app_id = data['id']
     app_name = data['name']
-    category_id=data['category_id']
+    category_id=data['category']
     module_id=data['module_id']
     model_name=data['pretrained']
 
