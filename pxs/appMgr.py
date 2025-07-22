@@ -448,6 +448,11 @@ def infer_application(app_id, result_type):
                         return result, 200
                     else:
                         return jsonify({"error": "未生成html结果"}), 500
+                case 'csv':
+                    if result:
+                        return send_file(result), 200
+                    else:
+                        return jsonify({"error": "未生成csv结果"}), 500
         except Exception as e:
             logging.error(f"推理过程发生错误: {str(e)}", exc_info=True)
             raise

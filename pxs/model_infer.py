@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import ctypes
 from multiprocessing import Queue
+from nt import write
 from queue import Empty
 import os
 import logging
@@ -9,6 +10,7 @@ from jinja2.nodes import Output
 from paddlex import create_model
 import gc
 import time
+import pandas as pd
 
 # 使用独立进程运行模型，确保可以完全释放占用资源
 class ModelProcess(mp.Process):
@@ -81,6 +83,12 @@ class ModelProcess(mp.Process):
                             result_data = result.json
                         case 'html':
                             result_data = result.html
+                        case 'csv':
+                            data=result.csv['res']
+                            file_path=os.path.join(result_dir,'result.csv')
+                            # 将转置数据框转换为CSV
+                            data.to_csv(file_path, index=True)
+                            result_data = file_path
                     self.result_queue.put((task['task_id'], result_data, None))
                 except Exception as e:
                     logging.error(f"任务处理错误: {str(e)}", exc_info=True)

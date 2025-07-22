@@ -8,7 +8,7 @@
             "name": "TimesNet_cls",
             "description": "通过多周期分析，TimesNet_cls是适应性强的高精度时序分类模型",
             "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/TimesNet_cls_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/TimesNet_cls_pretrained.pdparams",
+            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/TimesNet_cls.pdparams.tar",
             "model_size": "792 K"
         }
     ]

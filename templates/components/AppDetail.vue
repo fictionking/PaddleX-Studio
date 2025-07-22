@@ -395,18 +395,24 @@ export default {
        * @param {Object} response - Axios响应对象，可能包含文件或文本数据
        */
     handleInferenceResult(response) {
-
-      const contentType = response.headers['content-type'] || '';
-      const isFileResponse = contentType.includes('application/octet-stream') ||
-        contentType.includes('image/') ||
-        this.current_result_type === 'img';
-
-      if (isFileResponse) {
-        this.inferenceResult.data = this.createSafeObjectURL(response.data);
-        this.inferenceResult.loading = false;
-      } else {
-        // // 处理文本类型响应
-        if (this.inferenceResult.type === 'json') {
+      switch (this.current_result_type) {
+        case 'img':
+          this.inferenceResult.data = this.createSafeObjectURL(response.data);
+          this.inferenceResult.loading = false;
+          break;
+        case 'csv':
+          //保存文件到本地
+          const file = new File([response.data], 'result.csv', { type: 'text/csv' });
+          const fileURL = URL.createObjectURL(file);
+          const a = document.createElement('a');
+          a.href = fileURL;
+          a.download = 'result.csv';
+          a.click();
+          URL.revokeObjectURL(fileURL);
+          // this.inferenceResult.data = response.data;
+          this.inferenceResult.loading = false;
+          break;
+        case 'json':
           const jsonData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
           const formatted = JSON.stringify(jsonData, null, 2);
           const jsonLines = formatted.split('\n');
@@ -418,11 +424,11 @@ export default {
           else
             this.inferenceResult.data = jsonLines;
           this.inferenceResult.loading = false;
-        } else {
+          break;
+        default:
           this.inferenceResult.data = response.data;
           this.inferenceResult.loading = false;
-        }
-
+          break;
       }
     },
   }
