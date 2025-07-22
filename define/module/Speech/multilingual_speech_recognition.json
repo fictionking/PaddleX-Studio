@@ -39,5 +39,17 @@
             "pretrained_model_url": "",
             "model_size": "145 M"
         }
-    ]
+    ],
+    "infer_params": {
+        "model_params": {
+        },
+        "predict_params": {
+        },
+        "input_types": [
+            "file"
+        ],
+        "result_types": [
+            "json"
+        ]
+    }
 }

@@ -41,7 +41,7 @@ class ModelProcess(mp.Process):
         while not self.task_queue.empty():
             self.task_queue.get()
         # 等待线程退出
-        self.join(timeout=5)
+        self.join(timeout=5*60)
         if self.is_alive():
             logging.warning(f"模型进程 {os.getpid()} 无法正常终止")
 

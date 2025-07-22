@@ -284,9 +284,9 @@ def start_application(app_id):
             current_model_thread = ModelProcess(params)
             current_model_thread.start()
 
-            # 等待模型加载完成（最多等待300秒）
+            # 等待模型加载完成（最多等待30分钟）
             start_time = time.time()
-            while not current_model_thread.is_loaded() and time.time() - start_time < 300:
+            while not current_model_thread.is_loaded() and time.time() - start_time < 30 * 60:
                 if current_model_thread.get_error():
                     raise RuntimeError(f'模型加载失败: {current_model_thread.get_error()}')
                 time.sleep(0.5)
@@ -418,7 +418,7 @@ def infer_application(app_id, result_type):
             start_time = time.time()
             result = None
             error = None
-            while time.time() - start_time < 30:
+            while time.time() - start_time < 30 * 60:
                 result_data = current_model_thread.get_result(timeout=1)
                 if result_data:
                     task_id_result, result, error = result_data

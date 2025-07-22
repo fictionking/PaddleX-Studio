@@ -117,6 +117,7 @@
         <el-progress :percentage="downloadProgress" :stroke-width="10" striped striped-flow
           :duration="10"></el-progress>
         <p class="progress-text">{{ progressText }}</p>
+        <p class="progress-text">{{ speedText }}</p>
       </div>
     </el-dialog>
 
@@ -158,7 +159,8 @@ export default {
       // 更新模型相关数据
       updateDialogVisible: false,
       downloadProgress: 0,
-      progressText: ''
+      progressText: '',
+      speedText: ''
     };
   },
   components: {
@@ -286,6 +288,7 @@ export default {
       this.updateDialogVisible = true;
       this.downloadProgress = 0;
       this.progressText = '准备开始下载...';
+      this.speedText='';
       // 获取当前分类ID
       const categoryId = this.definitions[this.activeCategoryIndex].category.id;
       const eventSource = new EventSource(`/define/module/${categoryId}/${this.selectedModelType.id}/${model.name}/cacheModel`);
@@ -299,23 +302,28 @@ export default {
         if (data.status === 'downloading') {
           this.downloadProgress = data.progress;
           this.progressText = `正在下载${data.type}模型: ${data.file}`;
+          this.speedText = '下载速度:'+data.speed+'  剩余时间:'+data.remain_time;
         }
         // 处理开始下载状态
         else if (data.status === 'starting') {
           this.progressText = `开始下载${data.type}模型: ${data.file}`;
+          this.speedText='';
         }
         // 处理解压完成状态
         else if (data.status === 'extracted') {
           this.progressText = `${data.model_type}模型解压完成: ${data.filename}`;
+          this.speedText='';
         }
         // 处理单个文件下载完成状态
         else if (data.status === 'completed') {
           this.progressText = `${data.type}模型下载完成`;
+          this.speedText='';
         }
         // 处理所有文件下载完成状态
         else if (data.status === 'all_completed') {
           this.downloadProgress = 100;
           this.progressText = '所有模型更新完成';
+          this.speedText='';
           eventSource.close();
           this.fetchCachedModels();
           setTimeout(() => {

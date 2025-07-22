@@ -7,6 +7,7 @@ import pxs.paddlexCfg as cfg
 from pxs.appMgr import new_applications
 import time
 import logging
+import shutil
 from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
@@ -172,6 +173,7 @@ def get_module_cache_model(category_id, module_id, model_id):
         return jsonify({'error': '没有可下载的模型URL'})
     
     # 确保缓存目录存在
+    is_new=not os.path.exists(cache_dir)
     os.makedirs(cache_dir, exist_ok=True)
     
     def extract_tar(file_path,dest_path):
@@ -216,7 +218,16 @@ def get_module_cache_model(category_id, module_id, model_id):
                 else:
                     # 正常解压所有文件
                     tar.extractall(path=dest_path)
-            
+            #如果有子目录名称与当前模型id相同的，则把子目录内容移动到当前目录
+            for dir in os.listdir(dest_path):
+                if dir != model_id:
+                    continue
+                src_dir = os.path.join(dest_path, dir)
+                #把src_dir下的子内容移到dest_path，并删除src_dir
+                for file in os.listdir(src_dir):
+                    src_file = os.path.join(src_dir, file)
+                    shutil.move(src_file, dest_path)
+                shutil.rmtree(src_dir)
             # 解压完成后删除tar文件
             os.remove(file_path)
             return True
@@ -233,9 +244,10 @@ def get_module_cache_model(category_id, module_id, model_id):
                 save_path_tmp = f"{save_path}.tmp"
                 os.makedirs(extract_path, exist_ok=True)
                 # 发送开始下载事件
-                yield f"data: {json.dumps({'status': 'starting', 'type': model_type, 'file': filename})}\n\n"
+                yield f"data: {json.dumps({'status': 'starting', 'type': model_type, 'file': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
                 
                 # 发送GET请求，流式获取内容
+                start_time = time.time()
                 with requests.get(url, stream=True, timeout=30) as r:
                     r.raise_for_status()  # 检查HTTP错误状态码
                     total_size = int(r.headers.get('content-length', 0))
@@ -261,7 +273,18 @@ def get_module_cache_model(category_id, module_id, model_id):
                                 # 计算进度并发送
                                 if total_size > 0:
                                     progress = int((downloaded_size / total_size) * 100)
-                                    yield f"data: {json.dumps({'status': 'downloading', 'type': model_type, 'progress': progress, 'file': filename})}\n\n"
+                                    #计算下载速度
+                                    speed = downloaded_size / (time.time() - start_time) / 1024 / 1024
+                                    speed_str = f"{speed:.2f} MB/s"
+                                    #计算剩余时间
+                                    remain_time = (total_size - downloaded_size) / 1024 / 1024 / speed
+                                    #将剩余时间换算成时:分:秒
+                                    hour = int(remain_time / 3600)
+                                    min = int((remain_time - hour * 3600) / 60)
+                                    sec = int(remain_time - hour * 3600 - min * 60)
+                                    remain_time_str = f"{hour}:{min}:{sec}"
+
+                                    yield f"data: {json.dumps({'status': 'downloading', 'type': model_type, 'progress': progress, 'file': filename,'speed':speed_str,'remain_time':remain_time_str})}\n\n"
                 
                 # 下载完成，先删除已存在文件再重命名临时文件
                 if os.path.exists(save_path):
@@ -271,15 +294,17 @@ def get_module_cache_model(category_id, module_id, model_id):
                 # 下载完成，检查是否需要解压
                 is_tar = extract_tar(save_path,extract_path)
                 if is_tar:
-                    yield f"data: {json.dumps({'status': 'extracted', 'model_type': model_type, 'filename': filename})}\n\n"
+                    yield f"data: {json.dumps({'status': 'extracted', 'model_type': model_type, 'filename': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
                 
                 # 发送完成事件
-                yield f"data: {json.dumps({'status': 'completed', 'type': model_type, 'progress': 100, 'file': filename})}\n\n"
+                yield f"data: {json.dumps({'status': 'completed', 'type': model_type, 'progress': 100, 'file': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
                 
             except Exception as e:
                 # 捕获并发送错误信息
                 if os.path.exists(save_path_tmp):
                     os.remove(save_path_tmp)
+                if is_new:
+                    shutil.rmtree(cache_dir)
                 yield f"data: {json.dumps({'status': 'failed', 'type': model_type, 'error': str(e)})}\n\n"
                 return
         

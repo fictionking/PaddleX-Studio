@@ -62,7 +62,8 @@
                 <el-input v-else-if="param.type === 'list'" v-model="predictFormData[key]" type="textarea"
                   placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4
                   :readonly="!param.config_able"></el-input>
-                <el-select v-else-if="param.type === 'enum'" v-model="predictFormData[key]" :readonly="!param.config_able">
+                <el-select v-else-if="param.type === 'enum'" v-model="predictFormData[key]"
+                  :readonly="!param.config_able">
                   <el-option v-for="item in param.enum" :key="item" :label="item" :value="item"></el-option>
                 </el-select>
                 <el-input v-else v-model="predictFormData[key]" :readonly="!param.config_able"></el-input>
@@ -336,7 +337,12 @@ export default {
       // 添加文件/图片
       if (this.uploadedImage) formData.append('file', this.uploadedImage);
       if (this.uploadedFile) formData.append('file', this.uploadedFile);
-
+      // 显示加载中模态框
+      const loading = this.$loading({
+        lock: true,
+        text: '推理中，请稍候...',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
       try {
         // 下次推理前释放已存在的对象URL
         this.revokeSafeObjectURL(this.inferenceResult.data);
@@ -380,6 +386,8 @@ export default {
         else {
           this.$message.error('推理失败!');
         }
+      } finally {
+        loading.close();  // 无论成功失败都关闭加载框
       }
     },
     /**
