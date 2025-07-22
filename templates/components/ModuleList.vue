@@ -248,7 +248,7 @@ export default {
       };
       if (categoryid==='TimeSeries')
       {
-        this.newAppFormData.tip = '此应用只能使用官方示例数据，自定义数据需要使用自训练模型。'
+        this.newAppFormData.tip = '💡此应用只能使用官方示例数据，自定义数据需要使用自训练模型。'
       }
       this.showCreateAppDialog = true;
     },
