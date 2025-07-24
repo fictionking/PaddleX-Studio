@@ -2,24 +2,18 @@
     "name": "人体关键点检测",
     "id": "human_keypoint_detection",
     "description": "人体关键点检测是计算机视觉领域中的一个重要任务，旨在识别图像或视频中人体的特定关键点位置。通过检测这些关键点，可以实现姿态估计、动作识别、人机交互、动画生成等多种应用。人体关键点检测在增强现实、虚拟现实、运动捕捉等领域都有广泛的应用。",
-    "dataset_type":"other",
+    "dataset_type": "other",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-TinyPose_128x96",
+    "models": {
+        "PP-TinyPose_128x96": {
             "description": "PP-TinyPose 是百度飞桨视觉团队自研的针对移动端设备优化的实时关键点检测模型，可流畅地在移动端设备上执行多人姿态估计任务",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-TinyPose_128x96_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-TinyPose_128x96_pretrained.pdparams",
             "model_size": "4.9 M"
         },
-        {
-            "name": "PP-TinyPose_256x192",
+        "PP-TinyPose_256x192": {
             "description": "PP-TinyPose 是百度飞桨视觉团队自研的针对移动端设备优化的实时关键点检测模型，可流畅地在移动端设备上执行多人姿态估计任务",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-TinyPose_256x192_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-TinyPose_256x192_pretrained.pdparams",
             "model_size": "4.9 M"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "flip": {
@@ -28,8 +22,7 @@
                 "value": false
             }
         },
-        "predict_params": {
-        },
+        "predict_params": {},
         "input_types": [
             "img"
         ],

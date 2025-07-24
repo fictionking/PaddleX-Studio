@@ -9,53 +9,57 @@
     </div>
 
     <!-- 模型类型卡片网格 -->
-    <div class="model-types-grid">
-      <div v-for="modelType in filteredModelTypes" :key="modelType.id" class="model-type-card"
-        @click="selectModelType(modelType)">
-        <div class="model-type-header">
-          <h3>{{ modelType.name }}</h3>
-          <div class="model-type-badge">{{ modelType.pretrained.length }}个预训练模型</div>
+    <div class="module-types-grid">
+      <div v-for="moduleType in filteredModules" :key="moduleType.id" class="module-type-card"
+        @click="selectModuleType(moduleType)">
+        <div class="module-type-header">
+          <h3>{{ moduleType.name }}</h3>
+          <div class="module-type-badge">{{ Object.keys(moduleType.models).length }}个预训练模型</div>
         </div>
-        <p class="model-type-description">{{ modelType.description || '无描述信息' }}</p>
-        <div class="model-type-footer">
+        <p class="module-type-description">{{ moduleType.description || '无描述信息' }}</p>
+        <div class="module-type-footer">
           <span class="arrow-icon">→</span>
         </div>
       </div>
     </div>
 
     <!-- 预训练模型模态框 -->
-    <div v-if="selectedModelType" class="modal-overlay">
+    <div v-if="selectedModule" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>{{ selectedModelType.name }} - 预训练模型</h3>
-          <button class="close-btn" @click="selectedModelType = null">×</button>
+          <h3>{{ selectedModule.name }} - 预训练模型</h3>
+          <button class="close-btn" @click="selectedModule = null">×</button>
         </div>
-        <div class="pretrained-models-grid">
-          <div v-for="model in selectedModelType.pretrained" :key="model.name" class="pretrained-model-card">
-            <div class="model-card-header">
-              <h4 style="word-break: break-all;">{{ model.name }}</h4>
-              <div class="model-card-metrics">
-                <span v-if="model.model_size">{{ model.model_size }}</span>
+        <el-scrollbar max-height="70vh">
+          <div class="models-grid">
+            <div v-for="model in selectedModule.models" :key="model.name" class="model-card">
+              <div class="model-card-header">
+                <h4 style="word-break: break-all;">{{ model.name }}</h4>
+                <div class="model-card-metrics">
+                  <el-rate v-model="model.rate" size="small" clearable @change="handleRateChange(model.name, $event)" />
+                  <span v-if="model.model_size">{{ model.model_size }}</span>
+                </div>
               </div>
-            </div>
-            <div class="model-card-body">
-              <p v-if="model.description">{{ model.description }}</p>
-            </div>
-            <div class="model-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
-              <el-button type="primary" round text @click="handleUpdateModel(model)">
-                缓存模型
-                <el-icon v-if="cachedModels.includes(model.name)" style="color:#00c58d;">
-                  <SuccessFilled />
-                </el-icon>
-              </el-button>
-              <div>
-                <el-button v-if="model.pretrained_model_url" type="primary" round text
-                  @click="openCreateModelDialog(model)">训练</el-button>
-                <el-button type="primary" round text @click="openCreateAppDialog(model)">应用</el-button>
+              <div class="model-card-body">
+                <p v-if="model.description">{{ model.description }}</p>
+              </div>
+              <div class="model-card-footer"
+                style="display: flex; justify-content: space-between; align-items: center;">
+                <el-button type="primary" round text @click="handleUpdateModel(model)">
+                  缓存模型
+                  <el-icon v-if="cachedModels.includes(model.name)" style="color:#00c58d;">
+                    <SuccessFilled />
+                  </el-icon>
+                </el-button>
+                <div>
+                  <el-button v-if="selectedModule.is_trainable" type="primary" round text
+                    @click="openCreateModelDialog(model)">训练</el-button>
+                  <el-button type="primary" round text @click="openCreateAppDialog(model)">应用</el-button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </el-scrollbar>
       </div>
     </div>
 
@@ -133,7 +137,7 @@ export default {
       definitions: [],
       cachedModels: [],
       activeCategoryIndex: 0,
-      selectedModelType: null,
+      selectedModule: null,
       showCreateTrainDialog: false,
       showCreateAppDialog: false,
       newModelFormData: {
@@ -172,7 +176,7 @@ export default {
     categories() {
       return this.definitions.map(item => item.category);
     },
-    filteredModelTypes() {
+    filteredModules() {
       if (this.definitions.length === 0) return [];
       return this.definitions[this.activeCategoryIndex].modules;
     }
@@ -206,8 +210,8 @@ export default {
         });
       }
     },
-    selectModelType(modelType) {
-      this.selectedModelType = modelType;
+    selectModuleType(modelType) {
+      this.selectedModule = modelType;
     },
     formatMetrics(metrics) {
       return Object.entries(metrics)
@@ -225,9 +229,9 @@ export default {
         id: '',
         description: '',
         category: categoryid,
-        module_id: this.selectedModelType.id,
-        module_name: this.selectedModelType.name,
-        dataset_type: this.selectedModelType.dataset_type,
+        module_id: this.selectedModule.id,
+        module_name: this.selectedModule.name,
+        dataset_type: this.selectedModule.dataset_type,
         pretrained: model.name
       };
       this.showCreateTrainDialog = true;
@@ -242,12 +246,11 @@ export default {
         name: '',
         id: '',
         category: categoryid,
-        module_id: this.selectedModelType.id,
-        module_name: this.selectedModelType.name,
+        module_id: this.selectedModule.id,
+        module_name: this.selectedModule.name,
         pretrained: model.name
       };
-      if (categoryid==='TimeSeries')
-      {
+      if (categoryid === 'TimeSeries') {
         this.newAppFormData.tip = '💡此应用只能使用官方示例数据，自定义数据需要使用自训练模型。'
       }
       this.showCreateAppDialog = true;
@@ -294,10 +297,10 @@ export default {
       this.updateDialogVisible = true;
       this.downloadProgress = 0;
       this.progressText = '准备开始下载...';
-      this.speedText='';
+      this.speedText = '';
       // 获取当前分类ID
       const categoryId = this.definitions[this.activeCategoryIndex].category.id;
-      const eventSource = new EventSource(`/define/module/${categoryId}/${this.selectedModelType.id}/${model.name}/cacheModel`);
+      const eventSource = new EventSource(`/define/module/${categoryId}/${this.selectedModule.id}/${model.name}/cacheModel`);
 
       eventSource.onmessage = (event) => {
         // 忽略心跳包空数据
@@ -308,28 +311,28 @@ export default {
         if (data.status === 'downloading') {
           this.downloadProgress = data.progress;
           this.progressText = `正在下载${data.type}模型: ${data.file}`;
-          this.speedText = '下载速度:'+data.speed+'  剩余时间:'+data.remain_time;
+          this.speedText = '下载速度:' + data.speed + '  剩余时间:' + data.remain_time;
         }
         // 处理开始下载状态
         else if (data.status === 'starting') {
           this.progressText = `开始下载${data.type}模型: ${data.file}`;
-          this.speedText='';
+          this.speedText = '';
         }
         // 处理解压完成状态
         else if (data.status === 'extracted') {
           this.progressText = `${data.model_type}模型解压完成: ${data.filename}`;
-          this.speedText='';
+          this.speedText = '';
         }
         // 处理单个文件下载完成状态
         else if (data.status === 'completed') {
           this.progressText = `${data.type}模型下载完成`;
-          this.speedText='';
+          this.speedText = '';
         }
         // 处理所有文件下载完成状态
         else if (data.status === 'all_completed') {
           this.downloadProgress = 100;
           this.progressText = '所有模型更新完成';
-          this.speedText='';
+          this.speedText = '';
           eventSource.close();
           this.fetchCachedModels();
           setTimeout(() => {
@@ -360,6 +363,17 @@ export default {
         headers: {
           'Content-Type': 'application/json'
         }
+      })
+    },
+    handleRateChange(modelName, rate) {
+      const categoryId = this.definitions[this.activeCategoryIndex].category.id;
+      axios.post('/define/module/setModelRate', {
+        category_id: categoryId,
+        module_id: this.selectedModule.id,
+        model_name: modelName,
+        rate: rate
+      }).then(res=>{
+        this.$message.success('设置评分成功');
       })
     }
   }
@@ -396,14 +410,14 @@ export default {
   font-weight: bold;
 }
 
-.model-types-grid {
+.module-types-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   margin-bottom: 40px;
 }
 
-.model-type-card {
+.module-type-card {
   background: var(--el-fill-color-light);
   border: 1px solid var(--el-fill-color);
   border-radius: 10px;
@@ -415,24 +429,24 @@ export default {
   flex-direction: column;
 }
 
-.model-type-card:hover {
+.module-type-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
-.model-type-header {
+.module-type-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
 
-.model-type-header h3 {
+.module-type-header h3 {
   margin: 0;
   font-size: 18px;
 }
 
-.model-type-badge {
+.module-type-badge {
   background-color: var(--el-color-success-light-9);
   color: var(--el-color-success);
   border: 1px solid var(--el-color-success-light-5);
@@ -441,7 +455,7 @@ export default {
   font-size: 12px;
 }
 
-.model-type-description {
+.module-type-description {
   color: var(--el-color-info-dark-2);
   font-size: 14px;
   line-height: 1.5;
@@ -450,7 +464,7 @@ export default {
   text-overflow: ellipsis;
 }
 
-.model-type-footer {
+.module-type-footer {
   display: flex;
   justify-content: flex-end;
   margin-top: auto;
@@ -481,7 +495,6 @@ export default {
   border-radius: 10px;
   width: 90%;
   max-width: 1000px;
-  max-height: 80vh;
   overflow-y: auto;
   padding: 25px;
 }
@@ -511,13 +524,14 @@ export default {
   color: var(--el-color-primary);
 }
 
-.pretrained-models-grid {
+.models-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
+  padding: 20px;
 }
 
-.pretrained-model-card {
+.model-card {
   background-color: var(--el-fill-color);
   border-radius: 8px;
   padding: 15px;
@@ -534,6 +548,9 @@ export default {
   font-size: 12px;
   color: var(--text-secondary-color);
   margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .model-card-body {
@@ -565,8 +582,8 @@ export default {
 
 @media (max-width: 768px) {
 
-  .model-types-grid,
-  .pretrained-models-grid {
+  .module-types-grid,
+  .models-grid {
     grid-template-columns: 1fr;
   }
 }

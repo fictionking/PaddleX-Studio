@@ -8,6 +8,7 @@ from pxs.appMgr import new_applications
 import time
 import logging
 import shutil
+import yaml
 from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
@@ -23,21 +24,6 @@ def init():
 
 
 def load_module_definitions():
-    """加载模块定义的三级结构数据
-    返回格式: [
-        {
-            "category": {"id": "cv", "name": "计算机视觉", ...},
-            "modules": [
-                {
-                    "id": "object_detection",
-                    "name": "目标检测",
-                    "description": "...",
-                    "pretrained": [{}...]
-                }...
-            ]
-        }...
-    ]
-    """
     # 读取分类信息
     category_info_path = os.path.join(os.getcwd(), 'define', 'module', 'category_info.json')
     try:
@@ -61,12 +47,12 @@ def load_module_definitions():
         modules_define = []
         # 遍历分类目录下的所有模型定义文件
         for filename in os.listdir(category_dir):
-            if filename.endswith('.json') and filename != 'category_info.json':
+            if filename.endswith('.json'):
                 file_path = os.path.join(category_dir, filename)
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         module = json.load(f)
-                        # 提取模型类型基本信息和预训练模型列表
+                        module=parse_module_define(module)
                         modules_define.append(module)
                 except Exception as e:
                     logging.error(f"加载模型定义文件 {filename} 失败: {str(e)}")
@@ -78,6 +64,43 @@ def load_module_definitions():
         })
 
     return result
+
+def parse_module_define(module):
+    #从paddlex\configs\modules中读取对应的模型清单合并
+    module_dir=os.path.join(cfg.paddlex_root,'paddlex','configs', 'modules', module['id'])
+    if not os.path.isdir(module_dir):
+        return module
+    #读取module_dir下的所有yml文件
+    for filename in os.listdir(module_dir):
+        if filename.endswith('.yaml') or filename.endswith('.yml'):
+            file_path = os.path.join(module_dir, filename)
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    model_yml = yaml.safe_load(f)
+                    model_name=model_yml['Global']['model']
+                    pretrain_weight_path=model_yml.get('Train', {}).get('pretrain_weight_path', '')
+                    if not pretrain_weight_path:
+                        pretrain_weight_path=''
+                    inference_weight_path=OFFICIAL_MODELS_INFER.get(model_name, '')
+                    model_define=module['models'].get(model_name, None)
+                    if model_define:
+                        if 'inference_model_url' not in model_define or model_define['inference_model_url']=='':
+                            model_define['inference_model_url']=inference_weight_path
+                        if 'pretrained_model_url' not in model_define or model_define['pretrained_model_url']=='':
+                            model_define['pretrained_model_url']=pretrain_weight_path
+                    else:
+                        model_define={
+                            'description':'',
+                            'inference_model_url':inference_weight_path,
+                            'pretrained_model_url':pretrain_weight_path,
+                            'model_size':''
+                        }
+                    model_define['name']=model_name
+                    module['models'][model_name]=model_define
+            except Exception as e:
+                logging.error(f"加载模型定义文件 {filename} 失败: {str(e)}")
+                continue
+    return module
 
 def load_dataset_type_definitions():
     # 读取分类信息
@@ -100,16 +123,14 @@ def getModule(category_id,module_id):
 def getModel(category_id,module_id,model_id):
     module=getModule(category_id,module_id)
     if module:
-        for model in module['pretrained']:
-            if model['name'] == model_id:
-                return model
+        model=module['models'][model_id]
+        return model
     return None
 
-def getModelByModule(module,model_name):
+def getModelByModule(module,model_id):
     if module:
-        for model in module['pretrained']:
-            if model['name'] == model_name:
-                return model
+        model=module['models'][model_id]
+        return model
     return None
 
 @define_bp.route('/define/modules', methods=['GET'])
@@ -161,8 +182,6 @@ def get_module_cache_model(category_id, module_id, model_id):
         if not absurl.startswith(cache_dir):
             download_urls.append(('pretrained', pretrained_model_url))
     
-    if inference_model_url=='':
-        inference_model_url=OFFICIAL_MODELS_INFER[model_id]
     if inference_model_url:
         absurl=os.path.abspath(inference_model_url)
         #如果和cache_dir相同，则不下载
@@ -354,3 +373,26 @@ def create_module_app():
         return jsonify({'message': '应用创建成功'}),200
     return jsonify({'message': msg}),400
 
+@define_bp.route('/define/module/setModelRate', methods=['POST'])
+def setModelRate():
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': '请提供应用配置'}),400
+    category_id = data['category_id']
+    module_id = data['module_id']
+    model_name = data['model_name']
+    rate = data['rate']
+    module = getModule(category_id,module_id)
+    if not module:
+        return jsonify({'message': '模块不存在'}),400
+    model = getModelByModule(module,model_name)
+    if not model:
+        return jsonify({'message': '模型不存在'}),400
+    model['rate']=rate
+    with open(f'define/module/{category_id}/{module["id"]}.json', 'r+',encoding='utf-8') as f:
+        data = json.load(f)
+        data['models'][model_name]['rate']=rate
+        f.seek(0)
+        json.dump(data, f, indent=4, ensure_ascii=False)
+        f.truncate()
+    return jsonify({'message': '设置成功'}),200

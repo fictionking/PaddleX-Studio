@@ -2,31 +2,22 @@
     "name": "小目标检测",
     "id": "small_object_detection",
     "description": "小目标检测通常指的是在图像或视频中精确地检测和定位尺寸较小、面积较小的目标物体。这些目标在图像中的像素尺寸通常较小，可能小于32像素×32像素，且可能被背景或其他物体所掩盖，难以被肉眼直接观察出来。",
-    "dataset_type":"object_detection",
+    "dataset_type": "object_detection",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-YOLOE_plus_SOD-L",
+    "models": {
+        "PP-YOLOE_plus_SOD-L": {
             "description": "基于VisDrone训练的PP-YOLOE_plus小目标检测模型。VisDrone是针对无人机视觉数据的基准数据集，由于目标较小同时具有一定的挑战性而被用于小目标检测任务的训练和评测",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus_SOD-L_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus_SOD-L_pretrained.pdparams",
             "model_size": "324.93 M"
         },
-        {
-            "name": "PP-YOLOE_plus_SOD-S",
+        "PP-YOLOE_plus_SOD-S": {
             "description": "基于VisDrone训练的PP-YOLOE_plus小目标检测模型。VisDrone是针对无人机视觉数据的基准数据集，由于目标较小同时具有一定的挑战性而被用于小目标检测任务的训练和评测",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus_SOD-S_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus_SOD-S_pretrained.pdparams",
             "model_size": "77.29 M"
         },
-        {
-            "name": "PP-YOLOE_plus_SOD-largesize-L",
+        "PP-YOLOE_plus_SOD-largesize-L": {
             "description": "基于VisDrone训练的PP-YOLOE_plus小目标检测模型。VisDrone是针对无人机视觉数据的基准数据集，由于目标较小同时具有一定的挑战性而被用于小目标检测任务的训练和评测",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus_SOD-largesize-L_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus_SOD-largesize-L_pretrained.pdparams",
             "model_size": "340.42 M"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "threshold": {

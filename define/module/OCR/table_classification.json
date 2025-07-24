@@ -3,20 +3,15 @@
     "id": "table_classification",
     "description": "表格分类模块是计算机视觉系统中的关键组成部分，负责对输入的表格图像进行分类，该模块的性能直接影响到整个表格识别过程的准确性和效率。表格分类模块通常会接收表格图像作为输入，然后通过深度学习算法，根据图像的特性和内容，将其分类到预定义的类别中，例如有线表和无线表。表格分类模块的分类结果将作为输出，供表格识别相关产线使用。",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-LCNet_x1_0_table_cls",
+    "models": {
+        "PP-LCNet_x1_0_table_cls": {
             "description": "基于PP-LCNet_x1_0的表格分类模型，用于区分有线表和无线表等类别",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LCNet_x1_0_table_cls_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LCNet_x1_0_table_cls_pretrained.pdparams",
             "model_size": "6.6 M"
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
-        "predict_params": {
-        },
+        "model_params": {},
+        "predict_params": {},
         "input_types": [
             "img"
         ],

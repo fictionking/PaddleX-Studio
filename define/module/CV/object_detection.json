@@ -4,50 +4,178 @@
     "description": "目标检测模块是计算机视觉系统中的关键组成部分，负责在图像或视频中定位和标记出包含特定目标的区域，输出目标区域的边界框作为后续处理的输入。",
     "dataset_type": "object_detection",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PicoDet-L",
-            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，考虑移动端设备运算量，具有更小的模型尺寸和更低的计算复杂度，在保证检测精度的同时提供更高速度和更低延迟。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PicoDet-L_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PicoDet-L_pretrained.pdparams",
-            "model_size": "20.9 M"
+    "models": {
+        "Cascade-FasterRCNN-ResNet50-FPN": {
+            "description": "Cascade-FasterRCNN 是一种改进的Faster R-CNN目标检测模型，通过耦联多个检测器，利用不同IoU阈值优化检测结果，解决训练和预测阶段的mismatch问题，提高目标检测的准确性。",
+            "model_size": "245.4 MB"
         },
-        {
-            "name": "PicoDet-S",
-            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，考虑移动端设备运算量，具有更小的模型尺寸和更低的计算复杂度，在保证检测精度的同时提供更高速度和更低延迟。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PicoDet-S_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PicoDet-S_pretrained.pdparams",
-            "model_size": "4.4 M"
+        "Cascade-FasterRCNN-ResNet50-vd-SSLDv2-FPN": {
+            "description": "Cascade-FasterRCNN 是一种改进的Faster R-CNN目标检测模型，通过耦联多个检测器，利用不同IoU阈值优化检测结果，解决训练和预测阶段的mismatch问题，提高目标检测的准确性。",
+            "model_size": "246.2 MB"
         },
-        {
-            "name": "PP-YOLOE_plus-L",
-            "description": "PP-YOLOE_plus是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE的迭代优化升级版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus-L_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus-L_pretrained.pdparams",
-            "model_size": "185.3 M"
+        "CenterNet-DLA-34": {
+            "description": "CenterNet是一种anchor-free目标检测模型，把待检测物体的关键点视为单一点-即其边界框的中心点，并通过关键点进行回归。",
+            "model_size": "75.4 MB"
         },
-        {
-            "name": "PP-YOLOE_plus-S",
-            "description": "PP-YOLOE_plus是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE的迭代优化升级版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE_plus-S_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE_plus-S_pretrained.pdparams",
-            "model_size": "28.3 M"
+        "CenterNet-ResNet50": {
+            "description": "CenterNet是一种anchor-free目标检测模型，把待检测物体的关键点视为单一点-即其边界框的中心点，并通过关键点进行回归。",
+            "model_size": "319.7 MB"
         },
-        {
-            "name": "RT-DETR-H",
-            "description": "RT-DETR是第一个实时端到端目标检测器，设计了高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出加速和优化的查询选择机制，支持通过使用不同的解码器实现灵活端到端推理速度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/RT-DETR-H_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/RT-DETR-H_pretrained.pdparams",
-            "model_size": "435.8 M"
+        "DETR-R50": {
+            "description": "DETR 是Facebook提出的一种transformer目标检测模型，该模型在不需要预定义的先验框anchor和NMS的后处理策略的情况下，就可以实现端到端的目标检测。",
+            "model_size": "159.3 MB"
         },
-        {
-            "name": "RT-DETR-L",
-            "description": "RT-DETR是第一个实时端到端目标检测器，设计了高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出加速和优化的查询选择机制，支持通过使用不同的解码器实现灵活端到端推理速度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/RT-DETR-L_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/RT-DETR-L_pretrained.pdparams",
-            "model_size": "113.7 M"
+        "FasterRCNN-ResNet34-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "137.5 MB"
+        },
+        "FasterRCNN-ResNet50-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "148.1 MB"
+        },
+        "FasterRCNN-ResNet50-vd-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "148.1 MB"
+        },
+        "FasterRCNN-ResNet50-vd-SSLDv2-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "148.1 MB"
+        },
+        "FasterRCNN-ResNet50": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "120.2 MB"
+        },
+        "FasterRCNN-ResNet101-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "216.3 MB"
+        },
+        "FasterRCNN-ResNet101": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "188.1 MB"
+        },
+        "FasterRCNN-ResNeXt101-vd-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "360.6 MB"
+        },
+        "FasterRCNN-Swin-Tiny-FPN": {
+            "description": "Faster R-CNN是典型的two-stage目标检测模型，即先生成区域建议（Region Proposal），然后在生成的Region Proposal上做分类和回归。相较于前代R-CNN和Fast R-CNN，Faster R-CNN的改进主要在于区域建议方面，使用区域建议网络（Region Proposal Network, RPN）提供区域建议，以取代传统选择性搜索。RPN是卷积神经网络，并与检测网络共享图像的卷积特征，减少了区域建议的计算开销。",
+            "model_size": "159.8 MB"
+        },
+        "FCOS-ResNet50": {
+            "description": "FCOS是一种密集预测的anchor-free目标检测模型，使用RetinaNet的骨架，直接在feature map上回归目标物体的长宽，并预测物体的类别以及centerness（feature map上像素点离物体中心的偏移程度），centerness最终会作为权重来调整物体得分。",
+            "model_size": "124.2 MB"
+        },
+        "PicoDet-L": {
+            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，它考虑移动端设备运算量。与传统目标检测算法相比，PP-PicoDet具有更小的模型尺寸和更低的计算复杂度，并在保证检测精度的同时更高的速度和更低的延迟。",
+            "model_size": "20.9 MB",
+            "rate": 5
+        },
+        "PicoDet-M": {
+            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，它考虑移动端设备运算量。与传统目标检测算法相比，PP-PicoDet具有更小的模型尺寸和更低的计算复杂度，并在保证检测精度的同时更高的速度和更低的延迟。",
+            "model_size": "16.8 MB"
+        },
+        "PicoDet-S": {
+            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，它考虑移动端设备运算量。与传统目标检测算法相比，PP-PicoDet具有更小的模型尺寸和更低的计算复杂度，并在保证检测精度的同时更高的速度和更低的延迟。",
+            "model_size": "4.4 MB",
+            "rate": 5
+        },
+        "PicoDet-XS": {
+            "description": "PP-PicoDet是一种全尺寸、棱视宽目标的轻量级目标检测算法，它考虑移动端设备运算量。与传统目标检测算法相比，PP-PicoDet具有更小的模型尺寸和更低的计算复杂度，并在保证检测精度的同时更高的速度和更低的延迟。",
+            "model_size": "5.7 MB"
+        },
+        "PP-YOLOE_plus-L": {
+            "description": "PP-YOLOE_plus 是一种是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE迭代优化升级的版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
+            "model_size": "185.3 MB",
+            "rate": 5
+        },
+        "PP-YOLOE_plus-M": {
+            "description": "PP-YOLOE_plus 是一种是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE迭代优化升级的版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
+            "model_size": "82.3 MB"
+        },
+        "PP-YOLOE_plus-S": {
+            "description": "PP-YOLOE_plus 是一种是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE迭代优化升级的版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
+            "model_size": "28.3 MB",
+            "rate": 5
+        },
+        "PP-YOLOE_plus-X": {
+            "description": "PP-YOLOE_plus 是一种是百度飞桨视觉团队自研的云边一体高精度模型PP-YOLOE迭代优化升级的版本，通过使用Objects365大规模数据集、优化预处理，大幅提升了模型端到端推理速度。",
+            "model_size": "349.4 MB"
+        },
+        "RT-DETR-H": {
+            "description": "RT-DETR是第一个实时端到端目标检测器。该模型设计了一个高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出了加速和优化的查询选择机制，以优化解码器查询的动态化。RT-DETR支持通过使用不同的解码器来实现灵活端到端推理速度。",
+            "model_size": "435.8 MB",
+            "rate": 5
+        },
+        "RT-DETR-L": {
+            "description": "RT-DETR是第一个实时端到端目标检测器。该模型设计了一个高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出了加速和优化的查询选择机制，以优化解码器查询的动态化。RT-DETR支持通过使用不同的解码器来实现灵活端到端推理速度。",
+            "model_size": "113.7 MB",
+            "rate": 5
+        },
+        "RT-DETR-R18": {
+            "description": "RT-DETR是第一个实时端到端目标检测器。该模型设计了一个高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出了加速和优化的查询选择机制，以优化解码器查询的动态化。RT-DETR支持通过使用不同的解码器来实现灵活端到端推理速度。",
+            "model_size": "70.7 MB"
+        },
+        "RT-DETR-R50": {
+            "description": "RT-DETR是第一个实时端到端目标检测器。该模型设计了一个高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出了加速和优化的查询选择机制，以优化解码器查询的动态化。RT-DETR支持通过使用不同的解码器来实现灵活端到端推理速度。",
+            "model_size": "149.1 MB"
+        },
+        "RT-DETR-X": {
+            "description": "RT-DETR是第一个实时端到端目标检测器。该模型设计了一个高效的混合编码器，满足模型效果与吞吐率的双需求，高效处理多尺度特征，并提出了加速和优化的查询选择机制，以优化解码器查询的动态化。RT-DETR支持通过使用不同的解码器来实现灵活端到端推理速度。",
+            "model_size": "232.9 MB"
+        },
+        "YOLOv3-DarkNet53": {
+            "description": "YOLOv3是一种实时的端到端目标检测器。它使用一个独特的单个卷积神经网络，将目标检测问题分解为一个回归问题，从而实现实时的检测。该模型采用了多个尺度的检测，提高了不同尺度目标物体的检测性能。",
+            "model_size": "219.7 MB"
+        },
+        "YOLOv3-MobileNetV3": {
+            "description": "YOLOv3是一种实时的端到端目标检测器。它使用一个独特的单个卷积神经网络，将目标检测问题分解为一个回归问题，从而实现实时的检测。该模型采用了多个尺度的检测，提高了不同尺度目标物体的检测性能。",
+            "model_size": "83.8 MB"
+        },
+        "YOLOv3-ResNet50_vd_DCN": {
+            "description": "YOLOv3是一种实时的端到端目标检测器。它使用一个独特的单个卷积神经网络，将目标检测问题分解为一个回归问题，从而实现实时的检测。该模型采用了多个尺度的检测，提高了不同尺度目标物体的检测性能。",
+            "model_size": "163.0 MB"
+        },
+        "YOLOX-L": {
+            "description": "YOLOX模型以YOLOv3作为目标检测网络的框架，通过设计Decoupled Head、Data Aug、Anchor Free以及SimOTA组件，显著提升了模型在各种复杂场景下的检测性能。",
+            "model_size": "192.5 MB"
+        },
+        "YOLOX-M": {
+            "description": "YOLOX模型以YOLOv3作为目标检测网络的框架，通过设计Decoupled Head、Data Aug、Anchor Free以及SimOTA组件，显著提升了模型在各种复杂场景下的检测性能。",
+            "model_size": "90.0 MB"
+        },
+        "YOLOX-N": {
+            "description": "YOLOX模型以YOLOv3作为目标检测网络的框架，通过设计Decoupled Head、Data Aug、Anchor Free以及SimOTA组件，显著提升了模型在各种复杂场景下的检测性能。",
+            "model_size": "3.4 MB"
+        },
+        "YOLOX-S": {
+            "description": "YOLOX模型以YOLOv3作为目标检测网络的框架，通过设计Decoupled Head、Data Aug、Anchor Free以及SimOTA组件，显著提升了模型在各种复杂场景下的检测性能。",
+            "model_size": "32.0 MB"
+        },
+        "YOLOX-T": {
+            "description": "YOLOX模型以YOLOv3作为目标检测网络的框架，通过设计Decoupled Head、Data Aug、Anchor Free以及SimOTA组件，显著提升了模型在各种复杂场景下的检测性能。",
+            "model_size": "18.1 MB"
+        },
+        "YOLOX-X": {
+            "description": "YOLOX模型以YOLOv3作为目标检测网络的框架，通过设计Decoupled Head、Data Aug、Anchor Free以及SimOTA组件，显著提升了模型在各种复杂场景下的检测性能。",
+            "model_size": "351.5 MB"
+        },
+        "Co-Deformable-DETR-R50": {
+            "description": "Co-DETR是一种先进的端到端目标检测器。它基于DETR架构，通过引入协同混合分配训练策略，将目标检测任务中的传统一对多标签分配与一对一匹配相结合，从而显著提高了检测性能和训练效率",
+            "model_size": "184 MB"
+        },
+        "Co-Deformable-DETR-Swin-T": {
+            "description": "Co-DETR是一种先进的端到端目标检测器。它基于DETR架构，通过引入协同混合分配训练策略，将目标检测任务中的传统一对多标签分配与一对一匹配相结合，从而显著提高了检测性能和训练效率",
+            "model_size": "187 MB"
+        },
+        "Co-DINO-R50": {
+            "description": "Co-DETR是一种先进的端到端目标检测器。它基于DETR架构，通过引入协同混合分配训练策略，将目标检测任务中的传统一对多标签分配与一对一匹配相结合，从而显著提高了检测性能和训练效率",
+            "model_size": "186 MB"
+        },
+        "Co-DINO-Swin-L": {
+            "description": "Co-DETR是一种先进的端到端目标检测器。它基于DETR架构，通过引入协同混合分配训练策略，将目标检测任务中的传统一对多标签分配与一对一匹配相结合，从而显著提高了检测性能和训练效率",
+            "model_size": "840 MB"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "threshold": {

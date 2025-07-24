@@ -1,0 +1,39 @@
+{
+    "name": "时序异常检测",
+    "id": "ts_anomaly_detection",
+    "description": "时序异常检测专注于识别时序数据中不符合预期模式、趋势或周期性规律的异常点或异常时段。这些异常可能由系统故障、外部冲击、数据录入错误或罕见事件等多种因素引起，对于及时响应、风险评估及业务决策具有重大意义。",
+    "is_trainable": true,
+    "models": {
+        "DLinear_ad": {
+            "description": "DLinear_ad结构简单，效率高且易用的时序异常检测模型",
+            "model_size": "0.1 MB"
+        },
+        "Nonstationary_ad": {
+            "description": "基于transformer结构，针对性优化非平稳时间序列的异常检测模型",
+            "model_size": "1.5 MB"
+        },
+        "AutoEncoder_ad": {
+            "description": "AutoEncoder_ad是经典的自编码结构的效率高且易用的时序异常检测模型",
+            "model_size": "0.052 MB"
+        },
+        "PatchTST_ad": {
+            "description": "PatchTST是兼顾局部模式和全局依赖关系的高精度时序异常检测模型",
+            "model_size": "0.164 MB"
+        },
+        "TimesNet_ad": {
+            "description": "TimesNet_ad是基于时间注意力机制的时序异常检测模型，能够有效捕捉时间序列中的长短期依赖关系，适用于复杂动态变化的时序异常检测场景",
+            "model_size": "0.7 MB"
+        }
+    },
+    "infer_params": {
+        "model_params": {},
+        "predict_params": {},
+        "input_types": [
+            "file"
+        ],
+        "result_types": [
+            "json",
+            "csv"
+        ]
+    }
+}

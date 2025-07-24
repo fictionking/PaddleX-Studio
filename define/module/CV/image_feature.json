@@ -2,36 +2,25 @@
     "name": "图像特征",
     "id": "image_feature",
     "description": "图像特征模块是计算机视觉中的一项重要任务之一，主要指的是通过深度学习方法自动从图像数据中提取有用的特征，以便于后续的图像检索任务。",
-    "dataset_type":"image_feature",
+    "dataset_type": "image_feature",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-ShiTuV2_rec",
+    "models": {
+        "PP-ShiTuV2_rec": {
             "description": "PP-ShiTuV2是一个通用图像特征系统，由主体检测、特征提取、向量检索三个模块构成，这些模型是其中的特征提取模块的模型之一，可以根据系统的情况选择不同的模型。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-ShiTuV2_rec_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-ShiTuV2_rec_pretrained.pdparams",
             "model_size": "16.3 M"
         },
-        {
-            "name": "PP-ShiTuV2_rec_CLIP_vit_base",
+        "PP-ShiTuV2_rec_CLIP_vit_base": {
             "description": "PP-ShiTuV2是一个通用图像特征系统，由主体检测、特征提取、向量检索三个模块构成，这些模型是其中的特征提取模块的模型之一，可以根据系统的情况选择不同的模型。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-ShiTuV2_rec_CLIP_vit_base_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-ShiTuV2_rec_CLIP_vit_base_pretrained.pdparams",
             "model_size": "306.6 M"
         },
-        {
-            "name": "PP-ShiTuV2_rec_CLIP_vit_large",
+        "PP-ShiTuV2_rec_CLIP_vit_large": {
             "description": "PP-ShiTuV2是一个通用图像特征系统，由主体检测、特征提取、向量检索三个模块构成，这些模型是其中的特征提取模块的模型之一，可以根据系统的情况选择不同的模型。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-ShiTuV2_rec_CLIP_vit_large_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-ShiTuV2_rec_CLIP_vit_large_pretrained.pdparams",
             "model_size": "1.05 G"
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
-        "predict_params": {
-        },
+        "model_params": {},
+        "predict_params": {},
         "input_types": [
             "img"
         ],

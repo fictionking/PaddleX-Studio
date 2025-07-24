@@ -2,17 +2,14 @@
     "name": "主体检测",
     "id": "mainbody_detection",
     "description": "主体检测任务是目标检测中的一项基本任务，旨在从图像、视频中识别并提取出特定的目标物体、人、实体的位置和大小。",
-    "dataset_type":"object_detection",
+    "dataset_type": "object_detection",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-ShiTuV2_det",
+    "models": {
+        "PP-ShiTuV2_det": {
             "description": "基于PicoDet_LCNet_x2_5的主体检测模型，模型可能会同时检测出多个常见主体。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-ShiTuV2_det_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-ShiTuV2_det_pretrained.pdparams",
             "model_size": "27.54 M"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "threshold": {

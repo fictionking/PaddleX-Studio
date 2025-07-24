@@ -3,29 +3,60 @@
     "id": "layout_detection",
     "description": "版面区域检测任务的核心是对输入的文档图像进行内容解析和区域划分。通过识别图像中的不同元素（如文字、图表、图像、公式、段落、摘要、参考文献等），将其归类为预定义的类别，并确定这些区域在文档中的位置。",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-DocLayout-L",
-            "description": "基于RT-DETR-L在包含中英文论文、杂志、合同、书本、试卷和研报等场景的自建数据集训练的高精度版面区域定位模型",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-DocLayout-L_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-DocLayout-L_pretrained.pdparams",
-            "model_size": "123.76 M"
+    "models": {
+        "PicoDet_layout_1x_table": {
+            "description": "【表格版面检测模型】基于PicoDet-1x在自建数据集训练的高效率版面区域定位模型，可定位表格这1类区域",
+            "model_size": "7.4 MB"
         },
-        {
-            "name": "PP-DocLayout-M",
-            "description": "基于PicoDet-L在包含中英文论文、杂志、合同、书本、试卷和研报等场景的自建数据集训练的精度效率平衡的版面区域定位模型",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-DocLayout-M_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-DocLayout-M_pretrained.pdparams",
-            "model_size": "22.578 M"
+        "PicoDet-S_layout_3cls": {
+            "description": "【3类版面检测模型（包含表格、图像、印章）】基于PicoDet-S轻量模型在中英文论文、杂志和研报等场景上自建数据集训练的高效率版面区域定位模型",
+            "model_size": "4.8 MB"
         },
-        {
-            "name": "PP-DocLayout-S",
-            "description": "基于PicoDet-S在中英文论文、杂志、合同、书本、试卷和研报等场景上自建数据集训练的高效率版面区域定位模型",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-DocLayout-S_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-DocLayout-S_pretrained.pdparams",
-            "model_size": "4.834 M"
+        "PicoDet-L_layout_3cls": {
+            "description": "【3类版面检测模型（包含表格、图像、印章）】基于PicoDet-L在中英文论文、杂志和研报等场景上自建数据集训练的效率精度均衡版面区域定位模型",
+            "model_size": "22.6 MB"
+        },
+        "RT-DETR-H_layout_3cls": {
+            "description": "【3类版面检测模型（包含表格、图像、印章）】基于RT-DETR-H在中英文论文、杂志和研报等场景上自建数据集训练的高精度版面区域定位模型",
+            "model_size": "470.1 MB"
+        },
+        "PicoDet_layout_1x": {
+            "description": "【5类英文文档区域检测模型（包含文字、标题、表格、图片以及列表）】基于PicoDet-1x在PubLayNet数据集训练的高效率英文文档版面区域定位模型",
+            "model_size": "7.4 MB"
+        },
+        "PicoDet-S_layout_17cls": {
+            "description": "【17类区域检测模型（包含段落标题、图片、文本、数字、摘要、内容、图表标题、公式、表格、表格标题、参考文献、文档标题、脚注、页眉、算法、页脚、印章）】基于PicoDet-S轻量模型在中英文论文、杂志和研报等场景上自建数据集训练的高效率版面区域定位模型",
+            "model_size": "4.8 MB"
+        },
+        "PicoDet-L_layout_17cls": {
+            "description": "【17类区域检测模型（包含段落标题、图片、文本、数字、摘要、内容、图表标题、公式、表格、表格标题、参考文献、文档标题、脚注、页眉、算法、页脚、印章）】基于PicoDet-L在中英文论文、杂志和研报等场景上自建数据集训练的效率精度均衡版面区域定位模型",
+            "model_size": "22.6 MB"
+        },
+        "RT-DETR-H_layout_17cls": {
+            "description": "【17类区域检测模型（包含段落标题、图片、文本、数字、摘要、内容、图表标题、公式、表格、表格标题、参考文献、文档标题、脚注、页眉、算法、页脚、印章）】基于RT-DETR-H在中英文论文、杂志和研报等场景上自建数据集训练的高精度版面区域定位模型",
+            "model_size": "470.2 MB"
+        },
+        "PP-DocLayout_plus-L": {
+            "description": "【版面检测模型（包含20个常见的类别：文档标题、段落标题、文本、页码、摘要、目录、参考文献、脚注、页眉、页脚、算法、公式、公式编号、图像、表格、图和表标题（图标题、表格标题和图表标题）、印章、图表、侧栏文本和参考文献内容）】基于RT-DETR-L在包含中英文论文、多栏杂志、报纸、PPT、合同、书本、试卷、研报、古籍、日文文档、竖版文字文档等场景的自建数据集训练的更高精度版面区域定位模型",
+            "model_size": "126.01 MB"
+        },
+        "PP-DocBlockLayout": {
+            "description": "【文档图像版面子模块检测（包含1个版面区域类别，能检测多栏的报纸、杂志的每个子文章的文本区域）】基于RT-DETR-L在包含中英文论文、多栏杂志、报纸、PPT、合同、书本、试卷、研报、古籍、日文文档、竖版文字文档等场景的自建数据集训练的文档图像版面子模块检测模型",
+            "model_size": "123.92 MB"
+        },
+        "PP-DocLayout-L": {
+            "description": "【版面检测模型（包含23个常见的类别：文档标题、段落标题、文本、页码、摘要、目录、参考文献、脚注、页眉、页脚、算法、公式、公式编号、图像、图表标题、表格、表格标题、印章、图表标题、图表、页眉图像、页脚图像、侧栏文本）】基于RT-DETR-L在包含中英文论文、杂志、合同、书本、试卷和研报等场景的自建数据集训练的高精度版面区域定位模型",
+            "model_size": "123.76 MB"
+        },
+        "PP-DocLayout-M": {
+            "description": "【版面检测模型（包含23个常见的类别：文档标题、段落标题、文本、页码、摘要、目录、参考文献、脚注、页眉、页脚、算法、公式、公式编号、图像、图表标题、表格、表格标题、印章、图表标题、图表、页眉图像、页脚图像、侧栏文本）】基于PicoDet-L在包含中英文论文、杂志、合同、书本、试卷和研报等场景的自建数据集训练的精度效率平衡的版面区域定位模型",
+            "model_size": "22.578 MB"
+        },
+        "PP-DocLayout-S": {
+            "description": "【版面检测模型（包含23个常见的类别：文档标题、段落标题、文本、页码、摘要、目录、参考文献、脚注、页眉、页脚、算法、公式、公式编号、图像、图表标题、表格、表格标题、印章、图表标题、图表、页眉图像、页脚图像、侧栏文本）】基于PicoDet-S在中英文论文、杂志、合同、书本、试卷和研报等场景上自建数据集训练的高效率版面区域定位模型",
+            "model_size": "4.834 MB"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "threshold": {
@@ -65,7 +96,6 @@
                 ],
                 "value": null,
                 "desc": "<span>模型输出的检测框的合并处理模式；如果不指定，将默认使用PaddleX官方模型配置<br>large, 设置为large时，表示在模型输出的检测框中，对于互相重叠包含的检测框，只保留外部最大的框，删除重叠的内部框。<br>small, 设置为small，表示在模型输出的检测框中，对于互相重叠包含的检测框，只保留内部被包含的小框，删除重叠的外部框。<br>union, 不进行框的过滤处理，内外框都保留</span>"
-
             }
         },
         "predict_params": {
@@ -106,7 +136,6 @@
                 ],
                 "value": null,
                 "desc": "<span>模型输出的检测框的合并处理模式；如果不指定，将默认使用PaddleX官方模型配置<br>large, 设置为large时，表示在模型输出的检测框中，对于互相重叠包含的检测框，只保留外部最大的框，删除重叠的内部框。<br>small, 设置为small，表示在模型输出的检测框中，对于互相重叠包含的检测框，只保留内部被包含的小框，删除重叠的外部框。<br>union, 不进行框的过滤处理，内外框都保留</span>"
-
             }
         },
         "input_types": [

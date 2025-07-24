@@ -16,7 +16,7 @@
       <div class="left-column">
         <div class="part-container">
           <h3>模型参数配置</h3>
-          <el-form :model="formData" label-width="220px" @submit.prevent="saveConfig">
+          <el-form :model="formData" label-width="auto" @submit.prevent="saveConfig">
             <el-form-item v-for="(param, key) in modelParams" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
                 <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="formData[key]"
@@ -37,7 +37,7 @@
                 <el-input v-else v-model="formData[key]" :readonly="!param.config_able"></el-input>
               </el-tooltip>
             </el-form-item>
-            <el-form-item>
+            <el-form-item label=" ">
               <el-button type="primary" @click="saveConfig">保存配置</el-button>
               <el-button v-if="appConfig.status == 'stopped'" type="primary"
                 @click.stop="handleAppStart()">启动</el-button>
@@ -47,7 +47,7 @@
         </div>
         <div class="part-container">
           <h3>推理参数配置</h3>
-          <el-form :model="predictFormData" label-width="220px">
+          <el-form :model="predictFormData" label-width="auto">
             <el-form-item v-for="(param, key) in predict_params" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
                 <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="predictFormData[key]"
@@ -73,7 +73,7 @@
         </div>
         <div class="part-container">
           <h3>API</h3>
-          <el-form label-width="220px">
+          <el-form label-width="auto">
             <el-form-item label="启动服务">
               <el-text>GET /apps/start/{{ appConfig.id }}</el-text>
             </el-form-item>
@@ -147,6 +147,14 @@
           </div>
           <!-- HTML结果展示 -->
           <div v-else-if="inferenceResult.type === 'html'" class="result-html" v-html="inferenceResult.data"></div>
+          <!-- CSV结果展示 -->
+          <div v-else-if="inferenceResult.type === 'csv'" class="result-csv">
+            <a :href="inferenceResult.data" download="result.csv">下载CSV</a>
+          </div>
+          <!-- 视频结果展示 -->
+          <div v-else-if="inferenceResult.type === 'video'" class="result-video">
+            <a :href="inferenceResult.data" download="result.mp4">下载视频</a>
+          </div>
         </div>
       </div>
     </div>
@@ -171,8 +179,7 @@ export default {
       uploadedImage: null,
       uploadedFile: null,
       inferenceResult: { type: '', data: null, loading: false },
-      urlReferences: new Map(),
-      current_result_type: 'json',
+      current_result_type: 'json'
     }
   },
   beforeUnmount() {
@@ -288,22 +295,15 @@ export default {
      */
     createSafeObjectURL(blob) {
       const url = URL.createObjectURL(blob);
-      this.urlReferences.set(url, blob); // Map存储URL与Blob映射
       return url;
     },
-
-    /**
-     * 释放弱引用管理的对象URL
-     * @param {string} url - 需要释放的对象URL
-     */
     /**
      * 安全地撤销Blob URL并从引用跟踪中移除
      * @param {string} url - 要撤销的Blob URL
      */
     revokeSafeObjectURL(url) {
-      if (typeof url === 'string' && url.startsWith('blob:') && this.urlReferences.has(url)) {
+      if (typeof url === 'string' && url.startsWith('blob:')) {
         URL.revokeObjectURL(url);
-        this.urlReferences.delete(url);
       }
     },
     /**
@@ -356,13 +356,13 @@ export default {
         // 根据结果类型动态设置响应类型
         const responseConfig = {
           headers: { 'Content-Type': 'multipart/form-data' },
-          // 当结果类型为图片时，设置responseType为blob
-          ...(this.current_result_type === 'img' && { responseType: 'blob' })
+          // 当结果类型为图片、视频、csv时，设置responseType为blob
+          ...((this.current_result_type === 'img' || this.current_result_type === 'video' || this.current_result_type === 'csv') && { responseType: 'blob' })
         };
         const response = await axios.post(`/apps/infer/${this.$route.params.appId}/${this.current_result_type}`, formData, responseConfig);
-        this.$message.success('推理成功');
         // 处理推理结果
         this.handleInferenceResult(response);
+        this.$message.success('推理成功');
       } catch (error) {
         if (error.response && error.response.data) {
           //如果是Blob提取内容转成json
@@ -380,11 +380,11 @@ export default {
             this.$message.error('推理失败:' + data.error);
           } catch (e) {
             console.warn('无法解析JSON响应:', e);
-            this.$message.error('推理失败!');
+            this.$message.error('推理失败!'+error.message);
           }
         }
         else {
-          this.$message.error('推理失败!');
+          this.$message.error('推理失败!'+error.message);
         }
       } finally {
         loading.close();  // 无论成功失败都关闭加载框
@@ -397,19 +397,20 @@ export default {
     handleInferenceResult(response) {
       switch (this.current_result_type) {
         case 'img':
-          this.inferenceResult.data = this.createSafeObjectURL(response.data);
+          const imgFile = new File([response.data], 'result.jpg', { type: 'image/jpeg' });
+          this.inferenceResult.data = this.createSafeObjectURL(imgFile);
           this.inferenceResult.loading = false;
           break;
         case 'csv':
           //保存文件到本地
-          const file = new File([response.data], 'result.csv', { type: 'text/csv' });
-          const fileURL = URL.createObjectURL(file);
-          const a = document.createElement('a');
-          a.href = fileURL;
-          a.download = 'result.csv';
-          a.click();
-          URL.revokeObjectURL(fileURL);
-          // this.inferenceResult.data = response.data;
+          const csvFile = new File([response.data], 'result.csv', { type: 'text/csv' });
+          this.inferenceResult.data = this.createSafeObjectURL(csvFile);
+          this.inferenceResult.loading = false;
+          break;
+        case 'video':
+          //保存文件到本地
+          const videoFile = new File([response.data], 'result.mp4', { type: 'video/mp4' });
+          this.inferenceResult.data = this.createSafeObjectURL(videoFile);
           this.inferenceResult.loading = false;
           break;
         case 'json':
@@ -460,6 +461,8 @@ export default {
 }
 
 .result-image,
+.result-video,
+.result-csv,
 .result-html {
   margin-top: 10px;
 }

@@ -3,41 +3,109 @@
     "id": "text_recognition",
     "description": "文本识别模块是OCR（光学字符识别）系统中的核心部分，负责从图像中的文本区域提取出文本信息。该模块的性能直接影响到整个OCR系统的准确性和效率。文本识别模块通常接收文本检测模块输出的文本区域的边界框（Bounding Boxes）作为输入，然后通过复杂的图像处理和深度学习算法，将图像中的文本转化为可编辑和可搜索的电子文本。文本识别结果的准确性，对于后续的信息提取和数据挖掘等应用至关重要。",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-OCRv4_server_rec_doc",
-            "description": "PP-OCRv4_server_rec_doc是在PP-OCRv4_server_rec的基础上，在更多中文文档数据和PP-OCR训练数据的混合数据训练而成，增加了部分繁体字、日文、特殊字符的识别能力，可支持识别的字符为1.5万+，除文档相关的文字识别能力提升外，也同时提升了通用文字的识别能力",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv4_server_rec_doc_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv4_server_rec_doc_pretrained.pdparams",
-            "model_size": "74.7 M"
+    "models": {
+        "PP-OCRv5_server_rec": {
+            "description": "PP-OCRv5 多场景模型。PP-OCRv5_rec 是新一代文本识别模型。该模型致力于以单一模型高效、精准地支持简体中文、繁体中文、英文、日文四种主要语言，以及手写、竖版、拼音、生僻字等复杂文本场景的识别。在保持识别效果的同时，兼顾推理速度和模型鲁棒性，为各种场景下的文档理解提供高效、精准的技术支撑。",
+            "model_size": "81 MB",
+            "rate": 5
         },
-        {
-            "name": "PP-OCRv4_mobile_rec",
-            "description": "PP-OCRv4的轻量级识别模型，推理效率高，可以部署在包含端侧设备的多种硬件设备中",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv4_mobile_rec_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv4_mobile_rec_pretrained.pdparams",
-            "model_size": "10.6 M"
+        "PP-OCRv5_mobile_rec": {
+            "description": "PP-OCRv5 多场景模型。PP-OCRv5_rec 是新一代文本识别模型。该模型致力于以单一模型高效、精准地支持简体中文、繁体中文、英文、日文四种主要语言，以及手写、竖版、拼音、生僻字等复杂文本场景的识别。在保持识别效果的同时，兼顾推理速度和模型鲁棒性，为各种场景下的文档理解提供高效、精准的技术支撑。",
+            "model_size": "16 MB",
+            "rate": 5
         },
-        {
-            "name": "PP-OCRv4_server_rec",
-            "description": "PP-OCRv4的服务器端模型，推理精度高，可以部署在多种不同的服务器上",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv4_server_rec_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv4_server_rec_pretrained.pdparams",
-            "model_size": "71.2 M"
+        "PP-OCRv4_server_rec_doc": {
+            "description": "中文识别模型。PP-OCRv4_server_rec_doc是在PP-OCRv4_server_rec的基础上，在更多中文文档数据和PP-OCR训练数据的混合数据训练而成，增加了部分繁体字、日文、特殊字符的识别能力，可支持识别的字符为1.5万+，除文档相关的文字识别能力提升外，也同时提升了通用文字的识别能力",
+            "model_size": "182 MB",
+            "rate": 5
         },
-        {
-            "name": "en_PP-OCRv4_mobile_rec",
-            "description": "基于PP-OCRv4识别模型训练得到的超轻量英文识别模型，支持英文、数字识别",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/en_PP-OCRv4_mobile_rec_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/en_PP-OCRv4_mobile_rec_pretrained.pdparams",
-            "model_size": "6.8 M"
+        "PP-OCRv4_mobile_rec": {
+            "description": "中文识别模型。PP-OCRv4的轻量级识别模型，推理效率高，可以部署在包含端侧设备的多种硬件设备中",
+            "model_size": "10.5 MB",
+            "rate": 5
+        },
+        "PP-OCRv4_server_rec": {
+            "description": "中文识别模型。PP-OCRv4的服务器端模型，推理精度高，可以部署在多种不同的服务器上",
+            "model_size": "173 MB",
+            "rate": 5
+        },
+        "PP-OCRv3_mobile_rec": {
+            "description": "中文识别模型。PP-OCRv3的轻量级识别模型，推理效率高，可以部署在包含端侧设备的多种硬件设备中",
+            "model_size": "10.3 MB"
+        },
+        "ch_SVTRv2_rec": {
+            "description": "中文识别模型。SVTRv2 是一种由复旦大学视觉与学习实验室（FVL）的OpenOCR团队研发的服务端文本识别模型，其在PaddleOCR算法模型挑战赛 - 赛题一：OCR端到端识别任务中荣获一等奖，A榜端到端识别精度相比PP-OCRv4提升6%。",
+            "model_size": "80.5 MB"
+        },
+        "ch_RepSVTR_rec": {
+            "description": "中文识别模型。RepSVTR 文本识别模型是一种基于SVTRv2 的移动端文本识别模型，其在PaddleOCR算法模型挑战赛 - 赛题一：OCR端到端识别任务中荣获一等奖，B榜端到端识别精度相比PP-OCRv4提升2.5%，推理速度持平。",
+            "model_size": "48.8 MB"
+        },
+        "en_PP-OCRv4_mobile_rec": {
+            "description": "英文识别模型。基于PP-OCRv4识别模型训练得到的超轻量英文识别模型，支持英文、数字识别",
+            "model_size": "7.5 MB",
+            "rate": 5
+        },
+        "en_PP-OCRv3_mobile_rec": {
+            "description": "英文识别模型。基于PP-OCRv3识别模型训练得到的超轻量英文识别模型，支持英文、数字识别",
+            "model_size": "17.3 MB"
+        },
+        "korean_PP-OCRv5_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv5识别模型训练得到的超轻量韩文识别模型，支持韩文、英文和数字识别",
+            "model_size": "14 MB"
+        },
+        "latin_PP-OCRv5_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv5识别模型训练得到的拉丁文识别模型，支持大部分拉丁字母语言、数字识别",
+            "model_size": "14 MB"
+        },
+        "eslav_PP-OCRv5_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv5识别模型训练得到的东斯拉夫语言识别模型， 支持东斯拉夫语言、英文和数字识别",
+            "model_size": "14 MB"
+        },
+        "korean_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量韩文识别模型，支持韩文、数字识别",
+            "model_size": "9.6 MB"
+        },
+        "japan_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量日文识别模型，支持日文、数字识别",
+            "model_size": "9.8 MB"
+        },
+        "chinese_cht_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量繁体中文识别模型，支持繁体中文、数字识别",
+            "model_size": "10.8 MB"
+        },
+        "te_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量泰卢固文识别模型，支持泰卢固文、数字识别",
+            "model_size": "8.7 MB"
+        },
+        "ka_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量卡纳达文识别模型，支持卡纳达文、数字识别",
+            "model_size": "17.4 MB"
+        },
+        "ta_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量泰米尔文识别模型，支持泰米尔文、数字识别",
+            "model_size": "8.7 MB"
+        },
+        "latin_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量拉丁文识别模型，支持拉丁文、数字识别",
+            "model_size": "8.7 MB"
+        },
+        "arabic_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量阿拉伯字母识别模型，支持阿拉伯字母、数字识别",
+            "model_size": "17.3 MB"
+        },
+        "cyrillic_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量斯拉夫字母识别模型，支持斯拉夫字母、数字识别",
+            "model_size": "8.7 MB"
+        },
+        "devanagari_PP-OCRv3_mobile_rec": {
+            "description": "多语言识别模型。基于PP-OCRv3识别模型训练得到的超轻量梵文字母识别模型，支持梵文字母、数字识别",
+            "model_size": "8.7 MB"
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
-        "predict_params": {
-        },
+        "model_params": {},
+        "predict_params": {},
         "input_types": [
             "img"
         ],

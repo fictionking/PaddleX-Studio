@@ -2,22 +2,18 @@
     "name": "3D BEV检测",
     "id": "3d_bev_detection",
     "description": "3D BEV检测模块是计算机视觉和自动驾驶领域关键组成部分，负责在图像或视频中定位和标记出包含特定目标的区域的3D坐标和检测框信息。",
-    "dataset_type":"other",
+    "dataset_type": "other",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "BEVFusion",
+    "models": {
+        "BEVFusion": {
             "description": "BEVFusion是一种在BEV视角下的多模态融合模型，采用两个分支处理不同模态的数据，得到lidar和camera在BEV视角下的特征",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/BEVFusion_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/BEVFusion_pretrained.pdparams",
-            "model_size": "342 M"
+            "model_size": "342 M",
+            "rate": 5
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
-        "predict_params": {
-        },
+        "model_params": {},
+        "predict_params": {},
         "input_types": [
             "file"
         ],

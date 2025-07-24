@@ -1,0 +1,47 @@
+{
+    "name": "时序预测",
+    "id": "ts_forecast",
+    "description": "时序预测旨在通过分析历史数据中的模式、趋势和周期性等特征，来预测未来某一时间点或时间段内可能发生的值或状态。这有助于企业和组织做出更加精准的决策，优化资源配置，减少风险，并抓住潜在的市场机会。",
+    "is_trainable": true,
+    "models": {
+        "DLinear": {
+            "description": "DLinear 是一个简单、高效且易于使用的时间序列预测模型。",
+            "model_size": "72 K"
+        },
+        "NLinear": {
+            "description": "NLinear 是一个简单、高效且易于使用的时间序列预测模型。",
+            "model_size": "40 K"
+        },
+        "RLinear": {
+            "description": "RLinear 是一个简单、高效且易于使用的时间序列预测模型。",
+            "model_size": "40 K"
+        },
+        "Nonstationary": {
+            "description": "基于 Transformer 结构，该模型针对非平稳时间序列的长期预测进行了优化。",
+            "model_size": "60.3 M"
+        },
+        "PatchTST": {
+            "description": "PatchTST 是一个高精度的长期预测模型，能够平衡局部模式和全局依赖关系。",
+            "model_size": "2.0 M"
+        },
+        "TiDE": {
+            "description": "TiDE 是一个适合多变量、长期时间序列预测问题的高精度模型。",
+            "model_size": "31.7 M"
+        },
+        "TimesNet": {
+            "description": "通过多周期分析，TimesNet 是一个稳健且高精度的时间序列分析模型。",
+            "model_size": "4.9 M"
+        }
+    },
+    "infer_params": {
+        "model_params": {},
+        "predict_params": {},
+        "input_types": [
+            "file"
+        ],
+        "result_types": [
+            "json",
+            "csv"
+        ]
+    }
+}

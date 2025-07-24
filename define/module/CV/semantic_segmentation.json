@@ -2,29 +2,95 @@
     "name": "语义分割",
     "id": "semantic_segmentation",
     "description": "语义分割是计算机视觉中的一种技术，它通过对图像中每个像素进行分类，将图像划分为不同的语义区域，每个区域对应一个具体的类别。这种技术能够生成精细的分割图，清晰地展现图像中的对象及其边界，为图像分析和理解提供有力支持。",
-    "dataset_type":"semantic_segmentation",
+    "dataset_type": "semantic_segmentation",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "OCRNet_HRNet-W48",
-            "description": "基于HRNet-W48的OCRNet语义分割模型，具有较高的分割精度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/OCRNet_HRNet-W48_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/OCRNet_HRNet-W48_pretrained.pdparams",
-            "model_size": "249.8 M"
+    "models": {
+        "Deeplabv3_Plus-R50": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为80.36%，GPU推理耗时[常规模式/高性能模式]为481.33ms/446.18ms，CPU推理耗时[常规模式/高性能模式]为2952.95ms/1907.07ms",
+            "model_size": "94.9 MB"
         },
-        {
-            "name": "PP-LiteSeg-T",
-            "description": "轻量级语义分割模型PP-LiteSeg的T版本，兼顾精度和速度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LiteSeg-T_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-LiteSeg-T_pretrained.pdparams",
-            "model_size": "28.5 M"
+        "Deeplabv3_Plus-R101": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为81.10%，GPU推理耗时[常规模式/高性能模式]为766.70ms/194.42ms，CPU推理耗时[常规模式/高性能模式]为4441.56ms/2984.19ms",
+            "model_size": "162.5 MB"
+        },
+        "Deeplabv3-R50": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为79.90%，GPU推理耗时[常规模式/高性能模式]为681.65ms/602.10ms，CPU推理耗时[常规模式/高性能模式]为3786.41ms/3093.10ms",
+            "model_size": "138.3 MB"
+        },
+        "Deeplabv3-R101": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为80.85%，GPU推理耗时[常规模式/高性能模式]为974.62ms/896.99ms，CPU推理耗时[常规模式/高性能模式]为5222.60ms/4230.79ms",
+            "model_size": "205.9 MB"
+        },
+        "OCRNet_HRNet-W18": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为80.67%，GPU推理耗时[常规模式/高性能模式]为271.02ms/221.38ms，CPU推理耗时[常规模式/高性能模式]为1791.52ms/1061.62ms",
+            "model_size": "43.1 MB"
+        },
+        "OCRNet_HRNet-W48": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为82.15%，GPU推理耗时[常规模式/高性能模式]为582.92ms/536.28ms，CPU推理耗时[常规模式/高性能模式]为3513.72ms/2543.10ms",
+            "model_size": "270 MB",
+            "rate": 5
+        },
+        "PP-LiteSeg-T": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为73.10%，GPU推理耗时[常规模式/高性能模式]为28.12ms/23.84ms，CPU推理耗时[常规模式/高性能模式]为398.31ms/398.31ms",
+            "model_size": "28.5 MB",
+            "rate": 5
+        },
+        "PP-LiteSeg-B": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为75.25%，GPU推理耗时[常规模式/高性能模式]为35.69ms/35.69ms，CPU推理耗时[常规模式/高性能模式]为485.10ms/485.10ms",
+            "model_size": "47.0 MB"
+        },
+        "SegFormer-B0": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为76.73%，GPU推理耗时为11.1946ms，CPU推理耗时为268.929ms",
+            "model_size": "13.2 MB"
+        },
+        "SegFormer-B1": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为78.35%，GPU推理耗时为17.9998ms，CPU推理耗时为403.393ms",
+            "model_size": "48.5 MB"
+        },
+        "SegFormer-B2": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为81.60%，GPU推理耗时为48.0371ms，CPU推理耗时为1248.52ms",
+            "model_size": "96.9 MB"
+        },
+        "SegFormer-B3": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为82.47%，GPU推理耗时为64.341ms，CPU推理耗时为1666.35ms",
+            "model_size": "167.3 MB"
+        },
+        "SegFormer-B4": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为82.38%，GPU推理耗时为82.4336ms，CPU推理耗时为1995.42ms",
+            "model_size": "226.7 MB"
+        },
+        "SegFormer-B5": {
+            "description": "语义分割模型，在Cityscapes数据集上的mloU为82.58%，GPU推理耗时为97.3717ms，CPU推理耗时为2420.19ms",
+            "model_size": "229.7 MB"
+        },
+        "SeaFormer_base": {
+            "description": "语义分割模型，mloU为40.92%，GPU推理耗时[常规模式/高性能模式]为23.78ms/17.41ms，CPU推理耗时为282.05ms/38.88ms",
+            "model_size": "30.8 MB"
+        },
+        "SeaFormer_large": {
+            "description": "语义分割模型，mloU为43.66%，GPU推理耗时[常规模式/高性能模式]为23.76ms/23.40ms，CPU推理耗时为348.86ms/61.81ms",
+            "model_size": "49.8 MB"
+        },
+        "SeaFormer_small": {
+            "description": "语义分割模型，mloU为38.73%，GPU推理耗时[常规模式/高性能模式]为18.83ms/13.27ms，CPU推理耗时为272.28ms/35.17ms",
+            "model_size": "14.3 MB"
+        },
+        "SeaFormer_tiny": {
+            "description": "语义分割模型，mloU为34.58%，GPU推理耗时[常规模式/高性能模式]为15.83ms/11.48ms，CPU推理耗时为243.15ms/30.52ms",
+            "model_size": "6.1 MB"
+        },
+        "MaskFormer_small": {
+            "description": "语义分割模型，mloU为49.70%，GPU推理耗时[常规模式/高性能模式]为65.21ms/65.21ms，CPU推理耗时为-/629.85ms",
+            "model_size": "243 MB"
+        },
+        "MaskFormer_tiny": {
+            "description": "语义分割模型，mloU为46.69%，GPU推理耗时[常规模式/高性能模式]为47.95ms/47.95ms，CPU推理耗时为-/492.67ms",
+            "model_size": "160 MB"
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
-        "predict_params": {
-        },
+        "model_params": {},
+        "predict_params": {},
         "input_types": [
             "img"
         ],

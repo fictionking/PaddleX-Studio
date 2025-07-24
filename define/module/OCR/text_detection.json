@@ -3,36 +3,32 @@
     "id": "text_detection",
     "description": "文本检测模块是OCR（光学字符识别）系统中的关键组成部分，负责在图像中定位和标记出包含文本的区域。该模块的性能直接影响到整个OCR系统的准确性和效率。文本检测模块通常会输出文本区域的边界框（Bounding Boxes），这些边界框将作为输入传递给文本识别模块进行后续处理。",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-OCRv4_server_det",
+    "models": {
+        "PP-OCRv5_server_det": {
+            "description": "PP-OCRv5 的服务端文本检测模型，精度更高，适合在性能较好的服务器上部署",
+            "model_size": "84.3 MB"
+        },
+        "PP-OCRv5_mobile_det": {
+            "description": "PP-OCRv5 的移动端文本检测模型，效率更高，适合在端侧设备部署",
+            "model_size": "4.7 MB"
+        },
+        "PP-OCRv4_server_det": {
             "description": "PP-OCRv4 的服务端文本检测模型，精度更高，适合在性能较好的服务器上部署",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv4_server_det_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv4_server_det_pretrained.pdparams",
-            "model_size": "109 M"
+            "model_size": "109 MB"
         },
-        {
-            "name": "PP-OCRv4_mobile_det",
+        "PP-OCRv4_mobile_det": {
             "description": "PP-OCRv4 的移动端文本检测模型，效率更高，适合在端侧设备部署",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv4_mobile_det_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv4_mobile_det_pretrained.pdparams",
-            "model_size": "4.7 M"
+            "model_size": "4.7 MB"
         },
-        {
-            "name": "PP-OCRv3_mobile_det",
+        "PP-OCRv3_mobile_det": {
             "description": "PP-OCRv3 的移动端文本检测模型，效率更高，适合在端侧设备部署",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv3_mobile_det_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv3_mobile_det_pretrained.pdparams",
-            "model_size": "2.1 M"
+            "model_size": "2.1 MB"
         },
-        {
-            "name": "PP-OCRv3_server_det",
+        "PP-OCRv3_server_det": {
             "description": "PP-OCRv3 的服务端文本检测模型，精度更高，适合在性能较好的服务器上部署",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv3_server_det_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv3_server_det_pretrained.pdparams",
-            "model_size": "102.1 M"
+            "model_size": "102.1 MB"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "limit_side_len": {

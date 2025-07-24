@@ -3,48 +3,31 @@
     "id": "multilingual_speech_recognition",
     "description": "语音识别是一种先进的工具，它能够将人类口述的多种语言自动转换为相应的文本或命令。该技术还在智能客服、语音助手、会议记录等多个领域发挥着重要作用。多语种语音识别则可以支持自动进行语种检索，支持多种不同语言的语音的识别。",
     "is_trainable": false,
-    "pretrained": [
-        {
-            "name": "whisper_large",
+    "models": {
+        "whisper_large": {
             "description": "Whisper 是 OpenAI 开发的多语言自动语音识别模型，具备高精度和鲁棒性。它采用端到端架构，能处理嘈杂环境音频，适用于语音助理、实时字幕等多种应用。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/whisper_large.tar",
-            "pretrained_model_url": "",
             "model_size": "5.8G"
         },
-        {
-            "name": "whisper_medium",
+        "whisper_medium": {
             "description": "Whisper 是 OpenAI 开发的多语言自动语音识别模型，具备高精度和鲁棒性。它采用端到端架构，能处理嘈杂环境音频，适用于语音助理、实时字幕等多种应用。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/whisper_medium.tar",
-            "pretrained_model_url": "",
             "model_size": "2.9 G"
         },
-        {
-            "name": "whisper_small",
+        "whisper_small": {
             "description": "Whisper 是 OpenAI 开发的多语言自动语音识别模型，具备高精度和鲁棒性。它采用端到端架构，能处理嘈杂环境音频，适用于语音助理、实时字幕等多种应用。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/whisper_small.tar",
-            "pretrained_model_url": "",
             "model_size": "923 M"
         },
-        {
-            "name": "whisper_base",
+        "whisper_base": {
             "description": "Whisper 是 OpenAI 开发的多语言自动语音识别模型，具备高精度和鲁棒性。它采用端到端架构，能处理嘈杂环境音频，适用于语音助理、实时字幕等多种应用。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/whisper_base.tar",
-            "pretrained_model_url": "",
             "model_size": "277 M"
         },
-        {
-            "name": "whisper_tiny",
+        "whisper_tiny": {
             "description": "Whisper 是 OpenAI 开发的多语言自动语音识别模型，具备高精度和鲁棒性。它采用端到端架构，能处理嘈杂环境音频，适用于语音助理、实时字幕等多种应用。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/whisper_tiny.tar",
-            "pretrained_model_url": "",
             "model_size": "145 M"
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
-        "predict_params": {
-        },
+        "model_params": {},
+        "predict_params": {},
         "input_types": [
             "file"
         ],

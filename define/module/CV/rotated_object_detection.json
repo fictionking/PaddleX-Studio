@@ -2,17 +2,14 @@
     "name": "旋转目标检测",
     "id": "rotated_object_detection",
     "description": "旋转目标检测是目标检测模块中的一种衍生，专门针对旋转目标进行检测。旋转框（Rotated Bounding Boxes）常用于检测带有角度信息的矩形框，相较于水平矩形框，旋转矩形框一般包括更少的背景信息，常用于遥感等场景中。",
-    "dataset_type":"object_detection",
+    "dataset_type": "object_detection",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-YOLOE-R-L",
+    "models": {
+        "PP-YOLOE-R-L": {
             "description": "PP-YOLOE-R是一个高效的单阶段Anchor-free旋转框检测模型。基于PP-YOLOE, PP-YOLOE-R以极少的参数量和计算量为代价，引入了一系列有用的设计来提升检测精度。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-R-L_infer.tar",
-            "pretrained_model_url": "https://paddledet.bj.bcebos.com/models/ppyoloe_r_crn_l_3x_dota.pdparams",
             "model_size": "211.0 M"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "threshold": {

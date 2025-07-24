@@ -3,13 +3,55 @@
     "id": "video_detection",
     "description": "视频检测任务是计算机视觉系统中的关键组成部分，专注于识别和定位视频序列中的物体或事件。视频检测将视频分解为单独的帧序列, 然后分析这些帧以识别检测物体或动作，例如在监控视频中检测行人，或在体育或娱乐视频中识别特定活动。",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "YOWO",
+    "models": {
+        "YOWO": {
             "description": "YOWO是具有两个分支的单阶段网络。一个分支通过2D-CNN提取关键帧（即当前帧）的空间特征，而另一个分支则通过3D-CNN获取由先前帧组成的剪辑的时空特征。为准确汇总这些特征，YOWO使用了一种通道融合和关注机制，最大程度地利用了通道间的依赖性。最后将融合后的特征进行帧级检测。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/YOWO_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/YOWO_pretrained.pdparams",
             "model_size": "462.891 M"
         }
-    ]
+    },
+    "infer_params": {
+        "model_params": {
+            "nms_thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.1,
+                "max": null,
+                "value": null,
+                "desc": "非极大值抑制（Non-Maximum Suppression, NMS）过程中的IoU阈值参数"
+            },
+            "score_thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.1,
+                "max": null,
+                "value": null,
+                "desc": "预测置信度阈值"
+            }
+        },
+        "predict_params": {
+            "nms_thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.1,
+                "max": null,
+                "value": null,
+                "desc": "非极大值抑制（Non-Maximum Suppression, NMS）过程中的IoU阈值参数"
+            },
+            "score_thresh": {
+                "config_able": true,
+                "type": "float",
+                "min": 0.1,
+                "max": null,
+                "value": null,
+                "desc": "预测置信度阈值"
+            }
+        },
+        "input_types": [
+            "file"
+        ],
+        "result_types": [
+            "json",
+            "video"
+        ]
+    }
 }

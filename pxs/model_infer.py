@@ -89,6 +89,10 @@ class ModelProcess(mp.Process):
                             # 将转置数据框转换为CSV
                             data.to_csv(file_path, index=True)
                             result_data = file_path
+                        case 'video':
+                            file_path=os.path.join(result_dir,'result.mp4')
+                            result.save_to_video(file_path)
+                            result_data = file_path
                     self.result_queue.put((task['task_id'], result_data, None))
                 except Exception as e:
                     logging.error(f"任务处理错误: {str(e)}", exc_info=True)

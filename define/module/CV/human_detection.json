@@ -2,24 +2,18 @@
     "name": "行人检测",
     "id": "human_detection",
     "description": "行人检测是目标检测的一个分支任务，指使用计算机视觉技术来判断图像或视频中是否存在行人，并给出每个行人的具体位置信息。这些信息对于智能视频监控、人体行为分析、智能驾驶、智能机器人等多种应用至关重要。",
-    "dataset_type":"object_detection",
+    "dataset_type": "object_detection",
     "is_trainable": true,
-    "pretrained": [
-        {
-            "name": "PP-YOLOE-L_human",
+    "models": {
+        "PP-YOLOE-L_human": {
             "description": "基于PP-YOLOE的行人检测模型",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-L_human_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE-L_human_pretrained.pdparams",
             "model_size": "196.02 M"
         },
-        {
-            "name": "PP-YOLOE-S_human",
+        "PP-YOLOE-S_human": {
             "description": "基于PP-YOLOE的行人检测模型",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-YOLOE-S_human_infer.tar",
-            "pretrained_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-YOLOE-S_human_pretrained.pdparams",
             "model_size": "28.79 M"
         }
-    ],
+    },
     "infer_params": {
         "model_params": {
             "threshold": {

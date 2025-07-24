@@ -2,27 +2,20 @@
     "name": "开放词汇分割",
     "id": "open_vocabulary_segmentation",
     "description": "开放词汇分割是一项图像分割任务，旨在根据文本描述、边框、关键点等除图像以外的信息作为提示，分割图像中对应的物体。它允许模型处理广泛的对象类别，而无需预定义的类别列表。",
-    "dataset_type":"",
+    "dataset_type": "",
     "is_trainable": false,
-    "pretrained": [
-        {
-            "name": "SAM-H_box",
+    "models": {
+        "SAM-H_box": {
             "description": "SAM（Segment Anything Model）是一种先进的图像分割模型，能够根据用户提供的简单提示（如点、框或文本）对图像中的任意对象进行分割。基于SA-1B数据集训练，有一千万的图像数据和十一亿掩码标注，在大部分场景均有较好的效果。SAM-H_box表示使用框作为分割提示输入，SAM会分割被框包裹的主体。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/SAM-H_box_infer.tar",
-            "pretrained_model_url": "",
             "model_size": "2433.7 M"
         },
-        {
-            "name": "SAM-H_point",
+        "SAM-H_point": {
             "description": "SAM（Segment Anything Model）是一种先进的图像分割模型，能够根据用户提供的简单提示（如点、框或文本）对图像中的任意对象进行分割。基于SA-1B数据集训练，有一千万的图像数据和十一亿掩码标注，在大部分场景均有较好的效果。SAM-H_point表示使用点作为分割提示输入，SAM会分割点所在的主体。",
-            "inference_model_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/SAM-H_point_infer.tar",
-            "pretrained_model_url": "",
             "model_size": "2433.7 M"
         }
-    ],
+    },
     "infer_params": {
-        "model_params": {
-        },
+        "model_params": {},
         "predict_params": {
             "prompts": {
                 "config_able": true,
