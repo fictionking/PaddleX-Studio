@@ -14,6 +14,7 @@ current_app_id = None
 current_model_thread = None
 current_result_types = None
 current_predict_params = None
+current_input_types = None
 app_lock = threading.Lock()
 # 线程锁用于确保启动/停止操作的原子性
 app_lock = threading.Lock()
@@ -249,7 +250,7 @@ def start_application(app_id):
     Returns:
         tuple: (状态消息, HTTP状态码)
     """
-    global current_app_id, current_model_thread, current_result_types, current_predict_params
+    global current_app_id, current_model_thread, current_result_types, current_predict_params,current_input_types
     # 停止当前运行的应用
     stop_current_application()
 
@@ -298,6 +299,7 @@ def start_application(app_id):
             current_app_id = app_id
             current_predict_params = config.get('predict_params', {})
             current_result_types = config.get('result_types', {})
+            current_input_types = config.get('input_types', {})
 
         logging.info(f'应用 {app_id} 已在独立线程启动')
 
@@ -487,12 +489,19 @@ def process_request_input(request, app_id, apps_root):
              - temp_files: 需要清理的临时文件列表
              - error_response: 错误响应元组 (response, status_code)，无错误则为None
     """
+    global current_input_types
     temp_files = []
     input_data = None
+    # 根据current_input_types验证并处理输入
+    # 验证输入类型有效性
+    if not isinstance(current_input_types, (str, dict)):
+        return None, temp_files, (jsonify({"error": f"输入类型定义错误: {type(current_input_types)}，应为字符串或字典"}), 400)
     
-    # 1. 优先处理文件上传
-    if 'file' in request.files and request.files['file'].filename != '':
-        file = request.files['file']
+    # 1. 处理文件类型输入 (img/file)
+    if current_input_types in ['img', 'file']:
+        if 'input' not in request.files or request.files['input'].filename == '':
+            return None, temp_files, (jsonify({"error": f"输入类型为{current_input_types}，但未提供文件"}), 400)
+        file = request.files['input']
         # 确保upload目录存在
         upload_dir = os.path.join(apps_root, app_id, 'upload')
         os.makedirs(upload_dir, exist_ok=True)
@@ -507,23 +516,93 @@ def process_request_input(request, app_id, apps_root):
         # 添加临时文件清理标记
         temp_files.append(temp_file_path)
     
-    # 2. 如果没有文件上传，则尝试从form或JSON获取输入数据
-    if input_data is None:
+    # 2. 处理文本类型输入
+    elif current_input_types == 'text':
         try:
-            # 先尝试从form获取input
             input_data = request.form.get('input')
             if input_data is None:
-                # form中没有则尝试从JSON获取
                 data = request.get_json()
                 if not data or 'input' not in data:
                     return None, temp_files, (jsonify({"error": "请求数据中缺少input字段"}), 400)
                 input_data = data['input']
-                logging.info(f"使用JSON输入: {str(input_data)[:100]}...")
-            else:
-                logging.info(f"使用Form输入: {str(input_data)[:100]}...")
+                logging.info(f"使用文本输入: {str(input_data)[:100]}...")
+            # 验证文本不为空
+            if not str(input_data).strip():
+                return None, temp_files, (jsonify({"error": "文本输入不能为空"}), 400)
         except Exception as e:
-            return None, temp_files, (jsonify({"error": "解析请求失败: " + str(e)}), 400)
+            return None, temp_files, (jsonify({"error": "解析文本输入失败: " + str(e)}), 400)
     
+    # 3. 处理字典类型输入
+    elif isinstance(current_input_types, dict):
+        try:
+            # 支持multipart/form-data和application/json两种格式
+            if request.content_type and 'multipart/form-data' in request.content_type:
+                # 从表单获取JSON字符串并解析
+                if 'input' not in request.form:
+                    return None, temp_files, (jsonify({"error": "请求表单中缺少input字段"}), 400)
+                try:
+                    input_data = json.loads(request.form['input'])
+                except json.JSONDecodeError:
+                    return None, temp_files, (jsonify({"error": "input字段内容不是有效的JSON格式"}), 400)
+            else:
+                # 尝试从JSON获取完整对象
+                data = request.get_json()
+                if not data or 'input' not in data:
+                    return None, temp_files, (jsonify({"error": "请求数据中缺少input字段"}), 400)
+                input_data = data['input']
+            
+            # 验证输入为字典
+            if not isinstance(input_data, dict):
+                return None, temp_files, (jsonify({"error": "dict类型输入需要提供JSON对象"}), 400)
+            
+            # 验证字典中的每个字段
+            for key, value in input_data.items():
+                # 检查字段是否在定义的输入类型中
+                if key not in current_input_types:
+                    return None, temp_files, (jsonify({"error": f"输入包含未定义的字段'{key}'"}), 400)
+                
+                field_def = current_input_types[key]
+                field_type = field_def.get('type')
+                if not field_type:
+                    return None, temp_files, (jsonify({"error": f"字典字段'{key}'缺少type定义"}), 400)
+                
+                # 根据字段类型验证值
+                if field_type in ['img', 'file']:
+                    # 从JSON数据中获取文件标识
+                    if not isinstance(value, dict) or 'uid' not in value:
+                        return None, temp_files, (jsonify({"error": f"字段'{key}'类型为{field_type}，但缺少uid标识"}), 400)
+                    
+                    # 使用uid作为文件字段名查找文件
+                    file_key = str(value['uid'])
+                    if file_key not in request.files or request.files[file_key].filename == '':
+                        return None, temp_files, (jsonify({"error": f"字段'{key}'类型为{field_type}，但未提供文件(uid:{file_key})"}), 400)
+                    file = request.files[file_key]
+                    
+                    # 确保upload目录存在
+                    upload_dir = os.path.join(apps_root, app_id, 'upload')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # 保存上传文件到临时路径
+                    filename = secure_filename(file.filename)
+                    temp_file_path = os.path.join(upload_dir, filename)
+                    file.save(temp_file_path)
+                    
+                    # 更新input_data中的值为临时文件路径
+                    input_data[key] = temp_file_path
+                    logging.info(f"上传文件已保存至临时路径: {temp_file_path}")
+                    
+                    # 添加临时文件清理标记
+                    temp_files.append(temp_file_path)
+                elif field_type == 'text':
+                    if not isinstance(value, str) or len(value.strip()) == 0:
+                        return None, temp_files, (jsonify({"error": f"字段'{key}'类型为text，不能为空"}), 400)
+                else:
+                    return None, temp_files, (jsonify({"error": f"不支持的字段类型'{field_type}'"}), 400)
+            
+            logging.info(f"使用字典输入: {str(input_data)[:100]}...")
+        except Exception as e:
+            return None, temp_files, (jsonify({"error": "解析字典输入失败: " + str(e)}), 400)
+
     # 验证输入是否有效
     if input_data is None:
         return None, temp_files, (jsonify({"error": "未提供有效的输入数据"}), 400)

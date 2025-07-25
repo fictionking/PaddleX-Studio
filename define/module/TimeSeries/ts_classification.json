@@ -12,9 +12,7 @@
     "infer_params": {
         "model_params": {},
         "predict_params": {},
-        "input_types": [
-            "file"
-        ],
+        "input_types": "file",
         "result_types": [
             "json",
             "csv"

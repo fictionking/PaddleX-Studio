@@ -32,9 +32,7 @@
                 "value": null
             }
         },
-        "input_types": [
-            "img"
-        ],
+        "input_types": "img",
         "result_types": [
             "img",
             "json"

@@ -120,9 +120,7 @@
                 "desc": "<span>Vatti clipping算法的扩张系数，使用该方法对文字区域进行扩张 </span>"
             }
         },
-        "input_types": [
-            "img"
-        ],
+        "input_types": "img",
         "result_types": [
             "img",
             "json"

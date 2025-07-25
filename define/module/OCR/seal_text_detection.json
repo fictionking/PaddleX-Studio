@@ -146,9 +146,7 @@
                 "desc": "<span>是否对分割结果进行膨胀 </span>"
             }
         },
-        "input_types": [
-            "img"
-        ],
+        "input_types": "img",
         "result_types": [
             "img",
             "json"

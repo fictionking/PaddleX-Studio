@@ -38,9 +38,7 @@
                 "desc": "预测结果的前 topk 个类别和对应的分类概率"
             }
         },
-        "input_types": [
-            "file"
-        ],
+        "input_types": "file",
         "result_types": [
             "json",
             "video"

@@ -138,9 +138,7 @@
                 "desc": "<span>模型输出的检测框的合并处理模式；如果不指定，将默认使用PaddleX官方模型配置<br>large, 设置为large时，表示在模型输出的检测框中，对于互相重叠包含的检测框，只保留外部最大的框，删除重叠的内部框。<br>small, 设置为small，表示在模型输出的检测框中，对于互相重叠包含的检测框，只保留内部被包含的小框，删除重叠的外部框。<br>union, 不进行框的过滤处理，内外框都保留</span>"
             }
         },
-        "input_types": [
-            "img"
-        ],
+        "input_types": "img",
         "result_types": [
             "img",
             "json"

@@ -36,9 +36,7 @@
     "infer_params": {
         "model_params": {},
         "predict_params": {},
-        "input_types": [
-            "img"
-        ],
+        "input_types": "img",
         "result_types": [
             "img",
             "json"

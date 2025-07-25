@@ -16,25 +16,25 @@
       <div class="left-column">
         <div class="part-container">
           <h3>模型参数配置</h3>
-          <el-form :model="formData" label-width="auto" @submit.prevent="saveConfig">
+          <el-form :model="modelFormData" label-width="auto" @submit.prevent="saveConfig">
             <el-form-item v-for="(param, key) in modelParams" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
-                <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="formData[key]"
+                <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="modelFormData[key]"
                   :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
                   :max="param.max !== null ? param.max : undefined" controls-position="right"
                   :readonly="!param.config_able"></el-input-number>
-                <el-switch v-else-if="param.type === 'bool'" v-model="formData[key]" active-text="True"
+                <el-switch v-else-if="param.type === 'bool'" v-model="modelFormData[key]" active-text="True"
                   inactive-text="False" :readonly="!param.config_able"></el-switch>
-                <el-input v-else-if="param.type === 'dict'" v-model="formData[key]" type="textarea"
+                <el-input v-else-if="param.type === 'dict'" v-model="modelFormData[key]" type="textarea"
                   placeholder="请输入JSON格式的字典，例如: {&quot;key&quot;: &quot;value&quot;}" :rows=4
                   :readonly="!param.config_able"></el-input>
-                <el-input v-else-if="param.type === 'list'" v-model="formData[key]" type="textarea"
+                <el-input v-else-if="param.type === 'list'" v-model="modelFormData[key]" type="textarea"
                   placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4
                   :readonly="!param.config_able"></el-input>
-                <el-select v-else-if="param.type === 'enum'" v-model="formData[key]" :readonly="!param.config_able">
+                <el-select v-else-if="param.type === 'enum'" v-model="modelFormData[key]" :readonly="!param.config_able">
                   <el-option v-for="item in param.enum" :key="item" :label="item" :value="item"></el-option>
                 </el-select>
-                <el-input v-else v-model="formData[key]" :readonly="!param.config_able"></el-input>
+                <el-input v-else v-model="modelFormData[key]" :readonly="!param.config_able"></el-input>
               </el-tooltip>
             </el-form-item>
             <el-form-item label=" ">
@@ -93,8 +93,8 @@
           <h3>推理输入配置</h3>
           <el-form label-width="120px">
             <!-- 图片上传组件 -->
-            <el-form-item v-if="input_types.includes('img') && !input_types.includes('file')" label="上传图片">
-              <el-upload class="upload-demo" action="#" :limit="1" :auto-upload="false" :on-change="handleImageChange"
+            <el-form-item v-if="input_types === 'img'" label="上传图片">
+              <el-upload class="upload-demo" action="#" :limit="1" :auto-upload="false" :on-change="handleFileChange"
                 style="width: 400px">
                 <div style="display: flex; align-items: center;">
                   <el-button size="small" type="primary">点击上传图片</el-button>
@@ -105,7 +105,7 @@
             </el-form-item>
 
             <!-- 文件上传组件 -->
-            <el-form-item v-if="input_types.includes('file') && !input_types.includes('img')" label="上传文件">
+            <el-form-item v-if="input_types === 'file'" label="上传文件">
               <el-upload class="upload-demo" action="#" :limit="1" :auto-upload="false" :on-change="handleFileChange">
                 <div style="display: flex; align-items: center; justify-content: center;">
                   <el-button size="small" type="primary">点击上传文件</el-button>
@@ -115,8 +115,19 @@
             </el-form-item>
 
             <!-- 文本输入组件 -->
-            <el-form-item v-if="input_types.includes('text')" label="输入文本">
+            <el-form-item v-if="input_types === 'text'" label="输入文本">
               <el-input v-model="inputText" type="textarea" rows="4" placeholder="请输入文本内容"></el-input>
+            </el-form-item>
+
+            <el-form-item v-if="typeof input_types === 'object' && !Array.isArray(input_types) && input_types !== null" v-for="(param, key) in input_types" :key="key"
+              :label="key">
+              <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
+                <el-upload v-if="['img', 'file'].includes(param.type)" action="#" :limit="1" :auto-upload="false" :on-change="(file, fileList) => handleFileChange(file, fileList, key)">
+                  <el-button size="small" type="primary">点击上传文件</el-button>
+                </el-upload>
+                <el-input v-else-if="param.type === 'text'" v-model="inputDict[key]" type="textarea"
+                  placeholder="请输入文本内容" :rows=4 ></el-input>
+              </el-tooltip>
             </el-form-item>
 
             <el-form-item label="推理结果类型">
@@ -172,12 +183,12 @@ export default {
       modelParams: {},
       predict_params: {},
       result_types: [],
-      formData: {},
+      modelFormData: {},
       predictFormData: {},
-      input_types: [],
+      input_types: null,
       inputText: '',
-      uploadedImage: null,
-      uploadedFile: null,
+      inputDict: {},
+      uploadedFiles: {},
       inferenceResult: { type: '', data: null, loading: false },
       current_result_type: 'json'
     }
@@ -204,10 +215,10 @@ export default {
           this.modelParams = this.appConfig.model_params;
           this.predict_params = this.appConfig.predict_params;
           this.result_types = this.appConfig.result_types;
-          this.input_types = this.appConfig.input_types || [];
+          this.input_types = this.appConfig.input_types;
           // 初始化表单数据
           Object.keys(this.modelParams).forEach(key => {
-            this.formData[key] = this.modelParams[key].value;
+            this.modelFormData[key] = this.modelParams[key].value;
           });
           Object.keys(this.predict_params).forEach(key => {
             this.predictFormData[key] = this.predict_params[key].value;
@@ -225,7 +236,7 @@ export default {
      */
     async saveConfig() {
       try {
-        await axios.post(`/apps/config/${this.$route.params.appId}`, { model_params: this.formData });
+        await axios.post(`/apps/config/${this.$route.params.appId}`, { model_params: this.modelFormData });
         alert('配置保存成功');
       } catch (error) {
         console.error('保存配置失败:', error);
@@ -277,16 +288,14 @@ export default {
         });
     },
     /**
-     * 处理图片上传变化事件
-     */
-    handleImageChange(file, fileList) {
-      this.uploadedImage = file.raw;
-    },
-    /**
      * 处理文件上传变化事件
      */
-    handleFileChange(file, fileList) {
-      this.uploadedFile = file.raw;
+    handleFileChange(file, fileList, key = 'default') {
+      if (key === 'default') {
+        this.uploadedFiles = file.raw;
+      }else{
+        this.inputDict[key] = file.raw;
+      }
     },
     /**
      * 使用弱引用创建安全的对象URL
@@ -310,17 +319,47 @@ export default {
      * 提交推理请求
      */
     async submitInference() {
-      if (!this.uploadedImage && !this.uploadedFile && !this.inputText) {
+      // 根据input_types类型验证输入
+      const isDictType = typeof this.input_types === 'object';
+      let hasInput = false;
+      
+      // 验证输入是否存在
+      if (['img', 'file'].includes(this.input_types)) {
+        hasInput = !!this.uploadedFiles;
+      } else if (this.input_types === 'text') {
+        hasInput = !!this.inputText.trim();
+      } else if (isDictType) {
+        hasInput = Object.keys(this.inputDict).length > 0;
+      }
+      
+      if (!hasInput) {
         this.$message.warning('请提供推理输入内容');
         return;
       }
 
       const formData = new FormData();
-      // 直接添加文本输入和推理参数到FormData
-      // 仅当inputText不为空时添加input字段
-      if (this.inputText) {
-        formData.append('input', this.inputText);
+      // 根据input_types类型处理输入参数
+      if (['img', 'file'].includes(this.input_types)) {
+        formData.append('input', this.uploadedFiles.default);
+      } else if (this.input_types === 'text') {
+        formData.append('input', this.inputText.trim());
+      } else if (isDictType) {
+        // 处理对象类型输入，分离文件和文本值
+        const inputObj = {};
+        Object.keys(this.inputDict).forEach(key => {
+          const value = this.inputDict[key];
+          if (value instanceof File) {
+            // 如果是文件，添加到FormData，并在inputObj中记录文件标识
+            const fileKey = `file_${Date.now()}_${key}`;
+            formData.append(fileKey, value);
+            inputObj[key] = {uid: fileKey };
+          } else {
+            inputObj[key] = value;
+          }
+        });
+        formData.append('input', JSON.stringify(inputObj));
       }
+
       // 遍历predictFormData的所有属性并添加到FormData
       const predict_params = {}
       Object.keys(this.predictFormData).forEach(key => {
@@ -334,9 +373,8 @@ export default {
         }
       });
       formData.append('predict_params', JSON.stringify(predict_params));
-      // 添加文件/图片
-      if (this.uploadedImage) formData.append('file', this.uploadedImage);
-      if (this.uploadedFile) formData.append('file', this.uploadedFile);
+      // 移除旧的file参数，统一使用input参数传递所有输入内容
+      // if (this.uploadedFile) formData.append('file', this.uploadedFile);
       // 显示加载中模态框
       const loading = this.$loading({
         lock: true,
@@ -380,11 +418,11 @@ export default {
             this.$message.error('推理失败:' + data.error);
           } catch (e) {
             console.warn('无法解析JSON响应:', e);
-            this.$message.error('推理失败!'+error.message);
+            this.$message.error('推理失败!' + error.message);
           }
         }
         else {
-          this.$message.error('推理失败!'+error.message);
+          this.$message.error('推理失败!' + error.message);
         }
       } finally {
         loading.close();  // 无论成功失败都关闭加载框

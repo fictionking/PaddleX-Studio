@@ -46,9 +46,7 @@
                 "desc": "预测置信度阈值"
             }
         },
-        "input_types": [
-            "file"
-        ],
+        "input_types": "file",
         "result_types": [
             "json",
             "video"
