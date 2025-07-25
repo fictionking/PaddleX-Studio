@@ -340,7 +340,7 @@ export default {
       const formData = new FormData();
       // 根据input_types类型处理输入参数
       if (['img', 'file'].includes(this.input_types)) {
-        formData.append('input', this.uploadedFiles.default);
+        formData.append('input', this.uploadedFiles);
       } else if (this.input_types === 'text') {
         formData.append('input', this.inputText.trim());
       } else if (isDictType) {
