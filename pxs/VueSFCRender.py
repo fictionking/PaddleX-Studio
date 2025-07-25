@@ -232,7 +232,12 @@ def render_vue_component(vue_file_path: str) -> str:
                 # 跳过@keyframes等特殊规则
                 if selector.startswith('@'):
                     return match.group(0)
-                # 为每个选择器添加scope_id
+                # 处理:deep()选择器
+                deep_pattern = re.compile(r':deep\(([^)]+)\)')
+                if deep_pattern.search(selector):
+                    # 替换:deep(selector)为[data-v-xxx] selector
+                    return deep_pattern.sub(f'[{scope_id}] \g<1>', selector) + ' {'
+                # 为普通选择器添加scope_id
                 return selector + f'[{scope_id}] ' + '{'
             processed_line = selector_pattern.sub(add_scope, line)
             processed_lines.append(processed_line)

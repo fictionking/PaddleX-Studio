@@ -16,7 +16,12 @@
           <h3>{{ moduleType.name }}</h3>
           <div class="module-type-badge">{{ Object.keys(moduleType.models).length }}个预训练模型</div>
         </div>
-        <p class="module-type-description">{{ moduleType.description || '无描述信息' }}</p>
+        <el-carousel v-if="Array.isArray(moduleType.description)" height="auto" autoplay arrow="never"  indicator-position="outside">
+          <el-carousel-item v-for="item in moduleType.description" :key="item" style="height: auto;">
+            <p class="module-type-description" v-html="item || '无描述信息'"></p>
+          </el-carousel-item>
+        </el-carousel>
+        <p v-if="typeof moduleType.description === 'string'" class="module-type-description" v-html="moduleType.description || '无描述信息'"></p>
         <div class="module-type-footer">
           <span class="arrow-icon">→</span>
         </div>
@@ -372,7 +377,7 @@ export default {
         module_id: this.selectedModule.id,
         model_name: modelName,
         rate: rate
-      }).then(res=>{
+      }).then(res => {
         this.$message.success('设置评分成功');
       })
     }
@@ -462,6 +467,13 @@ export default {
   margin-bottom: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+:deep(.module-type-description img) {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 .module-type-footer {
