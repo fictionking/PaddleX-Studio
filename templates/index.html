@@ -200,8 +200,8 @@
                     <el-icon class="icon">
                         <ICO_Menu />
                     </el-icon>数据</el-button>
-                <el-button type="primary" :class="{ active: $route.path.startsWith('/model') }"
-                    @click="() => $router.push('/model')">
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/train') }"
+                    @click="() => $router.push('/train')">
                     <el-icon class="icon">
                         <ICO_TrendCharts />
                     </el-icon>训练</el-button>
@@ -274,11 +274,11 @@
             routes: [
                 { path: '/', redirect: '/module' },
                 { path: '/module', component: () => import('/components/ModuleList.vue') },
-                { path: '/model', component: () => import('/components/ModelList.vue') },
+                { path: '/train', component: () => import('/components/TrainList.vue') },
                 { path: '/dataset', component: () => import('/components/DatasetList.vue') },
                 { path: '/app', component: () => import('/components/AppList.vue') },
                 { path: '/dataset/:datasetId', component: () => import('/components/DatasetDetail.vue') },
-                { path: '/model/:modelId', component: () => import('/components/ModelDetail.vue') },
+                { path: '/train/:modelId', component: () => import('/components/TrainDetail.vue') },
                 { path: '/app/:appId', component: () => import('/components/AppDetail.vue') }
             ]
         })

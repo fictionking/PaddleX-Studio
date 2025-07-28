@@ -16,12 +16,24 @@ define_bp = Blueprint('define', __name__)
 modules = []
 dataset_types = []
 cancel_cache=False
+train_params={}
 def init():
     global modules
     global dataset_types
+    global train_params
     modules = load_module_definitions()
     dataset_types = load_dataset_type_definitions()
+    train_params=load_train_params()
 
+def load_train_params():
+    train_params_path = os.path.join(os.getcwd(), 'define', 'train_parameters.json')
+    try:
+        with open(train_params_path, 'r', encoding='utf-8') as f:
+            train_params = json.load(f)
+    except Exception as e:
+        logging.error(f"加载训练参数失败: {str(e)}")
+        return {}
+    return train_params
 
 def load_module_definitions():
     # 读取分类信息

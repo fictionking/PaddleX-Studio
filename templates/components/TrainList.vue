@@ -3,7 +3,7 @@
         <el-row :gutter="20" class="list-container">
             <el-col :span="24">
                 <el-card class="list-card" v-for="(model, index) in models" :key="index"
-                    @click="$router.push('/model/' + model.id)">
+                    @click="$router.push('/train/' + model.id)">
                     <div class="listcard content">
                         <!-- 左侧内容 -->
                         <div class="listcard left-section">

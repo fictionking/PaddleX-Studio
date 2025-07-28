@@ -15,6 +15,7 @@ import logging
 import queue
 from threading import Lock
 from pxs.appMgr import new_applications
+import yaml
 
 task_queue = queue.Queue()
 lock = Lock()
@@ -100,11 +101,13 @@ def run_subprocess(modelid,command,log_path):
     model['status'] = 'training'  # 更新模型状态为完成
     save_model_config(model) 
     # 打开日志文件（追加模式，避免覆盖历史日志）
+    # 获取当前操作系统环境的控制台输出字符集，默认为utf-8
     target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
     with open(log_path, 'w', encoding=target_encoding) as log_file:
         # 复制当前环境变量并设置PYTHONIOENCODING为utf-8，避免子程序用gbk解码
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = target_encoding
+        print(command)
         process = subprocess.Popen(
             command,
             stdout=log_file,  # 标准输出仍丢弃
@@ -269,6 +272,7 @@ def checkDataSet(model_id):
     yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     check_path = os.path.join(models_root, model_id, 'check')
+    target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
     result = subprocess.run(
         [sys.executable, cfg.paddlex_main, 
         "-c",yaml_path,
@@ -279,16 +283,17 @@ def checkDataSet(model_id):
         "-o", "CheckDataset.convert.src_dataset_type="+dataset['type']],
         capture_output=True,
         text=True,
-        encoding='utf-8'
+        encoding=target_encoding
     )
     # 保存运行输出到日志文件
     # 确保日志目录存在
     log_path = os.path.join(check_path, 'check_dataset.log')
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, 'w', encoding='utf-8') as f:
-        # 处理可能的None值（subprocess可能返回None）
-        stdout = result.stdout if result.stdout is not None else ''
-        stderr = result.stderr if result.stderr is not None else ''
+        # 处理可能的None值并从target_encoding解码为字符串
+        # 仅对字节类型进行解码，字符串类型直接使用
+        stdout = result.stdout.decode(target_encoding) if isinstance(result.stdout, bytes) else (result.stdout or '')
+        stderr = result.stderr.decode(target_encoding) if isinstance(result.stderr, bytes) else (result.stderr or '')
         f.write(f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}")
         
     if result.returncode != 0:
@@ -299,7 +304,9 @@ def checkDataSet(model_id):
         with open(os.path.join(check_path, 'check_dataset_result.json'), 'r', encoding='utf-8') as f:
             check_result = json.load(f)
         model['step'] = 1
-        model['num_classes'] = check_result['attributes']['num_classes']
+        # 如果存在num_classes属性则添加到model中
+        if 'num_classes' in check_result['attributes']:
+            model['num_classes'] = check_result['attributes']['num_classes']
         save_model_config(model) 
         # 更新图像路径为包含model_id的完整路径
         base_path = f"models/{model_id}/check/"
@@ -310,6 +317,40 @@ def checkDataSet(model_id):
         with open(os.path.join(check_path, 'check_dataset_result.json'), 'w', encoding='utf-8') as f:
             json.dump(check_result, f, ensure_ascii=False, indent=2)
         return jsonify({'code': 200,'message': '检查完成','data': check_result})
+
+@train_bp.route('/models/<model_id>/train/params', methods=['GET'])
+def get_train_params(model_id):
+     # 查找模型
+    model = models[model_id]
+    if not model:
+        return jsonify({'code': 404,'message': '未找到指定模型'}), 404
+    yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    with open(yaml_path, 'r', encoding='utf-8') as f:
+        yaml_data = yaml.safe_load(f)
+    params=[]
+    for key, value in yaml_data['Train'].items():
+        if key in defineMgr.train_params['hidden_parameters']:
+            continue
+        if key=='num_classes' and 'num_classes' in model:
+            value=model['num_classes']
+        param_def=defineMgr.train_params['show_parameters'][key]
+        if param_def:
+            params.append({
+                'name': key,
+                'label':param_def['label'],
+                'type': param_def['type'],
+                'value': value,
+                'description': param_def['description']
+            })
+        else:
+            params.append({
+                'name': key,
+                'label':key,
+                'type': 'text',
+                'value': value,
+                'description': ''
+            })
+    return params
 
 @train_bp.route('/models/<model_id>/train', methods=['POST'])
 def train(model_id):
@@ -356,15 +397,12 @@ def train(model_id):
         '-o', f'Global.output={output_dir}',
         '-o', f'Global.dataset_dir={dataset_dir}',
         '-o', f'Global.device={cfg.device}',
-        '-o', f'Train.epochs_iters={params.get("epochs")}',
-        '-o', f'Train.batch_size={params.get("batchSize")}',
-        '-o', f'Train.num_classes={params.get("classNum")}',
-        '-o', f'Train.learning_rate={params.get("learningRate")}',
-        '-o', f'Train.warmup_steps={params.get("warmUpSteps")}',
-        '-o', f'Train.log_interval={params.get("logInterval")}',
-        '-o', f'Train.eval_interval={params.get("trainEvalInterval")}',
         '-o', f'Train.pretrain_weight_path={pretrain_weight_path}'
     ]
+    # 修复参数迭代方式，确保正确获取键值对
+    for key, value in params.items():
+        cmd.append('-o')
+        cmd.append(f'Train.{key}={value}')
 
     # 创建训练日志目录
     train_log_dir = os.path.join(output_dir, 'logs')

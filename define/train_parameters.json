@@ -1,0 +1,56 @@
+{
+    "show_parameters": {
+        "num_classes": {
+            "name": "num_classes",
+            "label": "类别数",
+            "type": "int",
+            "description": "数据集中的类别数量，根据实际情况填写"
+        },
+        "epochs_iters": {
+            "name": "epochs_iters",
+            "label": "轮次",
+            "type": "int",
+            "description": "模型对训练数据的重复学习次数"
+        },
+        "batch_size": {
+            "name": "batch_size",
+            "label": "批大小",
+            "type": "int",
+            "description": "单卡训练批大小，值越大，显存占用越高"
+        },
+        "learning_rate": {
+            "name": "learning_rate",
+            "label": "学习率",
+            "type": "float",
+            "description": "学习率建议参考Batch Size进行同比例的调整"
+        },
+        "warmup_steps": {
+            "name": "warmup_steps",
+            "label": "预热步数",
+            "type": "int",
+            "description": "在训练初始阶段以较小学习率训练的step数"
+        },
+        "log_interval": {
+            "name": "log_interval",
+            "label": "日志打印间隔",
+            "type": "int",
+            "description": "每隔多少个step打印一次log信息"
+        },
+        "eval_interval": {
+            "name": "eval_interval",
+            "label": "模型评估间隔",
+            "type": "int",
+            "description": "模型评估间隔"
+        },
+        "save_interval": {
+            "name": "save_interval",
+            "label": "模型保存间隔",
+            "type": "int",
+            "description": "模型保存间隔"
+        }
+    },
+    "hidden_parameters": [
+        "pretrain_weight_path",
+        "resume_path"
+    ]
+}

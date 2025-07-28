@@ -270,7 +270,7 @@ export default {
             await axios.post('/models/new', this.newModelFormData);
             this.$message.success('模型创建成功');
             this.showCreateTrainDialog = false;
-            this.$router.push(`/model/${this.newModelFormData.id}`);
+            this.$router.push(`/train/${this.newModelFormData.id}`);
           } catch (error) {
             this.$message.error('模型创建失败:' + error.response.data.message);
           }
