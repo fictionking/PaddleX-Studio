@@ -279,8 +279,8 @@ def checkDataSet(model_id):
         "-o", "Global.mode=check_dataset",
         "-o","Global.output="+check_path,
         "-o", "Global.dataset_dir="+dataset_path,
-        "-o", "CheckDataset.convert.enable=True",
-        "-o", "CheckDataset.convert.src_dataset_type="+dataset['type']],
+        "-o", "CheckDataset.convert.enable="+("True" if dataset['dataset_type']['convert_enable'] == True else "False"),
+        "-o", "CheckDataset.convert.src_dataset_type="+(dataset['dataset_type']['value'] if dataset['dataset_type']['convert_enable'] == True else "")],
         capture_output=True,
         text=True,
         encoding=target_encoding
@@ -543,18 +543,18 @@ def copydataset(model_id):
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     model_path = os.path.join(models_root, model_id,'dataset')
     # 根据模型的类型选择复制方式
-    copyDatasetFiles(model['category'],model['dataset_type'],dataset_path,model_path)
+    copyDatasetFiles(model['category'],model['module_id'],dataset_path,model_path)
     model['update_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 更新时间
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
 
-def copyDatasetFiles(category_id,dataset_type,dataset_path,model_path):
+def copyDatasetFiles(category_id,module_id,dataset_path,model_path):
     filelist=[]
     for category in defineMgr.dataset_types:
-        if category['value'] == category_id:
+        if category['id'] == category_id:
             for module in category['modules']:
-                if module['value'] == dataset_type:
-                    files=module['files']
+                if module['id'] == module_id:
+                    files=module['dataset_files']
                     for file in files:
                         filelist.append({"src":os.path.join(dataset_path,file),"dst":os.path.join(model_path,file)})
                     break

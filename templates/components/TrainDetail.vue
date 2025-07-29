@@ -31,7 +31,7 @@
                     <div v-if="currentModel.step === 0" class="data-prep-container">
                         <div class="dataset-selector">
                             <span>选择数据集</span>
-                            <el-select v-model="dataset_id" placeholder="请选择训练数据集" @change="handleDatasetChange"
+                            <el-select v-model="dataset_id" placeholder="请选择训练数据集"
                                 style="flex: 1;" :disabled="processing">
                                 <el-option v-for="dataset in datasets" :key="dataset.id" :label="dataset.name"
                                     :value="dataset.id"></el-option>
@@ -120,7 +120,6 @@ export default {
             currentModel: {},
             datasets: [],
             dataset_id: '',
-            dataset_name: '',
             showDatasetDialog: false,
             checking: false,
             checkstep: 0,
@@ -260,7 +259,7 @@ export default {
         },
         loadDatasets() {
             // 调用API获取数据集数据
-            fetch(`/datasets?category=${this.currentModel.category}&dataset_type=${this.currentModel.dataset_type}`)
+            fetch(`/datasets?category=${this.currentModel.category}&module=${this.currentModel.module_id}`)
                 .then(response => response.json())
                 .then(data => {
                     this.datasets = data;
@@ -268,12 +267,6 @@ export default {
                 .catch(error => {
                     console.error('获取数据集数据失败:', error);
                 });
-        },
-        handleDatasetChange(value) {
-            const selectedDataset = this.datasets.find(dataset => dataset.id === value);
-            if (selectedDataset) {
-                this.dataset_name = selectedDataset.name;
-            }
         },
         async handleCheckDataset() {
             if (this.processing) return;

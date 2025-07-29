@@ -120,15 +120,16 @@ def load_dataset_type_definitions():
     result=[]
     for category in modules:
         category_item={'id':category['category']['id'],'name':category['category']['name']}
-        modules=[]
+        dataset_modules=[]
         for module in category['modules']:
             module_item={
                 'name':module['name'],
                 'id':module['id'],
-                'dataset':module['dataset']
+                'dataset_types':module['dataset']['types'],
+                'dataset_files':module['dataset']['files']
             }
-            modules.append(module_item)
-        category_item['modules']=modules
+            dataset_modules.append(module_item)
+        category_item['modules']=dataset_modules
         result.append(category_item)
     return result
 

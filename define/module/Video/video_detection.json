@@ -52,11 +52,20 @@
             "video"
         ]
     },
-    "dataset": [
-        {
-            "label": "自定义标注集",
-            "value": "Custom",
-            "convert_enable": false
-        }
-    ]
+    "dataset": {
+        "types": [
+            {
+                "label": "自定义标注集",
+                "value": "Custom",
+                "convert_enable": false
+            }
+        ],
+        "files": [
+            "rgb-images",
+            "labels",
+            "label_map.txt",
+            "train.txt",
+            "val.txt"
+        ]
+    }
 }

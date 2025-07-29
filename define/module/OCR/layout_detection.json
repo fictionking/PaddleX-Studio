@@ -144,11 +144,18 @@
             "json"
         ]
     },
-    "dataset": [
-        {
-            "label": "自定义标注集",
-            "value": "Custom",
-            "convert_enable": false
-        }
-    ]
+    "dataset": {
+        "types": [
+            {
+                "label": "自定义标注集",
+                "value": "Custom",
+                "convert_enable": false
+            }
+        ],
+        "files": [
+            "annotations/instance_train.json",
+            "annotations/instance_val.json",
+            "images"
+        ]
+    }
 }

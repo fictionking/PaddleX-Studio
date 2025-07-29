@@ -42,16 +42,19 @@
             "json"
         ]
     },
-    "dataset": [
-        {
-            "label": "FormulaRecDataset数据集",
-            "value": "FormulaRecDataset",
-            "convert_enable": false
-        },
-        {
-            "label": "自定义标注集",
-            "value": "Custom",
-            "convert_enable": false
-        }
-    ]
+    "dataset": {
+        "types": [
+            {
+                "label": "FormulaRecDataset数据集",
+                "value": "FormulaRecDataset",
+                "convert_enable": false
+            },
+            {
+                "label": "自定义标注集",
+                "value": "Custom",
+                "convert_enable": false
+            }
+        ],
+        "files": []
+    }
 }

@@ -165,7 +165,7 @@ export default {
             if (moduleId) {
                 // 根据ID查找模块对象
                 const module = this.currentModules.find(item => item.id === moduleId);
-                this.currentTypes = module ? module.dataset || [] : [];
+                this.currentTypes = module ? module.dataset_types || [] : [];
                 // 重置数据类型选择
                 this.form.dataset_type = '';
             }

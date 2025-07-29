@@ -59,13 +59,13 @@ def load_or_create_dataset_config():
 def get_datasets():
     """返回JSON格式的数据集数据，支持按category和dataset_type过滤"""
     category = request.args.get('category')
-    dataset_type = request.args.get('dataset_type')
+    module = request.args.get('module')
     
     filtered_datasets = datasets
     if category:
-        filtered_datasets = [d for d in filtered_datasets if d.get('category') == category]
-    if dataset_type:
-        filtered_datasets = [d for d in filtered_datasets if d.get('dataset_type') == dataset_type]
+        filtered_datasets = [d for d in filtered_datasets if d.get('category').get('id') == category]
+    if module:
+        filtered_datasets = [d for d in filtered_datasets if d.get('module').get('id') == module]
     
     return jsonify(filtered_datasets)
 

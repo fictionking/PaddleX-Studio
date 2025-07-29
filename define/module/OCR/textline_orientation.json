@@ -22,11 +22,19 @@
             "json"
         ]
     },
-    "dataset": [
-        {
-            "label": "自定义标注集",
-            "value": "Custom",
-            "convert_enable": false
-        }
-    ]
+    "dataset": {
+        "types": [
+            {
+                "label": "自定义标注集",
+                "value": "Custom",
+                "convert_enable": false
+            }
+        ],
+        "files": [
+            "images",
+            "label.txt",
+            "train.txt",
+            "val.txt"
+        ]
+    }
 }
