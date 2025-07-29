@@ -33,5 +33,22 @@
             "json",
             "csv"
         ]
-    }
+    },
+    "dataset": [
+        {
+            "label": "csv格式数据集",
+            "value": "csv",
+            "convert_enable": false
+        },
+        {
+            "label": "xlsx和xls格式数据集",
+            "value": "xlsxxls",
+            "convert_enable": true
+        },
+        {
+            "label": "自定义标注集",
+            "value": "Custom",
+            "convert_enable": false
+        }
+    ]
 }

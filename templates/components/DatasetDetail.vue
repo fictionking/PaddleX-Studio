@@ -1,101 +1,11 @@
-<style scoped>
-.upload-section {
-  margin-bottom: 20px; 
-  padding: 20px; 
-  border: 1px dashed var(--el-border-color-light);
-  border-radius: 14px;
-}
-.dataset-detail-container {
-  padding: 20px;
-}
-
-.tag-font {
-  font-size: 14px;
-}
-.el-menu-custom {
-  --el-menu-item-height: 32px;
-}
-.file-manager {
-  display: flex;
-  gap: 20px;
-  height: calc(100vh - 450px);
-  overflow: hidden;
-}
-.file-tree {
-  width: 30%;
-  height: 95%;
-  overflow-y: scroll;
-  flex: 1;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  padding: 10px;
-}
-.file-preview {
-  width: 70%;
-  height: 95%;
-  flex: 2;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  padding: 10px;
-}
-.preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e6e6e6;
-}
-.empty-preview {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--el-text-color-placeholder);
-  background-color: var(--el-bg-color);
-  border-radius: 4px;
-}
-.image-preview {
-  text-align: center;
-}
-.image-preview img {
-  max-width: 100%;
-  max-height: calc(100vh - 320px);
-  object-fit: contain;
-}
-.text-preview {
-  background-color: var(--el-fill-color-light);
-  padding: 15px;
-  border-radius: 4px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-y: auto;
-  max-height: calc(100vh - 610px);
-}
-.truncated-warning {
-  margin-top: 10px;
-}
-.context-menu {
-  position: absolute;
-  z-index: 1000;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-.el-upload__text-custom {
-  margin-bottom: 20px;
-}
-.btn-bold {
-  font-weight: bold;
-}
-</style>
 <template>
   <div class="dataset-detail-container">
     <div class="page-header">
       <div class="page-header-info">
         <h2 class="page-header h2" v-text="currentDataset.name"></h2>
-        <el-tag type="info" effect="plain" class="tag-font" v-text="currentDataset.type"></el-tag>
-        <el-tag type="success" v-text="currentDataset.category"></el-tag>
-        <el-tag type="success" v-text="currentDataset.dataset_type_name"></el-tag>
+        <el-tag type="info" effect="plain" class="tag-font" v-text="currentDataset.dataset_type?.label || ''"></el-tag>
+        <el-tag type="success" v-text="currentDataset.category?.name || ''"></el-tag>
+        <el-tag type="success" v-text="currentDataset.module?.name || ''"></el-tag>
       </div>
       <el-button type="primary" plain @click="$router.push('/dataset')">返回</el-button>
     </div>
@@ -523,3 +433,93 @@ export default {
   }
 }
 </script>
+<style scoped>
+.upload-section {
+  margin-bottom: 20px; 
+  padding: 20px; 
+  border: 1px dashed var(--el-border-color-light);
+  border-radius: 14px;
+}
+.dataset-detail-container {
+  padding: 20px;
+}
+
+.tag-font {
+  font-size: 14px;
+}
+.el-menu-custom {
+  --el-menu-item-height: 32px;
+}
+.file-manager {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 450px);
+  overflow: hidden;
+}
+.file-tree {
+  width: 30%;
+  height: 95%;
+  overflow-y: scroll;
+  flex: 1;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  padding: 10px;
+}
+.file-preview {
+  width: 70%;
+  height: 95%;
+  flex: 2;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  padding: 10px;
+}
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e6e6e6;
+}
+.empty-preview {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--el-text-color-placeholder);
+  background-color: var(--el-bg-color);
+  border-radius: 4px;
+}
+.image-preview {
+  text-align: center;
+}
+.image-preview img {
+  max-width: 100%;
+  max-height: calc(100vh - 320px);
+  object-fit: contain;
+}
+.text-preview {
+  background-color: var(--el-fill-color-light);
+  padding: 15px;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-y: auto;
+  max-height: calc(100vh - 610px);
+}
+.truncated-warning {
+  margin-top: 10px;
+}
+.context-menu {
+  position: absolute;
+  z-index: 1000;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+.el-upload__text-custom {
+  margin-bottom: 20px;
+}
+.btn-bold {
+  font-weight: bold;
+}
+</style>

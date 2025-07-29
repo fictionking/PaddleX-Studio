@@ -73,14 +73,17 @@ def get_datasets():
 def add_dataset():
     """新增数据集"""
     data = request.json
+    #检测id是否唯一
+    if any(d['id'] == data.get('id') for d in datasets):
+        return jsonify({'error': '数据集ID已存在'}), 400
+
     new_dataset = {
             'id': data.get('id'),
             'name': data.get('name'),
             'description': data.get('description'),
             'category': data.get('category', ''),
             'dataset_type': data.get('dataset_type', ''),
-            'dataset_type_name': data.get('dataset_type_name', ''),
-            'type': data.get('type', ''),
+            'module': data.get('module', ''),
             'update_time': datetime.datetime.now().isoformat()
         }
     datasets.append(new_dataset)

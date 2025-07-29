@@ -13,12 +13,12 @@
                             <div class="listcard base">
                                 <h3 class="listcard base h3" v-text="dataset.name"></h3>
                                 <el-tag type="info" effect="plain" style="font-size: 14px;"
-                                    v-text="dataset.type"></el-tag>
+                                    v-text="dataset.dataset_type?.label || ''"></el-tag>
                             </div>
                             <p class="listcard desc" v-text="dataset.description"></p>
                             <div class="listcard category">
-                                <el-tag type="success" v-text="dataset.category"></el-tag>
-                                <el-tag type="success" v-text="dataset.dataset_type_name"></el-tag>
+                                <el-tag type="success" v-text="dataset.category?.name || ''"></el-tag>
+                                <el-tag type="success" v-text="dataset.module?.name || ''"></el-tag>
                             </div>
                         </div>
                         <!-- 右侧内容 -->
@@ -48,18 +48,18 @@
                 </el-form-item>
                 <el-form-item label="类别" prop="category">
                     <el-select v-model="form.category" placeholder="请选择类别" @change="handleCategoryChange">
-                        <el-option v-for="item in dataset_types" :key="item.value" :label="item.label"
-                            :value="item.value"></el-option>
+                        <el-option v-for="item in dataset_types" :key="item.id" :label="item.name"
+                            :value="item.id"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="模块" prop="dataset_type">
-                    <el-select v-model="form.dataset_type" placeholder="请选择模块" @change="handleModuleChange">
-                        <el-option v-for="module in currentModules" :key="module.value" :label="module.label"
-                            :value="module.value"></el-option>
+                <el-form-item label="模块" prop="module">
+                    <el-select v-model="form.module" placeholder="请选择模块" @change="handleModuleChange">
+                        <el-option v-for="module in currentModules" :key="module.id" :label="module.name"
+                            :value="module.id"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="数据类型" prop="type">
-                    <el-select v-model="form.type" placeholder="请选择数据类型">
+                <el-form-item label="数据类型" prop="dataset_type">
+                    <el-select v-model="form.dataset_type" placeholder="请选择数据类型">
                         <el-option v-for="type in currentTypes" :key="type.value" :label="type.label"
                             :value="type.value"></el-option>
                     </el-select>
@@ -74,8 +74,7 @@
     </div>
 </template>
 
-<script type="module">
-
+<script>
 export default {
     data() {
         return {
@@ -85,9 +84,8 @@ export default {
                 name: '',
                 description: '',
                 category: '',
+                module: '',
                 dataset_type: '',
-                dataset_type_name: '',
-                type: ''
             },
             rules: {  // 表单验证规则
                 name: [{ required: true, message: '请输入数据集名称', trigger: 'blur' }],
@@ -95,8 +93,8 @@ export default {
                     { required: true, message: '请输入唯一标识', trigger: 'blur' },
                     { pattern: /^[a-zA-Z0-9-_]+$/, message: '仅支持大小写字母、数字、-、_', trigger: 'blur' }
                 ],
-                dataset_type: [{ required: true, message: '请选择模块', trigger: 'change' }],
-                type: [{ required: true, message: '请选择数据类型', trigger: 'change' }],
+                module: [{ required: true, message: '请选择模块', trigger: 'change' }],
+                dataset_type: [{ required: true, message: '请选择数据类型', trigger: 'change' }],
                 category: [{ required: true, message: '请选择类别', trigger: 'change' }]
             },
             currentModules: [],
@@ -147,67 +145,98 @@ export default {
         // 删除数据集
         // 显示创建对话框
         // 处理类别变化
-        handleCategoryChange() {
-            const category = this.dataset_types.find(item => item.value === this.form.category);
-            if (category) {
-                this.currentModules = category.modules || [];
-                this.currentTypes = category.types || [];
+        handleCategoryChange(categoryId) {
+            if (categoryId) {
+                // 根据ID查找类别对象
+                const category = this.dataset_types.find(item => item.id === categoryId);
+                this.currentModules = category ? category.modules || [] : [];
                 // 重置模块和数据类型选择
+                this.form.module = '';
                 this.form.dataset_type = '';
-                this.form.dataset_type_name = '';
-                this.form.type = '';
             }
         },
 
         // 处理模块变化
-        handleModuleChange() {
-            const module = this.currentModules.find(item => item.value === this.form.dataset_type);
-            if (module) {
-                this.form.dataset_type_name = module.label;
+        /**
+         * 处理模块变化
+         * @param {string} moduleId - 选中的模块ID
+         */
+        handleModuleChange(moduleId) {
+            if (moduleId) {
+                // 根据ID查找模块对象
+                const module = this.currentModules.find(item => item.id === moduleId);
+                this.currentTypes = module ? module.dataset || [] : [];
+                // 重置数据类型选择
+                this.form.dataset_type = '';
             }
         },
 
+        /**
+         * 显示创建数据集对话框
+         */
         showCreateDialog() {
             this.dialogVisible = true;
         },
 
-        // 重置表单
+        /**
+         * 重置表单
+         * @param {string} formName - 表单名称
+         */
         resetForm(formName) {
             this.$refs[formName].resetFields();
             this.dialogVisible = false;
         },
 
-        // 提交表单
+        /**
+         * 提交表单创建数据集
+         * @param {string} formName - 表单名称
+         */
         submitForm(formName) {
             this.$refs[formName].validate((valid) => {
                 if (valid) {
-                    // 生成唯一ID
-                    // 使用用户输入的ID而非自动生成
-                    const newDataset = { ...this.form };
+                    // 查找选中的类别、模块和数据类型对象
+                    const category = this.dataset_types.find(item => item.id === this.form.category);
+                    const module = this.currentModules.find(item => item.id === this.form.module);
+                    const datasetType = this.currentTypes.find(item => item.value === this.form.dataset_type);
 
-                    fetch('/datasets/new', {
-                        method: 'POST',
+                    const newDataset = {
+                        id: this.form.id,
+                        name: this.form.name,
+                        description: this.form.description,
+                        category: {
+                            id: category.id,
+                            name: category.name,
+                        },
+                        module: {
+                            id: module.id,
+                            name: module.name,
+                        },
+                        dataset_type: {
+                            value: datasetType.value,
+                            label: datasetType.label,
+                            convert_enable: datasetType.convert_enable,
+                        }
+                    };
+
+                    axios.post('/datasets/new', newDataset, {
                         headers: {
                             'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(newDataset)
+                        }
                     })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(response => {
                             this.$message({ message: '数据集创建成功', type: 'success' });
                             this.dialogVisible = false;
                             this.loadDatasets(); // 刷新数据集列表
                         })
                         .catch(error => {
-                            console.error('创建数据集失败:', error);
-                            this.$message({ message: '创建数据集失败', type: 'error' });
+                            console.error('创建数据集失败:', error.response.data.error);
+                            this.$message({ message: error.response.data.error, type: 'error' });
                         });
                 } else {
                     return false;
                 }
             });
         },
-
         // 删除数据集
         deleteDataset(datasetId) {
             if (!confirm('确定要删除该数据集吗？')) return;

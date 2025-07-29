@@ -47,6 +47,66 @@
             "label": "模型保存间隔",
             "type": "int",
             "description": "模型保存间隔"
+        },
+        "time_col": {
+            "name": "time_col",
+            "label": "时间列",
+            "type": "str",
+            "description": "须结合自己的数据设置时间序列数据集的时间列的列名称。"
+        },
+        "freq": {
+            "name": "freq",
+            "label": "时间频率",
+            "type": "str",
+            "description": "须结合自己的数据设置时间频率，如：1min、5min、1h。"
+        },
+        "target_cols": {
+            "name": "target_cols",
+            "label": "目标变量列",
+            "type": "str",
+            "description": "须结合自己的数据设置时间序列数据集的目标变量的列名称，可以为多个，多个之间用','分隔"
+        },
+        "input_len": {
+            "name": "input_len",
+            "label": "时间序列长度",
+            "type": "int",
+            "description": "时间序列长度"
+        },
+        "predict_len": {
+            "name": "predict_len",
+            "label": "预测长度",
+            "type": "int",
+            "description": "希望模型预测未来序列的长度；预测长度建议结合实际场景综合考虑，一般来说设置的越大，希望预测的未来序列越长，模型精度通常越低。"
+        },
+        "patience": {
+            "name": "patience",
+            "label": "早停步数",
+            "type": "int",
+            "description": "在验证集上的指标不再提升的情况下，提前停止训练的步数。"
+        },
+        "feature_cols": {
+            "name": "feature_cols",
+            "label": "特征列",
+            "type": "str",
+            "description": "特征变量表示能够判断设备是否异常的相关变量，例如设备是否异常，可能与设备运转时的散热量有关。结合自己的数据，设置特征变量的列名称，可以为多个，多个之间用','分隔。"
+        },
+        "label_col": {
+            "name": "label_col",
+            "label": "标签列",
+            "type": "str",
+            "description": "代表时序时间点是否异常的编号，异常点为 1，正常点为 0。"
+        },
+        "group_id": {
+            "name": "group_id",
+            "label": "分组列",
+            "type": "str",
+            "description": "一个群组编号表示的是一个时序样本，相同编号的时序序列组成一个样本。结合自己的数据设置指定群组编号的列名称, 如：group_id。"
+        },
+        "static_cov_cols": {
+            "name": "static_cov_cols",
+            "label": "静态特征列",
+            "type": "str",
+            "description": "代表时序的类别编号列，同一个样本的标签相同。结合自己的数据设置类别的列名称，如：label。"
         }
     },
     "hidden_parameters": [

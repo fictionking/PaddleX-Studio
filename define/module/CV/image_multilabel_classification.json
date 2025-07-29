@@ -54,5 +54,17 @@
             "img",
             "json"
         ]
-    }
+    },
+    "dataset": [
+        {
+            "label": "COCO标注集",
+            "value": "COCO",
+            "convert_enable": false
+        },
+        {
+            "label": "自定义标注集",
+            "value": "Custom",
+            "convert_enable": false
+        }
+    ]
 }

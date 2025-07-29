@@ -115,14 +115,22 @@ def parse_module_define(module):
     return module
 
 def load_dataset_type_definitions():
-    # 读取分类信息
-    define_path = os.path.join(os.getcwd(), 'define', 'dataset', 'dataset.json')
-    try:
-        with open(define_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        logging.error(f"加载数据集类型定义文件失败: {str(e)}")
-        return []
+    #从modules中提取所有支持的数据集类型
+    global modules
+    result=[]
+    for category in modules:
+        category_item={'id':category['category']['id'],'name':category['category']['name']}
+        modules=[]
+        for module in category['modules']:
+            module_item={
+                'name':module['name'],
+                'id':module['id'],
+                'dataset':module['dataset']
+            }
+            modules.append(module_item)
+        category_item['modules']=modules
+        result.append(category_item)
+    return result
 
 def getModule(category_id,module_id):
     for category in modules:

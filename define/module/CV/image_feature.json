@@ -25,5 +25,17 @@
         "result_types": [
             "json"
         ]
-    }
+    },
+    "dataset": [
+        {
+            "label": "LabelMe标注集",
+            "value": "LabelMe",
+            "convert_enable": true
+        },
+        {
+            "label": "自定义标注集",
+            "value": "Custom",
+            "convert_enable": false
+        }
+    ]
 }

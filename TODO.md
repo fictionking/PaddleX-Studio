@@ -1,0 +1,3 @@
+- [x] check_show_type/image.vue
+- [ ] check_show_type/csv.vue
+- [ ] check_show_type/video.vue

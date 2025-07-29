@@ -51,5 +51,12 @@
             "json",
             "video"
         ]
-    }
+    },
+    "dataset": [
+        {
+            "label": "自定义标注集",
+            "value": "Custom",
+            "convert_enable": false
+        }
+    ]
 }
