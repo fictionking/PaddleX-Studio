@@ -46,19 +46,7 @@ def handle_docs(doctype, docname, file_path=None):
         try:
             with open(full_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            md = MarkdownIt("gfm-like")
-
-            # 添加完整HTML结构和图片样式
-            html = f'''<!DOCTYPE html>
-            <html lang="zh-CN">
-            <head>
-            <title>PaddleX Studio 文档</title>
-            <link rel="stylesheet" href="/docs/styles.css">
-            </head>
-            <body>
-            <div class="doc-container">{md.render(content)}</div>
-            </body>
-            </html>'''
+            html=render_markdown(content)
             return html, 200
         except Exception as e:
             return jsonify({'error': f'Failed to read or convert markdown file: {str(e)}'}), 500
@@ -70,3 +58,17 @@ def handle_docs(doctype, docname, file_path=None):
         except Exception as e:
             return jsonify({'error': f'Failed to send file: {str(e)}'}), 500
 
+def render_markdown(content):
+    md = MarkdownIt("gfm-like")
+    # 添加完整HTML结构和图片样式
+    html = f'''<!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+    <title>PaddleX Studio 文档</title>
+    <link rel="stylesheet" href="/docs/styles.css">
+    </head>
+    <body>
+    <div class="doc-container">{md.render(content)}</div>
+    </body>
+    </html>'''
+    return html

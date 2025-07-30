@@ -27,8 +27,7 @@
     <div class="file-manager">
       <div class="file-tree"
         ref="fileTreeRef">
-        <el-tree accordion highlight-current :data="fileTree" :props="treeProps" :expand-on-click-node="true"
-          @node-click="handleNodeClick" @node-contextmenu="handleContextMenu" ref="fileTreeRef" v-slot="{ data }">
+        <el-tree accordion highlight-current empty-text="载入中..." :data="fileTree" node-key="path" :default-expanded-keys="['']" :props="treeProps" :expand-on-click-node="true" @node-click="handleNodeClick" @node-contextmenu="handleContextMenu" ref="fileTreeRef" v-slot="{ data }" draggable @node-drop="handleNodeDrop">
           <span class="custom-tree-node">
             <span
               :style="data.type === 'directory' ? { color: 'var(--el-color-primary)', fontWeight: 'bold' } : { color: 'var(--el-color-success)' }">
@@ -356,6 +355,42 @@ export default {
       }
     },
     /**
+     * 处理节点拖拽事件，移动文件或文件夹
+     * @param {Object} draggingNode - 被拖拽的节点
+     * @param {Object} dropNode - 目标节点
+     * @param {string} dropType - 拖拽类型（before、after、inner）
+     */
+    handleNodeDrop(draggingNode, dropNode, dropType) {
+      if (draggingNode.data.type === 'directory' && dropNode.data.type === 'file') {
+        this.$message.error('不能将文件夹拖到文件中');
+        return;
+      }
+
+      const fromPath = draggingNode.data.path;
+      let toPath = dropNode.data.path;
+      
+      // 根据拖拽类型确定目标路径
+      if (dropType === 'inner') {
+        // 拖到文件夹内部
+        toPath = dropNode.data.path;
+      } else {
+        // 拖到文件夹前后，使用父目录路径
+        toPath = dropNode.parent.data.path;
+      }
+
+      axios.post(`/datasets/${this.currentDataset.id}/move`, {
+        from: fromPath,
+        to: toPath
+      })
+        .then(response => {
+          this.$message.success('移动成功');
+          this.fetchFileTree();
+        })
+        .catch(error => {
+          this.$message.error(`移动失败: ${error.response?.data?.error || error.message}`);
+        });
+    },
+    /**
      * 处理点击菜单外部区域事件
      * @param {Event} event - 点击事件对象
      */
@@ -423,12 +458,11 @@ export default {
      */
     downloadFile() {
       if (!this.selectedFile) return;
-
       window.open(`/datasets/${this.currentDataset.id}/files/dl/${encodeURIComponent(this.selectedFile.path)}`, '_blank');
     },
 
     showDoc() {
-      window.open(`/docs/annotations/${this.currentDataset.type}`, '_blank');
+      window.open(`/define/dataset/doc/${this.currentDataset.category.id}/${this.currentDataset.module.id}`, '_blank');
     }
   }
 }

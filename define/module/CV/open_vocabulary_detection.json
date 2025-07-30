@@ -2,7 +2,6 @@
     "name": "开放词汇目标检测",
     "id": "open_vocabulary_detection",
     "description": "开放词汇目标检测模块突破传统目标检测局限性，允许模型识别未在训练中出现的物体。通过结合自然语言处理技术，利用文本描述定义新类别，使目标检测更具灵活性和泛化能力。",
-    "dataset_type": "",
     "is_trainable": false,
     "models": {
         "GroundingDINO-T": {
@@ -37,6 +36,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":""
     }
 }

@@ -55,6 +55,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":"https://github.com/lukas-blecher/LaTeX-OCR"
     }
 }

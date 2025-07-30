@@ -262,7 +262,7 @@ def get_dataset_files(dataset_id):
         return tree_node
     
     # 生成目录树并返回
-    directory_tree = build_directory_tree(store_dir)
+    directory_tree = build_directory_tree(store_dir,"")
     return jsonify(directory_tree)
 
 @dataset_bp.route('/datasets/<dataset_id>/files/<path:file_path>', methods=['GET'])
@@ -449,3 +449,49 @@ def save_dataset_config():
     """保存数据集配置到JSON文件"""
     with open(dataset_config_path, 'w', encoding='utf-8') as f:
         json.dump(datasets, f, ensure_ascii=False, indent=4)
+
+@dataset_bp.route('/datasets/<dataset_id>/move', methods=['POST'])
+def move_dataset_item(dataset_id):
+    """移动数据集内的文件或文件夹
+
+    接收源路径(from)和目标路径(to)，执行移动操作并返回结果
+    """
+    # 检查数据集是否存在
+    dataset = next((d for d in datasets if d['id'] == dataset_id), None)
+    if not dataset:
+        return jsonify({'error': 'Dataset not found'}), 404
+
+    # 获取请求数据
+    data = request.json
+    from_path = data.get('from')
+    to_path = data.get('to')
+
+    if not from_path:
+        return jsonify({'error': 'Both from and to paths are required'}), 400
+
+    # 构建完整路径
+    dataset_dir = os.path.join(dataset_root, dataset_id)
+    full_from_path = os.path.join(dataset_dir, from_path)
+    full_to_path = os.path.join(dataset_dir, to_path)
+
+    # 安全检查：确保路径在数据集目录内
+    if (not os.path.abspath(full_from_path).startswith(os.path.abspath(dataset_dir)) or
+        not os.path.abspath(full_to_path).startswith(os.path.abspath(dataset_dir))):
+        return jsonify({'error': 'Access denied: path outside dataset directory'}), 403
+
+    # 检查源路径是否存在
+    if not os.path.exists(full_from_path):
+        return jsonify({'error': f'Source path not found: {from_path}'}), 404
+
+    # 检查是否试图移动到子目录
+    if os.path.commonpath([full_from_path]) == os.path.commonpath([full_to_path, full_from_path]):
+        return jsonify({'error': 'Cannot move a directory to its subdirectory'}), 400
+
+    try:
+        # 确保目标目录存在
+        os.makedirs(os.path.dirname(full_to_path), exist_ok=True)
+        # 执行移动操作
+        shutil.move(full_from_path, full_to_path)
+        return jsonify({'message': f'Successfully moved from {from_path} to {to_path}'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Failed to move item: {str(e)}'}), 500

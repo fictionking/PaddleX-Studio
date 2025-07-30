@@ -52,6 +52,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":"paddlex://docs/data_annotations/time_series_modules/time_series_anomaly_detection.md"
     }
 }

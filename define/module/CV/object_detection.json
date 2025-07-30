@@ -2,7 +2,6 @@
     "name": "目标检测",
     "id": "object_detection",
     "description": "目标检测模块是计算机视觉系统中的关键组成部分，负责在图像或视频中定位和标记出包含特定目标的区域，输出目标区域的边界框作为后续处理的输入。",
-    "dataset_type": "object_detection",
     "is_trainable": true,
     "models": {
         "Cascade-FasterRCNN-ResNet50-FPN": {
@@ -223,6 +222,7 @@
             "annotations/instance_train.json",
             "annotations/instance_val.json",
             "images"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }

@@ -2,7 +2,6 @@
     "name": "主体检测",
     "id": "mainbody_detection",
     "description": "主体检测任务是目标检测中的一项基本任务，旨在从图像、视频中识别并提取出特定的目标物体、人、实体的位置和大小。",
-    "dataset_type": "object_detection",
     "is_trainable": true,
     "models": {
         "PP-ShiTuV2_det": {
@@ -47,6 +46,7 @@
             "annotations/instance_train.json",
             "annotations/instance_val.json",
             "images"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }

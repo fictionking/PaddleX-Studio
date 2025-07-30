@@ -242,7 +242,6 @@ def new_model():
         'category': model_data['category'],
         'module_id': model_data['module_id'], 
         'module_name': model_data['module_name'],
-        'dataset_type': model_data['dataset_type'],
         'pretrained': model_data['pretrained'],
         'update_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # 初始化为当前日期时间，精确到秒
         'status': 'config',  # 初始状态为配置中（数据准备阶段）,config:配置中、training:训练中、finished:运行完成
@@ -255,6 +254,11 @@ def new_model():
 def send_check_dataset_file(model_id, filename):
     check_path = os.path.join(models_root, model_id, 'check')
     return send_from_directory(check_path, filename)
+
+@train_bp.route('/models/<model_id>/dataset/<path:filename>')
+def send_dataset_file(model_id, filename):
+    dataset_path = os.path.join(models_root, model_id, 'dataset')
+    return send_from_directory(dataset_path, filename)
 
 @train_bp.route('/models/<model_id>/check', methods=['POST'])
 def checkDataSet(model_id):
@@ -310,8 +314,12 @@ def checkDataSet(model_id):
         save_model_config(model) 
         # 更新图像路径为包含model_id的完整路径
         base_path = f"models/{model_id}/check/"
-        check_result['attributes']['train_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['train_sample_paths']]
-        check_result['attributes']['val_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['val_sample_paths']]
+        if 'train_sample_paths' in check_result['attributes']:
+            check_result['attributes']['train_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['train_sample_paths']]
+            check_result['attributes']['train_sample_paths'] = [path.replace(f"/check/check_dataset/../../../../datasets/{dataset_id}/","/dataset/") for path in check_result['attributes']['train_sample_paths']]
+        if 'val_sample_paths' in check_result['attributes']:
+            check_result['attributes']['val_sample_paths'] = [base_path + path.replace("\\","/") for path in check_result['attributes']['val_sample_paths']]
+            check_result['attributes']['val_sample_paths'] = [path.replace(f"/check/check_dataset/../../../../datasets/{dataset_id}/","/dataset/") for path in check_result['attributes']['val_sample_paths']]
         check_result['analysis']['histogram'] = base_path + check_result['analysis']['histogram'].replace("\\","/")
         # 保存更新后的结果文件
         with open(os.path.join(check_path, 'check_dataset_result.json'), 'w', encoding='utf-8') as f:

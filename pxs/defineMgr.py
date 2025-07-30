@@ -2,13 +2,15 @@ import os
 import json
 import requests
 import tarfile
-from flask import Blueprint, jsonify, stream_with_context, Response,request
+from flask import Blueprint, jsonify, stream_with_context, Response,request,send_file,redirect
 import pxs.paddlexCfg as cfg
 from pxs.appMgr import new_applications
+from pxs.doc import render_markdown
 import time
 import logging
 import shutil
 import yaml
+import mimetypes
 from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
@@ -126,7 +128,8 @@ def load_dataset_type_definitions():
                 'name':module['name'],
                 'id':module['id'],
                 'dataset_types':module['dataset']['types'],
-                'dataset_files':module['dataset']['files']
+                'dataset_files':module['dataset']['files'],
+                'doc':module['dataset']['doc']
             }
             dataset_modules.append(module_item)
         category_item['modules']=dataset_modules
@@ -417,3 +420,40 @@ def setModelRate():
         json.dump(data, f, indent=4, ensure_ascii=False)
         f.truncate()
     return jsonify({'message': '设置成功'}),200
+
+@define_bp.route('/define/dataset/doc/<category_id>/<module_id>', methods=['GET'])
+def get_dataset_doc(category_id,module_id):
+    docpath=''
+    for category in dataset_types:
+        if category['id']==category_id:
+            for module in category['modules']:
+                if module['id']==module_id:
+                    docpath=module['doc']
+                    break
+            break
+    if not docpath:
+        return 'Document not found', 400
+    #如果以paddlex://开头，说明是Paddlex的文档
+    if docpath.startswith('paddlex://'):
+        docpath=docpath.replace('paddlex://','')
+        docpath=os.path.join(cfg.paddlex_root,docpath)
+        # 处理Markdown文件
+        if docpath.endswith('.md'):
+            try:
+                with open(docpath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                html=render_markdown(content)
+                return html, 200
+            except Exception as e:
+                return f'Failed to read or convert markdown file: {str(e)}', 500
+        # 处理其他文件类型
+        else:
+            mime_type, _ = mimetypes.guess_type(docpath)
+            try:
+                return send_file(docpath, mimetype=mime_type)
+            except Exception as e:
+                return f'Failed to send file: {str(e)}', 500
+    else:
+        #重定向
+        return redirect(docpath)
+    

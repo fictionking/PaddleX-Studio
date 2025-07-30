@@ -2,7 +2,6 @@
     "name": "车辆检测",
     "id": "vehicle_detection",
     "description": "车辆检测是目标检测的一个子任务，具体指使用计算机视觉技术来判断图像或视频中是否存在车辆，并给出每个车辆的具体位置信息（如边界框的坐标）。这些信息对于智能交通系统、自动驾驶、视频监控等多个领域具有重要意义。",
-    "dataset_type": "object_detection",
     "is_trainable": true,
     "models": {
         "PP-YOLOE-S_vehicle": {
@@ -51,6 +50,7 @@
             "annotations/instance_train.json",
             "annotations/instance_val.json",
             "images"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }

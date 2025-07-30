@@ -164,6 +164,7 @@
             "images",
             "train.txt",
             "val.txt"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/ocr_modules/text_detection_recognition.md"
     }
 }

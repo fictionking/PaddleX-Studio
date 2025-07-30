@@ -1,3 +1,4 @@
 - [x] check_show_type/image.vue
-- [ ] check_show_type/csv.vue
-- [ ] check_show_type/video.vue
+- [x] check_show_type/txt.vue
+- [x] check_show_type/csv.vue
+- [x] check_show_type/video.vue

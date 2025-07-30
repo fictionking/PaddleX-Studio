@@ -2,7 +2,6 @@
     "name": "人脸特征",
     "id": "face_feature",
     "description": "人脸特征模块通常以经过检测提取和关键点矫正处理的标准化人脸图像作为输入，从这些图像中提取具有高度辨识性的人脸特征，以便供后续模块使用，如人脸匹配和验证等任务。",
-    "dataset_type": "image_classification",
     "is_trainable": true,
     "models": {
         "MobileFaceNet": {
@@ -46,6 +45,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":"paddlex://docs/data_annotations/cv_modules/image_classification.md"
     }
 }

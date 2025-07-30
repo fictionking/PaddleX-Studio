@@ -31,6 +31,7 @@
             "label.txt",
             "train.txt",
             "val.txt"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/image_classification.md"
     }
 }

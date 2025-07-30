@@ -2,7 +2,6 @@
     "name": "开放词汇分割",
     "id": "open_vocabulary_segmentation",
     "description": "开放词汇分割是一项图像分割任务，旨在根据文本描述、边框、关键点等除图像以外的信息作为提示，分割图像中对应的物体。它允许模型处理广泛的对象类别，而无需预定义的类别列表。",
-    "dataset_type": "",
     "is_trainable": false,
     "models": {
         "SAM-H_box": {
@@ -38,6 +37,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":""
     }
 }

@@ -41,6 +41,7 @@
             "images",
             "train.txt",
             "val.txt"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/ocr_modules/table_recognition.md"
     }
 }

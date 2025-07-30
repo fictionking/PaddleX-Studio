@@ -2,7 +2,6 @@
     "name": "人脸检测",
     "id": "face_detection",
     "description": "人脸检测任务是目标检测中的一项基本任务，旨在从输入图像中自动识别并定位人脸的位置和大小。它是人脸识别、人脸分析等后续任务的前提和基础。",
-    "dataset_type": "object_detection",
     "is_trainable": true,
     "models": {
         "BlazeFace": {
@@ -55,6 +54,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }

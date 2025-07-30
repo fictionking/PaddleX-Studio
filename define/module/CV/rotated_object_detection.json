@@ -2,7 +2,6 @@
     "name": "旋转目标检测",
     "id": "rotated_object_detection",
     "description": "旋转目标检测是目标检测模块中的一种衍生，专门针对旋转目标进行检测。旋转框（Rotated Bounding Boxes）常用于检测带有角度信息的矩形框，相较于水平矩形框，旋转矩形框一般包括更少的背景信息，常用于遥感等场景中。",
-    "dataset_type": "object_detection",
     "is_trainable": true,
     "models": {
         "PP-YOLOE-R-L": {
@@ -47,6 +46,7 @@
             "annotations/instance_train.json",
             "annotations/instance_val.json",
             "images"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }

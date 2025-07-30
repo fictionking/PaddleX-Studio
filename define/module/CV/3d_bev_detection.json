@@ -2,7 +2,6 @@
     "name": "3D BEV检测",
     "id": "3d_bev_detection",
     "description": "3D BEV检测模块是计算机视觉和自动驾驶领域关键组成部分，负责在图像或视频中定位和标记出包含特定目标的区域的3D坐标和检测框信息。",
-    "dataset_type": "other",
     "is_trainable": true,
     "models": {
         "BEVFusion": {
@@ -27,6 +26,7 @@
                 "convert_enable": false
             }
         ],
-        "files": []
+        "files": [],
+        "doc":""
     }
 }

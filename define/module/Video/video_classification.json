@@ -57,6 +57,7 @@
             "label.txt",
             "train.txt",
             "val.txt"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/video_modules/video_classification.md"
     }
 }

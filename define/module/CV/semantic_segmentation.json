@@ -2,7 +2,6 @@
     "name": "语义分割",
     "id": "semantic_segmentation",
     "description": "语义分割是计算机视觉中的一种技术，它通过对图像中每个像素进行分类，将图像划分为不同的语义区域，每个区域对应一个具体的类别。这种技术能够生成精细的分割图，清晰地展现图像中的对象及其边界，为图像分析和理解提供有力支持。",
-    "dataset_type": "semantic_segmentation",
     "is_trainable": true,
     "models": {
         "Deeplabv3_Plus-R50": {
@@ -115,6 +114,7 @@
             "images",
             "train.txt",
             "val.txt"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/semantic_segmentation.md"
     }
 }

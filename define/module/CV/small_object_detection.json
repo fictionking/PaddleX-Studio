@@ -2,7 +2,6 @@
     "name": "小目标检测",
     "id": "small_object_detection",
     "description": "小目标检测通常指的是在图像或视频中精确地检测和定位尺寸较小、面积较小的目标物体。这些目标在图像中的像素尺寸通常较小，可能小于32像素×32像素，且可能被背景或其他物体所掩盖，难以被肉眼直接观察出来。",
-    "dataset_type": "object_detection",
     "is_trainable": true,
     "models": {
         "PP-YOLOE_plus_SOD-L": {
@@ -65,6 +64,7 @@
             "annotations/instance_train.json",
             "annotations/instance_val.json",
             "images"
-        ]
+        ],
+        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }
