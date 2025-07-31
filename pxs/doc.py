@@ -59,7 +59,7 @@ def handle_docs(doctype, docname, file_path=None):
             return jsonify({'error': f'Failed to send file: {str(e)}'}), 500
 
 def render_markdown(content):
-    md = MarkdownIt("gfm-like")
+    md = MarkdownIt("gfm-like",{"breaks": True})
     # 添加完整HTML结构和图片样式
     html = f'''<!DOCTYPE html>
     <html lang="zh-CN">

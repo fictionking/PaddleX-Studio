@@ -76,7 +76,7 @@
                         <h4>选择训练运行位置</h4>
                         <el-radio-group v-model="runLocation">
                             <el-radio label="local">本地</el-radio>
-                            <el-radio label="dock">Dock(暂未实现)</el-radio>
+                            <el-radio label="distributed">分布式(暂未实现)</el-radio>
                         </el-radio-group>
                     </div>
                 </div>
@@ -135,7 +135,7 @@ export default {
             processing: false,
             training: {},
             trainLog: '',  // 训练日志内容
-            runLocation: 'local',  // 训练运行位置默认值（local/dock）
+            runLocation: 'local',  // 训练运行位置默认值（local/distributed
             newAppFormData: {
                 name: '',
                 id: '',
