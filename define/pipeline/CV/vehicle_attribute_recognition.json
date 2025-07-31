@@ -1,0 +1,189 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "车辆属性识别产线",
+    "description": "车辆属性识别是计算机视觉系统中的重要组成部分，其主要任务是在图像或视频中定位并标记出车辆的特定属性，如车辆类型、颜色、车牌号等。该任务不仅要求准确检测出车辆，还需识别每辆车的详细属性信息。车辆属性识别产线是定位并识别车辆属性的端到端串联系统，广泛应用于交通管理、智能停车、安防监控、自动驾驶等领域，显著提升了系统效率和智能化水平，并推动了相关行业的发展与创新。"
+  },
+  "paths": {
+    "/vehicle-attribute-recognition": {
+      "post": {
+        "operationId": "infer",
+        "summary": "获取车辆属性识别结果",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果"
+                  },
+                  "detThreshold": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 det_threshold 参数相关说明"
+                  },
+                  "clsThreshold": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 cls_threshold 参数相关说明"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若请求体中未提供该参数或传入null：遵循产线配置文件Serving.visualize的设置"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Attribute": {
+        "type": "object",
+        "description": "车辆属性",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "属性标签"
+          },
+          "score": {
+            "type": "number",
+            "description": "分类得分"
+          }
+        },
+        "required": ["label", "score"]
+      },
+      "Vehicle": {
+        "type": "object",
+        "description": "检测到的车辆信息",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "description": "车辆位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "attributes": {
+            "type": "array",
+            "description": "车辆属性",
+            "items": {
+              "$ref": "#/components/schemas/Attribute"
+            }
+          },
+          "score": {
+            "type": "number",
+            "description": "检测得分"
+          }
+        },
+        "required": ["bbox", "attributes", "score"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "推理结果",
+        "properties": {
+          "vehicles": {
+            "type": "array",
+            "description": "车辆的位置及属性等信息",
+            "items": {
+              "$ref": "#/components/schemas/Vehicle"
+            }
+          },
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "车辆属性识别结果图。图像为JPEG格式，使用Base64编码"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["vehicles", "image"]
+      }
+    }
+  }
+}

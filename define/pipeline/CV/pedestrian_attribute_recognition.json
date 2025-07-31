@@ -1,0 +1,164 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "行人属性识别产线",
+    "description": "行人属性识别是计算机视觉系统中的关键功能，用于在图像或视频中定位并标记行人的特定特征，如性别、年龄、衣物颜色和款式等。该任务不仅要求准确检测出行人，还需识别每个行人的详细属性信息。行人属性识别产线是定位并识别行人属性的端到端串联系统，广泛应用于智慧城市和安防监控等领域，可显著提升系统的智能化水平和管理效率。"
+  },
+  "paths": {
+    "/pedestrian-attribute-recognition": {
+      "post": {
+        "operationId": "infer",
+        "summary": "获取行人属性识别结果",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                  },
+                  "detThreshold": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 det_threshold 参数相关说明。"
+                  },
+                  "clsThreshold": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "array", "items": {"type": "number"}},
+                      {"type": "object"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 cls_threshold 参数相关说明。"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入 true：返回图像；传入 false：不返回图像；若请求体中未提供该参数或传入 null：遵循产线配置文件Serving.visualize 的设置。如果请求体和配置文件中均未设置（或请求体传入null、配置文件中未设置），则默认返回图像。"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Attribute": {
+        "type": "object",
+        "description": "行人属性",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "属性标签。"
+          },
+          "score": {
+            "type": "number",
+            "description": "分类得分。"
+          }
+        },
+        "required": ["label", "score"]
+      },
+      "Pedestrian": {
+        "type": "object",
+        "description": "行人的位置及属性等信息",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "description": "行人位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标。",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "attributes": {
+            "type": "array",
+            "description": "行人属性。",
+            "items": {
+              "$ref": "#/components/schemas/Attribute"
+            }
+          },
+          "score": {
+            "type": "number",
+            "description": "检测得分。"
+          }
+        },
+        "required": ["bbox", "attributes", "score"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "行人属性识别结果",
+        "properties": {
+          "pedestrians": {
+            "type": "array",
+            "description": "行人的位置及属性等信息。",
+            "items": {
+              "$ref": "#/components/schemas/Pedestrian"
+            }
+          },
+          "image": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "null"}
+            ],
+            "description": "行人属性识别结果图。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["pedestrians", "image"]
+      }
+    }
+  }
+}

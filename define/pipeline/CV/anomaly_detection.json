@@ -1,0 +1,144 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "图像异常检测产线",
+        "description": "图像异常检测是一种通过分析图像中的内容，来识别与众不同或不符合正常模式的图像处理技术。图像异常检测能够自动识别出图像中潜在的缺陷、异常或异常行为，从而帮助我们及时发现问题并采取相应措施。",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/anomaly-detection": {
+            "post": {
+                "summary": "对图像进行异常检测",
+                "description": "分析图像内容，识别潜在的缺陷、异常或异常行为",
+                "operationId": "infer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string",
+                                                "format": "uri",
+                                                "description": "服务器可访问的图像文件的URL"
+                                            },
+                                            {
+                                                "type": "string",
+                                                "format": "base64",
+                                                "description": "图像文件内容的Base64编码结果"
+                                            },
+                                            {
+                                                "type": "null"
+                                            }
+                                        ],
+                                        "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果"
+                                    },
+                                    "visualize": {
+                                        "oneOf": [
+                                            {
+                                                "type": "boolean"
+                                            },
+                                            {
+                                                "type": "null"
+                                            }
+                                        ],
+                                        "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若未提供或传入null：遵循产线配置文件Serving.visualize的设置"
+                                    }
+                                },
+                                "required": [
+                                    "image"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "检测成功",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "result": {
+                                                    "$ref": "#/components/schemas/AnomalyDetectionResult"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AnomalyDetectionResult": {
+                "type": "object",
+                "description": "异常检测结果",
+                "properties": {
+                    "labelMap": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "enum": [
+                                0,
+                                255
+                            ]
+                        },
+                        "description": "记录图像中每个像素的类别标签（按照行优先顺序排列）。其中255表示异常点，0表示非异常点"
+                    },
+                    "size": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "description": "图像形状。数组中元素依次为图像的高度和宽度"
+                    },
+                    "image": {
+                        "type": "string",
+                        "format": "base64",
+                        "description": "异常检测结果图。图像为JPEG格式，使用Base64编码"
+                    }
+                },
+                "required": [
+                    "labelMap",
+                    "size"
+                ]
+            }
+        }
+    }
+}

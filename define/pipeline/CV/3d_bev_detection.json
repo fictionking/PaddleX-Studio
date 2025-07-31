@@ -1,0 +1,130 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "3D多模态融合检测产线",
+    "description": "3D多模态融合检测产线支持输入多种传感器（激光雷达、环视RGB相机等）数据，通过深度学习等方法对数据进行处理，输出三维空间中物体的位置、形状、朝向、类别等信息。在自动驾驶、机器人导航、工业自动化等领域具有广泛应用。",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/bev-3d-object-detection": {
+      "post": {
+        "summary": "进行3D多模态融合检测",
+        "description": "使用激光雷达和RGB相机数据进行3D目标检测",
+        "operationId": "infer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tar": {
+                    "type": "string",
+                    "description": "服务器可访问的tar文件的URL或路径",
+                    "format": "uri"
+                  }
+                },
+                "required": [
+                  "tar"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "检测成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "description": "操作结果",
+                          "properties": {
+                            "detectedObjects": {
+                              "type": "array",
+                              "description": "目标的位置、类别等信息",
+                              "items": {
+                                "$ref": "#/components/schemas/DetectedObject"
+                              }
+                            }
+                          },
+                          "required": [
+                            "detectedObjects"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DetectedObject": {
+        "type": "object",
+        "description": "检测到的目标",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "minItems": 9,
+            "maxItems": 9,
+            "description": "长度为9的列表, 0: 中心点x坐标、1: 中心点y坐标、2: 中心点z坐标、3: 检测框宽度、4: 检测框长度、5: 检测框高度、6: 旋转角度、7: 坐标系x方向速度、8: 坐标系y方向速度"
+          },
+          "categoryId": {
+            "type": "integer",
+            "description": "目标类别ID"
+          },
+          "score": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "目标得分"
+          }
+        },
+        "required": [
+          "bbox",
+          "categoryId",
+          "score"
+        ]
+      }
+    }
+  }
+}

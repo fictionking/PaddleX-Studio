@@ -1,0 +1,142 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用目标检测产线",
+    "description": "目标检测旨在识别图像或视频中多个对象的类别及其位置，通过生成边界框来标记这些对象。与简单的图像分类不同，目标检测不仅需要识别出图像中有哪些物体，例如人、车和动物等，还需要准确地确定每个物体在图像中的具体位置，通常以矩形框的形式表示。该技术广泛应用于自动驾驶、监控系统和智能相册等领域，依赖于深度学习模型（如YOLO、Faster R-CNN等），这些模型能够高效地提取特征并进行实时检测，显著提升了计算机对图像内容理解的能力。"
+  },
+  "paths": {
+    "/object-detection": {
+      "post": {
+        "operationId": "infer",
+        "summary": "对图像进行目标检测",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                  },
+                  "threshold": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "object"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 threshold 参数相关说明。"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入 true：返回图像；传入 false：不返回图像；若请求体中未提供该参数或传入 null：遵循产线配置文件Serving.visualize 的设置。"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DetectedObject": {
+        "type": "object",
+        "description": "检测到的目标对象信息",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "description": "目标位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标。",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "categoryId": {
+            "type": "integer",
+            "description": "目标类别ID。"
+          },
+          "categoryName": {
+            "type": "string",
+            "description": "目标类别名称。"
+          },
+          "score": {
+            "type": "number",
+            "description": "目标得分。"
+          }
+        },
+        "required": ["bbox", "categoryId", "categoryName", "score"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "目标检测结果",
+        "properties": {
+          "detectedObjects": {
+            "type": "array",
+            "description": "目标的位置、类别等信息。",
+            "items": {
+              "$ref": "#/components/schemas/DetectedObject"
+            }
+          },
+          "image": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "null"}
+            ],
+            "description": "目标检测结果图。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["detectedObjects", "image"]
+      }
+    }
+  }
+}

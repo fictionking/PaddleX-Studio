@@ -1,0 +1,51 @@
+{
+  "openapi": "3.0.0",
+  "components": {
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "description": "成功响应",
+        "properties": {
+          "logId": {
+            "type": "string",
+            "description": "请求的UUID"
+          },
+          "errorCode": {
+            "type": "integer",
+            "description": "错误码，固定为0",
+            "enum": [0]
+          },
+          "errorMsg": {
+            "type": "string",
+            "description": "错误说明，固定为Success",
+            "enum": ["Success"]
+          },
+          "result": {
+            "type": "object",
+            "description": "操作结果"
+          }
+        },
+        "required": ["logId", "errorCode", "errorMsg", "result"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "错误响应",
+        "properties": {
+          "logId": {
+            "type": "string",
+            "description": "请求的UUID"
+          },
+          "errorCode": {
+            "type": "integer",
+            "description": "错误码，与响应状态码相同"
+          },
+          "errorMsg": {
+            "type": "string",
+            "description": "错误说明"
+          }
+        },
+        "required": ["logId", "errorCode", "errorMsg"]
+      }
+    }
+  }
+}

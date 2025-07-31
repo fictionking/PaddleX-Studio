@@ -1,0 +1,139 @@
+{
+   "openapi": "3.0.0",
+   "info": {
+      "title": "通用图像分类产线",
+      "description": "图像分类是一种将图像分配到预定义类别的技术。它广泛应用于物体识别、场景理解和自动标注等领域。图像分类可以识别各种物体，如动物、植物、交通标志等，并根据其特征将其归类。通过使用深度学习模型，图像分类能够自动提取图像特征并进行准确分类。本产线同时提供了灵活的服务化部署方式，支持在多种硬件上使用多种编程语言调用。不仅如此，本产线也提供了二次开发的能力，您可以基于本产线在您自己的数据集上训练调优，训练后的模型也可以无缝集成。",
+      "version": "1.0.0"
+   },
+   "paths": {
+      "/image-classification": {
+         "post": {
+            "operationId": "infer",
+            "summary": "图像分类",
+            "description": "对图像进行分类。",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "image": {
+                              "type": "string",
+                              "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                           },
+                           "topk": {
+                              "type": "integer",
+                              "nullable": true,
+                              "description": "请参阅产线对象中predict方法的topk参数相关说明。"
+                           },
+                           "visualize": {
+                              "type": "boolean",
+                              "nullable": true,
+                              "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若未提供或传入null：遵循产线配置文件Serving.visualize的设置。"
+                           }
+                        },
+                        "required": [
+                           "image"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "成功响应",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/InferResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "错误请求",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "components": {
+      "schemas": {
+         "Category": {
+            "type": "object",
+            "description": "图像类别信息",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "description": "类别ID。"
+               },
+               "name": {
+                  "type": "string",
+                  "description": "类别名称。"
+               },
+               "score": {
+                  "type": "number",
+                  "format": "float",
+                  "description": "类别得分。"
+               }
+            },
+            "required": [
+               "id",
+               "name",
+               "score"
+            ]
+         },
+         "InferResult": {
+            "type": "object",
+            "description": "图像分类结果",
+            "properties": {
+               "categories": {
+                  "type": "array",
+                  "items": {
+                     "$ref": "#/components/schemas/Category"
+                  },
+                  "description": "图像类别信息。"
+               },
+               "image": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "图像分类结果图。图像为JPEG格式，使用Base64编码。"
+               }
+            },
+            "required": [
+               "categories"
+            ]
+         }
+      }
+   }
+}

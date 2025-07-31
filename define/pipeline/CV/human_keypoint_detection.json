@@ -1,0 +1,154 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "人体关键点检测产线",
+    "description": "人体关键点检测旨在通过识别和定位人体的特定关节和部位，来实现对人体姿态和动作的分析。该任务不仅需要在图像中检测出人体，还需要精确获取人体的关键点位置，如肩膀、肘部、膝盖等，从而进行姿态估计和行为识别。人体关键点检测广泛应用于运动分析、健康监测、动画制作和人机交互等场景。",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/human-keypoint-detection": {
+      "post": {
+        "operationId": "infer",
+        "summary": "人体关键点检测",
+        "description": "对图像进行人体关键点检测。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                  },
+                  "detThreshold": {
+                    "type": "number",
+                    "format": "float",
+                    "nullable": true,
+                    "description": "人体检测模型阈值"
+                  },
+                  "visualize": {
+                    "type": "boolean",
+                    "nullable": true,
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若未提供或传入null：遵循产线配置文件Serving.visualize的设置。"
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "错误请求",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Person": {
+        "type": "object",
+        "description": "人体关键点检测结果",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "目标位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标。"
+          },
+          "kpts": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "关键点坐标。"
+          },
+          "detScore": {
+            "type": "number",
+            "format": "float",
+            "description": "检测得分。"
+          },
+          "kptScore": {
+            "type": "number",
+            "format": "float",
+            "description": "关键点得分。"
+          }
+        },
+        "required": [
+          "bbox",
+          "kpts",
+          "detScore",
+          "kptScore"
+        ]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "人体关键点检测结果",
+        "properties": {
+          "image": {
+            "type": "string",
+            "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+          },
+          "persons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            },
+            "description": "人体关键点检测结果。"
+          }
+        },
+        "required": [
+          "image",
+          "persons"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "开放词汇分割产线",
+    "description": "开放词汇分割是一项图像分割任务，旨在根据文本描述、边框、关键点等除图像以外的信息作为提示，分割图像中对应的物体。它允许模型处理广泛的对象类别，而无需预定义的类别列表。这项技术结合了视觉和多模态技术，极大地提高了图像处理的灵活性和精度。开放词汇分割在计算机视觉领域具有重要应用价值，尤其在复杂场景下的对象分割任务中表现突出。"
+  },
+  "paths": {
+    "/open-vocabulary-segmentation": {
+      "post": {
+        "operationId": "infer",
+        "summary": "对图像进行开放词汇目标分割",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                  },
+                  "prompt": {
+                    "type": "array",
+                    "description": "预测使用的提示。",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "promptType": {
+                    "type": "string",
+                    "description": "预测使用的提示类型。"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入 true：返回图像；传入 false：不返回图像；若请求体中未提供该参数或传入 null：遵循产线配置文件Serving.visualize 的设置。"
+                  }
+                },
+                "required": ["image", "prompt", "promptType"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MaskInfo": {
+        "type": "object",
+        "description": "分割结果对应的提示信息",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "生成mask所使用的prompt类别。"
+          },
+          "prompt": {
+            "type": "array",
+            "description": "prompt数组。",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["label", "prompt"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "开放词汇分割结果",
+        "properties": {
+          "masks": {
+            "type": "array",
+            "description": "分割的预测结果。注意：考虑到网络传输，masks字段中记录的分割结果经过rle编码，实际使用时需要使用pycocotools.mask.decode做对应的解码即可获得原始的分割结果。",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maskInfos": {
+            "type": "array",
+            "description": "和masks字段中的元素一一对应，记录masks中对应分割结果所使用的对应prompt。",
+            "items": {
+              "$ref": "#/components/schemas/MaskInfo"
+            }
+          },
+          "image": {
+            "type": "string",
+            "description": "分割结果图。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["masks", "maskInfos", "image"]
+      }
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用实例分割产线",
+    "description": "实例分割是一种计算机视觉任务，它不仅要识别图像中的物体类别，还要区分同一类别中不同实例的像素，从而实现对每个物体的精确分割。实例分割可以在同一图像中分别标记出每一辆车、每一个人或每一只动物，确保它们在像素级别上被独立处理。例如，在一幅包含多辆车和行人的街景图像中，实例分割能够将每辆车和每个人的轮廓清晰地分开，形成多个独立的区域标签。这项技术广泛应用于自动驾驶、视频监控和机器人视觉等领域，通常依赖于深度学习模型（如Mask R-CNN等），通过卷积神经网络来实现高效的像素分类和实例区分，为复杂场景的理解提供了强大的支持。",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/instance-segmentation": {
+      "post": {
+        "operationId": "infer",
+        "summary": "实例分割",
+        "description": "对图像进行实例分割。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                  },
+                  "threshold": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "请参阅产线对象中predict方法的threshold参数相关说明。"
+                  },
+                  "visualize": {
+                    "type": "boolean",
+                    "nullable": true,
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若未提供或传入null：遵循产线配置文件Serving.visualize的设置。"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "错误请求",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Mask": {
+        "type": "object",
+        "description": "实例的分割掩膜",
+        "properties": {
+          "rleResult": {
+            "type": "string",
+            "description": "掩膜的游程编码结果。"
+          },
+          "size": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "掩膜的形状。数组中元素依次为掩膜的高度和宽度。",
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": ["rleResult", "size"]
+      },
+      "Instance": {
+        "type": "object",
+        "description": "实例信息",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "实例位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标。",
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "categoryId": {
+            "type": "integer",
+            "description": "实例类别ID。"
+          },
+          "categoryName": {
+            "type": "string",
+            "description": "实例类别标签名。"
+          },
+          "score": {
+            "type": "number",
+            "format": "float",
+            "description": "实例得分。"
+          },
+          "mask": {
+            "$ref": "#/components/schemas/Mask",
+            "description": "实例的分割掩膜。"
+          }
+        },
+        "required": ["bbox", "categoryId", "categoryName", "score", "mask"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "实例分割结果",
+        "properties": {
+          "instances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Instance"
+            },
+            "description": "实例的位置、类别等信息。"
+          },
+          "image": {
+            "type": "string",
+            "nullable": true,
+            "description": "实例分割结果图。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["instances"]
+      }
+    }
+  }
+}

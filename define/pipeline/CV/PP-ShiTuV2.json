@@ -1,0 +1,433 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用图像识别产线",
+    "description": "通用图像识别产线旨在解决开放域目标定位及识别问题，目前 PaddleX 的通用图像识别产线支持 PP-ShiTuV2。\nPP-ShiTuV2 是一个实用的通用图像识别系统，主要由主体检测、特征学习和向量检索三个模块组成。该系统从骨干网络选择和调整、损失函数的选择、数据增强、学习率变换策略、正则化参数选择、预训练模型使用以及模型裁剪量化多个方面，融合改进多种策略，对各个模块进行优化，最终在多个实际应用场景上的检索性能均有较好效果。"
+  },
+  "paths": {
+    "/shitu-index-build": {
+      "post": {
+        "operationId": "buildIndex",
+        "summary": "构建特征向量索引",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imageLabelPairs": {
+                    "type": "array",
+                    "description": "用于构建索引的图像-标签对。",
+                    "items": {
+                      "$ref": "#/components/schemas/ImageLabelPair"
+                    }
+                  }
+                },
+                "required": ["imageLabelPairs"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/BuildIndexResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shitu-index-add": {
+      "post": {
+        "operationId": "addImagesToIndex",
+        "summary": "将图像（对应的特征向量）加入索引",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imageLabelPairs": {
+                    "type": "array",
+                    "description": "用于构建索引的图像-标签对。",
+                    "items": {
+                      "$ref": "#/components/schemas/ImageLabelPair"
+                    }
+                  },
+                  "indexKey": {
+                    "type": "string",
+                    "description": "索引对应的键。由buildIndex操作提供。"
+                  }
+                },
+                "required": ["imageLabelPairs", "indexKey"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/AddRemoveIndexResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shitu-index-remove": {
+      "post": {
+        "operationId": "removeImagesFromIndex",
+        "summary": "从索引中移除图像（对应的特征向量）",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "description": "需要从索引中移除的向量的ID。",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "indexKey": {
+                    "type": "string",
+                    "description": "索引对应的键。由buildIndex操作提供。"
+                  }
+                },
+                "required": ["ids", "indexKey"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/AddRemoveIndexResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shitu-infer": {
+      "post": {
+        "operationId": "infer",
+        "summary": "进行图像识别",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+                  },
+                  "indexKey": {
+                    "type": "string",
+                    "description": "索引对应的键。由buildIndex操作提供。"
+                  },
+                  "detThreshold": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 det_threshold 参数相关说明。"
+                  },
+                  "recThreshold": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 rec_threshold 参数相关说明。"
+                  },
+                  "hammingRadius": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 hamming_radius 参数相关说明。"
+                  },
+                  "topk": {
+                    "oneOf": [
+                      {"type": "integer"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中 predict 方法的 topk 参数相关说明。"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入 true：返回图像；传入 false：不返回图像；若请求体中未提供该参数或传入 null：遵循产线配置文件Serving.visualize 的设置。如果请求体和配置文件中均未设置（或请求体传入null、配置文件中未设置），则默认返回图像。"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ImageLabelPair": {
+        "type": "object",
+        "description": "图像-标签对",
+        "properties": {
+          "image": {
+            "type": "string",
+            "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果。"
+          },
+          "label": {
+            "type": "string",
+            "description": "标签。"
+          }
+        },
+        "required": ["image", "label"]
+      },
+      "BuildIndexResult": {
+        "type": "object",
+        "description": "构建索引的结果",
+        "properties": {
+          "indexKey": {
+            "type": "string",
+            "description": "索引对应的键，用于标识建立的索引。可用作其他操作的输入。"
+          },
+          "imageCount": {
+            "type": "integer",
+            "description": "索引的图像数量。"
+          }
+        },
+        "required": ["indexKey", "imageCount"]
+      },
+      "AddRemoveIndexResult": {
+        "type": "object",
+        "description": "添加或移除索引的结果",
+        "properties": {
+          "imageCount": {
+            "type": "integer",
+            "description": "索引的图像数量。"
+          }
+        },
+        "required": ["imageCount"]
+      },
+      "RecResult": {
+        "type": "object",
+        "description": "识别结果",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "标签。"
+          },
+          "score": {
+            "type": "number",
+            "description": "识别得分。"
+          }
+        },
+        "required": ["label", "score"]
+      },
+      "DetectedObject": {
+        "type": "object",
+        "description": "检测到的目标的信息",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "description": "目标位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标。",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "recResults": {
+            "type": "array",
+            "description": "识别结果。",
+            "items": {
+              "$ref": "#/components/schemas/RecResult"
+            }
+          },
+          "score": {
+            "type": "number",
+            "description": "检测得分。"
+          }
+        },
+        "required": ["bbox", "recResults", "score"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "图像识别结果",
+        "properties": {
+          "detectedObjects": {
+            "type": "array",
+            "description": "检测到的目标的信息。",
+            "items": {
+              "$ref": "#/components/schemas/DetectedObject"
+            }
+          },
+          "image": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "null"}
+            ],
+            "description": "识别结果图。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["detectedObjects", "image"]
+      }
+    }
+  }
+}
