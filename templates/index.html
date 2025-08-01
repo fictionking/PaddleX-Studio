@@ -280,7 +280,8 @@
                 { path: '/app', component: () => import('/components/AppList.vue') },
                 { path: '/dataset/:datasetId', component: () => import('/components/DatasetDetail.vue') },
                 { path: '/train/:modelId', component: () => import('/components/TrainDetail.vue') },
-                { path: '/app/:appId', component: () => import('/components/AppDetail.vue') }
+                { path: '/app/module/:appId', component: () => import('/components/ModelAppDetail.vue') },
+                { path: '/app/pipeline/:appId', component: () => import('/components/PipeLineAppDetail.vue') }
             ]
         })
         const colors = [

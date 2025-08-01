@@ -2,7 +2,7 @@
     <div id="applist">
         <el-row :gutter="20" class="list-container">
             <el-col :span="24">
-                <el-card class="list-card" v-for="(app, index) in apps" :key="index" @click="handleAppClick(app.id)">
+                <el-card class="list-card" v-for="(app, index) in apps" :key="index" @click="handleAppClick(app)">
                     <div class="listcard content">
                         <!-- 左侧内容 -->
                         <div class="listcard left-section">
@@ -101,10 +101,10 @@ export default {
         },
         /**
          * 处理应用卡片点击事件
-         * @param {string} appId - 应用ID
+         * @param {object} app - 应用对象
          */
-        handleAppClick(appId) {
-            this.$router.push(`/app/${appId}`);
+        handleAppClick(app) {
+            this.$router.push(`/app/${app.type}/${app.id}`);
         },
         /**
          * 处理应用删除操作
