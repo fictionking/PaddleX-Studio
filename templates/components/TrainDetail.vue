@@ -404,7 +404,7 @@ export default {
                         await axios.post(`/models/${this.newAppFormData.model_id}/createapp`, this.newAppFormData);
                         this.$message.success('应用创建成功');
                         this.showCreateAppDialog = false;
-                        this.$router.push(`/app/${this.newAppFormData.id}`);
+                        this.$router.push(`/app/module/${this.newAppFormData.id}`);
                     } catch (error) {
                         this.$message.error('应用创建失败:' + error.response.data.message);
                     }
