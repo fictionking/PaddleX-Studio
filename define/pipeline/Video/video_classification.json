@@ -1,0 +1,131 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用视频分类产线",
+    "description": "视频分类是一种将视频片段分配到预定义类别的技术。它广泛应用于动作识别、事件检测和内容推荐等领域。视频分类可以识别各种动态事件和场景，如体育活动、自然现象、交通状况等，并根据其特征将其归类。通过使用深度学习模型，尤其是卷积神经网络（CNN）和循环神经网络（RNN）的结合，视频分类能够自动提取视频中的时空特征并进行准确分类。这种技术在视频监控、媒体检索和个性化推荐系统中具有重要应用。\n通用视频分类产线用于解决视频分类任务，提取视频中的主题和类别信息以标签形式输出，本产线是一个集成了业界知名的 PP-TSM 和 PP-TSMv2的视频分类系统，支持400种视频类别的识别。基于本产线，可实现视频内容的精准分类，使用场景覆盖媒体、安防、教育、交通等各个领域。"
+  },
+  "paths": {
+    "/video-classification": {
+      "post": {
+        "operationId": "infer",
+        "summary": "对视频进行分类",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "分类成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "description": "视频分类请求",
+        "properties": {
+          "video": {
+            "type": "string",
+            "description": "服务器可访问的视频文件的URL或视频文件内容的Base64编码结果",
+            "required": true
+          },
+          "topk": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "description": "返回的最高置信度类别数量"
+              },
+              {
+                "type": "null",
+                "description": "遵循产线默认设置"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 topk 参数相关说明"
+          }
+        },
+        "required": ["video"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "视频分类结果",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "description": "视频类别信息",
+            "items": {
+              "$ref": "#/components/schemas/Category"
+            }
+          }
+        },
+        "required": ["categories"]
+      },
+      "Category": {
+        "type": "object",
+        "description": "视频类别",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "类别ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "类别名称"
+          },
+          "score": {
+            "type": "number",
+            "description": "类别得分"
+          }
+        },
+        "required": ["id", "name", "score"]
+      }
+    }
+  }
+}

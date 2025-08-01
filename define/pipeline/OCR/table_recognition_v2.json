@@ -1,0 +1,298 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用表格识别v2产线",
+    "description": "表格识别是一种自动从文档或图像中识别和提取表格内容及其结构的技术，广泛应用于数据录入、信息检索和文档分析等领域。通过使用计算机视觉和机器学习算法，表格识别能够将复杂的表格信息转换为可编辑的格式，方便用户进一步处理和分析数据。\n通用表格识别v2产线（PP-TableMagic）用于解决表格识别任务，对图片中的表格进行识别，并以HTML格式输出。与通用表格识别产线不同，本产线新引入了表格分类和表格单元格检测两个模块，通过采用\"表格分类+表格结构识别+单元格检测\"多模型串联组网方案，实现了相比通用表格识别产线更好的端到端表格识别性能。基于此，通用表格识别v2产线原生支持针对性地模型微调，各类开发者均能对通用表格识别v2产线进行不同程度的自定义微调，使其在不同应用场景下都能得到令人满意的性能。除此之外，通用表格识别v2产线同样支持使用端到端表格结构识别模型（例如 SLANet、SLANet_plus 等），并且支持有线表、无线表独立配置表格识别方式，开发者可以自由选取和组合最佳的表格识别方案。本产线的使用场景覆盖通用、制造、金融、交通等各个领域。"
+  },
+  "paths": {
+    "/table-recognition": {
+      "post": {
+        "operationId": "infer",
+        "summary": "定位并识别图中的表格",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。\n要解除页数限制，请在产线配置文件中添加以下配置：\nServing:\n  extra:\n    max_num_input_imgs: null",
+            "required": true
+          },
+          "fileType": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "enum": [0, 1],
+                "description": "文件类型。0表示PDF文件，1表示图像文件"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文件类型。0表示PDF文件，1表示图像文件。若请求体无此属性，则将根据URL推断文件类型。"
+          },
+          "useDocOrientationClassify": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_doc_orientation_classify 参数相关说明。"
+          },
+          "useDocUnwarping": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_doc_unwarping 参数相关说明。"
+          },
+          "useLayoutDetection": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_layout_detection 参数相关说明。"
+          },
+          "useOcrModel": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_ocr_model 参数相关说明。"
+          },
+          "textDetLimitSideLen": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 text_det_limit_side_len 参数相关说明。"
+          },
+          "textDetLimitType": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 text_det_limit_type 参数相关说明。"
+          },
+          "textDetThresh": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 text_det_thresh 参数相关说明。"
+          },
+          "textDetBoxThresh": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 text_det_box_thresh 参数相关说明。"
+          },
+          "textDetUnclipRatio": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 text_det_unclip_ratio 参数相关说明。"
+          },
+          "textRecScoreThresh": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 text_rec_score_thresh 参数相关说明。"
+          },
+          "useE2eWiredTableRecModel": {
+            "type": "boolean",
+            "description": "请参阅产线对象中 predict 方法的 use_e2e_wired_table_rec_model 参数相关说明。"
+          },
+          "useE2eWirelessTableRecModel": {
+            "type": "boolean",
+            "description": "请参阅产线对象中 predict 方法的 use_e2e_wireless_table_rec_model 参数相关说明。"
+          },
+          "useWiredTableCellsTransToHtml": {
+            "type": "boolean",
+            "description": "请参阅产线对象中 predict 方法的 use_wired_table_cells_trans_to_html 参数相关说明。"
+          },
+          "useWirelessTableCellsTransToHtml": {
+            "type": "boolean",
+            "description": "请参阅产线对象中 predict 方法的 use_wireless_table_cells_trans_to_html 参数相关说明。"
+          },
+          "useTableOrientationClassify": {
+            "type": "boolean",
+            "description": "请参阅产线对象中 predict 方法的 use_table_orientation_classify 参数相关说明。"
+          },
+          "useOcrResultsWithTableCells": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_ocr_results_with_table_cells 参数相关说明。"
+          },
+          "visualize": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "是否返回可视化结果图以及处理过程中的中间图像等。\n- 传入 true：返回图像。\n- 传入 false：不返回图像。\n- 若请求体中未提供该参数或传入 null：遵循产线配置文件Serving.visualize 的设置。\n例如，在产线配置文件中添加如下字段：\nServing:\n  visualize: False\n将默认不返回图像，通过请求体中的visualize参数可以覆盖默认行为。如果请求体和配置文件中均未设置（或请求体传入null、配置文件中未设置），则默认返回图像。"
+          }
+        },
+        "required": ["file"]
+      },
+      "InferResult": {
+        "type": "object",
+        "properties": {
+          "tableRecResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TableRecResult"
+            },
+            "description": "表格识别结果。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）。对于PDF输入，数组中的每个元素依次表示PDF文件中实际处理的每一页的结果。"
+          },
+          "dataInfo": {
+            "type": "object",
+            "description": "输入数据信息。"
+          }
+        },
+        "required": ["tableRecResults", "dataInfo"]
+      },
+      "TableRecResult": {
+        "type": "object",
+        "properties": {
+          "prunedResult": {
+            "type": "object",
+            "description": "产线对象的 predict 方法生成结果的 JSON 表示中 res 字段的简化版本，其中去除了 input_path 和 page_index 字段。"
+          },
+          "outputImages": {
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "参见产线预测结果的 img 属性说明。图像为JPEG格式，使用Base64编码。"
+          },
+          "inputImage": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "输入图像。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["prunedResult"]
+      }
+    }
+  }
+}

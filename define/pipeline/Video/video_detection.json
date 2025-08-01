@@ -1,0 +1,163 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用视频检测产线",
+    "description": "视频检测是一种识别和定位视频内容中特定对象或事件的技术，广泛应用于安防监控、交通管理和行为分析等领域。该技术能够实时捕捉和分析视频中的动态变化，如人员活动、车辆流动及异常事件等。通过深度学习模型，视频检测能够高效提取视频中的空间和时间特征，实现精准识别和定位。视频检测不仅提升了监控系统的智能化程度，还为提高安全性和运营效率提供了重要支撑。随着技术的发展，视频检测将在更多场景中发挥关键作用。"
+  },
+  "paths": {
+    "/video-detection": {
+      "post": {
+        "operationId": "infer",
+        "summary": "视频检测",
+        "description": "对视频进行检测，识别和定位视频中的特定对象或事件。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "description": "视频检测请求",
+        "properties": {
+          "video": {
+            "type": "string",
+            "description": "服务器可访问的视频文件的URL或视频文件内容的Base64编码结果"
+          },
+          "nmsThresh": {
+            "oneOf": [
+              {
+                "type": "number",
+                "description": "非极大值抑制阈值"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scoreThresh": {
+            "oneOf": [
+              {
+                "type": "number",
+                "description": "得分阈值"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["video"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "视频检测结果",
+        "properties": {
+          "frames": {
+            "type": "array",
+            "description": "每一帧的检测结果",
+            "items": {
+              "$ref": "#/components/schemas/Frame"
+            }
+          }
+        },
+        "required": ["frames"]
+      },
+      "Frame": {
+        "type": "object",
+        "description": "单帧检测结果",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "从0开始的帧编号"
+          },
+          "detectedObjects": {
+            "type": "array",
+            "description": "目标的位置、类别等信息",
+            "items": {
+              "$ref": "#/components/schemas/DetectedObject"
+            }
+          }
+        },
+        "required": ["index", "detectedObjects"]
+      },
+      "DetectedObject": {
+        "type": "object",
+        "description": "检测到的目标对象",
+        "properties": {
+          "bbox": {
+            "type": "array",
+            "description": "目标位置。数组中元素依次为边界框左上角x坐标、左上角y坐标、右下角x坐标以及右下角y坐标。",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "categoryName": {
+            "type": "string",
+            "description": "目标类别名称"
+          },
+          "score": {
+            "type": "number",
+            "description": "目标得分"
+          }
+        },
+        "required": ["bbox", "categoryName", "score"]
+      }
+    }
+  }
+}

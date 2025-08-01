@@ -1,0 +1,258 @@
+{
+   "openapi": "3.0.0",
+   "info": {
+      "title": "公式识别产线",
+      "description": "公式识别是一种自动从文档或图像中识别和提取LaTeX公式内容及其结构的技术，广泛应用于数学、物理、计算机科学等领域的文档编辑和数据分析。通过使用计算机视觉和机器学习算法，公式识别能够将复杂的数学公式信息转换为可编辑的LaTeX格式，方便用户进一步处理和分析数据。\n公式识别产线用于解决公式识别任务，提取图片中的公式信息以LaTeX源码形式输出，本产线是一个集成了百度飞桨视觉团队自研的先进公式识别模型PP-FormulaNet 和业界知名公式识别模型 UniMERNet的端到端公式识别系统，支持简单印刷公式、复杂印刷公式、手写公式的识别，并在此基础上，增加了对图像的方向矫正和扭曲矫正功能。基于本产线，可实现公式内容精准预测，使用场景覆盖教育、科研、金融、制造等各个领域。"
+   },
+   "paths": {
+      "/formula-recognition": {
+         "post": {
+            "operationId": "infer",
+            "summary": "获取图像公式识别结果",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "file": {
+                              "type": "string",
+                              "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。要解除页数限制，请在产线配置文件中添加配置：Serving.extra.max_num_input_imgs: null"
+                           },
+                           "fileType": {
+                              "oneOf": [
+                                 {
+                                    "type": "integer",
+                                    "description": "文件类型",
+                                    "enum": [
+                                       0,
+                                       1
+                                    ],
+                                    "enumDescriptions": [
+                                       "PDF文件",
+                                       "图像文件"
+                                    ]
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "文件类型。0表示PDF文件，1表示图像文件。若请求体无此属性，则将根据URL推断文件类型。"
+                           },
+                           "useDocOrientationClassify": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否使用文档方向分类功能。"
+                           },
+                           "useDocUnwarping": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否使用文档形变矫正功能。"
+                           },
+                           "useLayoutDetection": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否使用版面检测功能。"
+                           },
+                           "layoutThreshold": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "版面检测的阈值参数。"
+                           },
+                           "layoutNms": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否使用非极大值抑制算法。"
+                           },
+                           "layoutUnclipRatio": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "array",
+                                    "items": {
+                                       "type": "number"
+                                    }
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "版面检测的非裁剪比例参数。"
+                           },
+                           "layoutMergeBboxesMode": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "版面检测的合并边界框模式。"
+                           },
+                           "visualize": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否返回可视化结果图以及处理过程中的中间图像等。true：返回图像；false：不返回图像；null：遵循产线配置文件Serving.visualize的设置。"
+                           }
+                        },
+                        "required": [
+                           "file"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "处理成功",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/InferResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "请求参数错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "components": {
+      "schemas": {
+         "InferResult": {
+            "type": "object",
+            "description": "公式识别结果",
+            "properties": {
+               "formulaRecResults": {
+                  "type": "array",
+                  "description": "公式识别结果数组。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）。",
+                  "items": {
+                     "$ref": "#/components/schemas/FormulaRecResult"
+                  }
+               },
+               "dataInfo": {
+                  "$ref": "#/components/schemas/DataInfo"
+               }
+            },
+            "required": [
+               "formulaRecResults",
+               "dataInfo"
+            ]
+         },
+         "FormulaRecResult": {
+            "type": "object",
+            "description": "单页公式识别结果",
+            "properties": {
+               "prunedResult": {
+                  "type": "object",
+                  "description": "产线对象的predict方法生成结果的JSON表示中res字段的简化版本，其中去除了input_path和page_index字段。"
+               },
+               "outputImages": {
+                  "oneOf": [
+                     {
+                        "type": "object",
+                        "description": "可视化结果图。图像为JPEG格式，使用Base64编码。"
+                     },
+                     {
+                        "type": "null"
+                     }
+                  ]
+               },
+               "inputImage": {
+                  "oneOf": [
+                     {
+                        "type": "string",
+                        "description": "输入图像。图像为JPEG格式，使用Base64编码。"
+                     },
+                     {
+                        "type": "null"
+                     }
+                  ]
+               }
+            },
+            "required": [
+               "prunedResult"
+            ]
+         },
+         "DataInfo": {
+            "type": "object",
+            "description": "输入数据信息"
+         }
+      }
+   }
+}

@@ -1,0 +1,124 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "时序分类产线",
+    "description": "时序分类是一种将时间序列数据归类到预定义类别的技术，广泛应用于行为识别、金融趋势分析等领域。它通过分析随时间变化的特征，识别出不同的模式或事件，例如将一段语音信号分类为\"问候\"或\"请求\"，或将股票价格走势划分为\"上涨\"或\"下跌\"。时序分类通常使用机器学习和深度学习模型，能够有效捕捉时间依赖性和变化规律，以便为数据提供准确的分类标签。这项技术在智能监控、市场预测等应用中起着关键作用。"
+  },
+  "paths": {
+    "/time-series-classification": {
+      "post": {
+        "operationId": "infer",
+        "summary": "对时序数据进行分类",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "分类成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "description": "时序分类请求",
+        "properties": {
+          "csv": {
+            "type": "string",
+            "description": "服务器可访问的CSV文件的URL或CSV文件内容的Base64编码结果。CSV文件需要使用UTF-8编码"
+          },
+          "visualize": {
+            "oneOf": [
+              {
+                "type": "boolean",
+                "description": "是否返回可视化结果图以及处理过程中的中间图像等"
+              },
+              {
+                "type": "null",
+                "description": "遵循产线配置文件Serving.visualize的设置"
+              }
+            ],
+            "description": "是否返回可视化结果图以及处理过程中的中间图像等。true：返回图像；false：不返回图像；null或未提供：遵循产线配置文件Serving.visualize的设置"
+          }
+        },
+        "required": ["csv"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "时序分类结果",
+        "properties": {
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "时序分类结果图。图像为JPEG格式，使用Base64编码"
+              },
+              {
+                "type": "null",
+                "description": "不返回图像"
+              }
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "类别标签"
+          },
+          "score": {
+            "type": "number",
+            "description": "类别得分"
+          }
+        },
+        "required": ["label", "score"]
+      }
+    }
+  }
+}

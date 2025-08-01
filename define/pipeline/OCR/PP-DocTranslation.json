@@ -1,0 +1,719 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用文档翻译产线",
+    "description": "通用文档翻译产线（PP-DocTranslation）是飞桨提供的文档智能翻译解决方案，融合了先进的通用版面解析技术与大语言模型（LLM）能力，为您提供高效的文档智能翻译服务。该解决方案能够精准识别并提取文档中的各类元素，包括文本块、标题、段落、图片、表格及其他复杂版面结构，并在此基础之上实现高质量的多语种互译。PP-DocTranslation 支持多种主流语言间的相互翻译，尤其擅长处理排版复杂、上下文依赖性强的文档场景，力求输出精准自然、流畅专业的翻译结果。",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/doctrans-visual": {
+      "post": {
+        "operationId": "analyzeImages",
+        "summary": "使用计算机视觉模型对图像进行分析",
+        "description": "获得OCR、表格识别结果等。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。要解除页数限制，请在产线配置文件中添加配置：Serving.extra.max_num_input_imgs: null"
+                  },
+                  "fileType": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "enum": [0, 1],
+                        "description": "0表示PDF文件，1表示图像文件"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "文件类型。若请求体无此属性，则将根据URL推断文件类型。"
+                  },
+                  "useDocOrientationClassify": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_doc_orientation_classify参数相关说明。"
+                  },
+                  "useDocUnwarping": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_doc_unwarping参数相关说明。"
+                  },
+                  "useTextlineOrientation": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_textline_orientation参数相关说明。"
+                  },
+                  "useSealRecognition": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_seal_recognition参数相关说明。"
+                  },
+                  "useTableRecognition": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_table_recognition参数相关说明。"
+                  },
+                  "useFormulaRecognition": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_formula_recognition参数相关说明。"
+                  },
+                  "useChartRecognition": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_chart_recognition参数相关说明。"
+                  },
+                  "useRegionDetection": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_region_detection参数相关说明。"
+                  },
+                  "layoutThreshold": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的layout_threshold参数相关说明。"
+                  },
+                  "layoutNms": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的layout_nms参数相关说明。"
+                  },
+                  "layoutUnclipRatio": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "array"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的layout_unclip_ratio参数相关说明。"
+                  },
+                  "layoutMergeBboxesMode": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的layout_merge_bboxes_mode参数相关说明。"
+                  },
+                  "textDetLimitSideLen": {
+                    "oneOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_limit_side_len参数相关说明。"
+                  },
+                  "textDetLimitType": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_limit_type参数相关说明。"
+                  },
+                  "textDetThresh": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_thresh参数相关说明。"
+                  },
+                  "textDetBoxThresh": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_box_thresh参数相关说明。"
+                  },
+                  "textDetUnclipRatio": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_unclip_ratio参数相关说明。"
+                  },
+                  "textRecScoreThresh": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_rec_score_thresh参数相关说明。"
+                  },
+                  "sealDetLimitSideLen": {
+                    "oneOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的seal_det_limit_side_len参数相关说明。"
+                  },
+                  "sealDetLimitType": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的seal_det_limit_type参数相关说明。"
+                  },
+                  "sealDetThresh": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的seal_det_thresh参数相关说明。"
+                  },
+                  "sealDetBoxThresh": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的seal_det_box_thresh参数相关说明。"
+                  },
+                  "sealDetUnclipRatio": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的seal_det_unclip_ratio参数相关说明。"
+                  },
+                  "sealRecScoreThresh": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的seal_rec_score_thresh参数相关说明。"
+                  },
+                  "useWiredTableCellsTransToHtml": {
+                    "type": "boolean",
+                    "description": "请参阅产线对象中predict方法的use_wired_table_cells_trans_to_html参数相关说明。"
+                  },
+                  "useWirelessTableCellsTransToHtml": {
+                    "type": "boolean",
+                    "description": "请参阅产线对象中predict方法的use_wireless_table_cells_trans_to_html参数相关说明。"
+                  },
+                  "useTableOrientationClassify": {
+                    "type": "boolean",
+                    "description": "请参阅产线对象中predict方法的use_table_orientation_classify参数相关说明。"
+                  },
+                  "useOcrResultsWithTableCells": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_ocr_results_with_table_cells参数相关说明。"
+                  },
+                  "useE2eWiredTableRecModel": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_e2e_wired_table_rec_model参数相关说明。"
+                  },
+                  "useE2eWirelessTableRecModel": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_e2e_wireless_table_rec_model参数相关说明。"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若未提供或传入null：遵循产线配置文件Serving.visualize的设置。"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/VisualResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctrans-translate": {
+      "post": {
+        "operationId": "translate",
+        "summary": "利用大模型翻译文档",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "markdownList": {
+                    "type": "array",
+                    "description": "待翻译的Markdown列表。可从analyzeImages操作的结果中获取。images属性将不会被用到。",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "images": {
+                          "type": "object"
+                        },
+                        "isStart": {
+                          "type": "boolean"
+                        },
+                        "isEnd": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "minItems": 1
+                  },
+                  "targetLanguage": {
+                    "type": "string",
+                    "description": "请参阅产线对象中translate方法的target_language参数相关说明。"
+                  },
+                  "chunkSize": {
+                    "type": "integer",
+                    "description": "请参阅产线对象中translate方法的chunk_size参数相关说明。"
+                  },
+                  "taskDescription": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的task_description参数相关说明。"
+                  },
+                  "outputFormat": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的output_format参数相关说明。"
+                  },
+                  "rulesStr": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的rules_str参数相关说明。"
+                  },
+                  "fewShotDemoTextContent": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的few_shot_demo_text_content参数相关说明。"
+                  },
+                  "fewShotDemoKeyValueList": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的few_shot_demo_key_value_list参数相关说明。"
+                  },
+                  "llmRequestInterval": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的llm_request_interval参数相关说明。"
+                  },
+                  "chatBotConfig": {
+                    "oneOf": [
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "请参阅产线对象中translate方法的chat_bot_config参数相关说明。"
+                  }
+                },
+                "required": ["markdownList"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/TranslationResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "VisualResult": {
+        "type": "object",
+        "description": "视觉分析结果",
+        "properties": {
+          "layoutParsingResults": {
+            "type": "array",
+            "description": "版面解析结果。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）。",
+            "items": {
+              "$ref": "#/components/schemas/LayoutParsingResult"
+            }
+          },
+          "dataInfo": {
+            "$ref": "#/components/schemas/DataInfo"
+          }
+        },
+        "required": ["layoutParsingResults", "dataInfo"]
+      },
+      "LayoutParsingResult": {
+        "type": "object",
+        "description": "单页版面解析结果",
+        "properties": {
+          "prunedResult": {
+            "type": "object",
+            "description": "产线对象的visual_predict方法生成的layout_parsing_result的JSON表示中res字段的简化版本。"
+          },
+          "markdown": {
+            "$ref": "#/components/schemas/Markdown"
+          },
+          "outputImages": {
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "产线预测结果的img属性说明。图像为JPEG格式，使用Base64编码。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inputImage": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "输入图像。图像为JPEG格式，使用Base64编码。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["prunedResult", "markdown"]
+      },
+      "Markdown": {
+        "type": "object",
+        "description": "Markdown结果",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Markdown文本。"
+          },
+          "images": {
+            "type": "object",
+            "description": "Markdown图片相对路径和Base64编码图像的键值对。"
+          },
+          "isStart": {
+            "type": "boolean",
+            "description": "当前页面第一个元素是否为段开始。"
+          },
+          "isEnd": {
+            "type": "boolean",
+            "description": "当前页面最后一个元素是否为段结束。"
+          }
+        },
+        "required": ["text", "images", "isStart", "isEnd"]
+      },
+      "TranslationResult": {
+        "type": "object",
+        "description": "翻译结果",
+        "properties": {
+          "translationResults": {
+            "type": "array",
+            "description": "翻译结果数组",
+            "items": {
+              "$ref": "#/components/schemas/TranslationItem"
+            }
+          }
+        },
+        "required": ["translationResults"]
+      },
+      "TranslationItem": {
+        "type": "object",
+        "description": "单条翻译结果",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "目标语言。"
+          },
+          "markdown": {
+            "$ref": "#/components/schemas/Markdown"
+          }
+        },
+        "required": ["language", "markdown"]
+      },
+      "DataInfo": {
+        "type": "object",
+        "description": "输入数据信息",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "文件名"
+          },
+          "fileSize": {
+            "type": "integer",
+            "description": "文件大小（字节）"
+          },
+          "fileType": {
+            "type": "string",
+            "description": "文件类型"
+          }
+        }
+      }
+    }
+  }
+}

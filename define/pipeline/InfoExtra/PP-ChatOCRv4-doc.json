@@ -1,0 +1,854 @@
+{
+   "openapi": "3.0.0",
+   "info": {
+      "title": "文档场景信息抽取v4产线",
+      "description": "文档场景信息抽取v4（PP-ChatOCRv4）是飞桨特色的文档和图像智能分析解决方案，结合了 LLM、MLLM 和 OCR 技术，一站式解决版面分析、生僻字、多页 pdf、表格、印章识别等常见的复杂文档信息抽取难点问题，结合文心大模型将海量数据和知识相融合，准确率高且应用广泛。",
+      "version": "1.0.0"
+   },
+   "paths": {
+      "/chatocr-visual": {
+         "post": {
+            "operationId": "analyzeImages",
+            "summary": "图像分析",
+            "description": "使用计算机视觉模型对图像进行分析，获得OCR、表格识别结果等，并提取图像中的关键信息。",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "file": {
+                              "type": "string",
+                              "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。要解除页数限制，请在产线配置文件中添加配置：Serving.extra.max_num_input_imgs: null"
+                           },
+                           "fileType": {
+                              "oneOf": [
+                                 {
+                                    "type": "integer",
+                                    "description": "文件类型，0表示PDF文件，1表示图像文件"
+                                 },
+                                 {
+                                    "type": "null",
+                                    "description": "不指定文件类型，将根据URL推断"
+                                 }
+                              ]
+                           },
+                           "useDocOrientationClassify": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的use_doc_orientation_classify参数相关说明"
+                           },
+                           "useDocUnwarping": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的use_doc_unwarping参数相关说明"
+                           },
+                           "useTextlineOrientation": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的use_textline_orientation参数相关说明"
+                           },
+                           "useSealRecognition": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的use_seal_recognition参数相关说明"
+                           },
+                           "useTableRecognition": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的use_table_recognition参数相关说明"
+                           },
+                           "layoutThreshold": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的layout_threshold参数相关说明"
+                           },
+                           "layoutNms": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的layout_nms参数相关说明"
+                           },
+                           "layoutUnclipRatio": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "array",
+                                    "items": {
+                                       "type": "number"
+                                    }
+                                 },
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的layout_unclip_ratio参数相关说明"
+                           },
+                           "layoutMergeBboxesMode": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的layout_merge_bboxes_mode参数相关说明"
+                           },
+                           "textDetLimitSideLen": {
+                              "oneOf": [
+                                 {
+                                    "type": "integer"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的text_det_limit_side_len参数相关说明"
+                           },
+                           "textDetLimitType": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的text_det_limit_type参数相关说明"
+                           },
+                           "textDetThresh": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的text_det_thresh参数相关说明"
+                           },
+                           "textDetBoxThresh": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的text_det_box_thresh参数相关说明"
+                           },
+                           "textDetUnclipRatio": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的text_det_unclip_ratio参数相关说明"
+                           },
+                           "textRecScoreThresh": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的text_rec_score_thresh参数相关说明"
+                           },
+                           "sealDetLimitSideLen": {
+                              "oneOf": [
+                                 {
+                                    "type": "integer"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的seal_det_limit_side_len参数相关说明"
+                           },
+                           "sealDetLimitType": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的seal_det_limit_type参数相关说明"
+                           },
+                           "sealDetThresh": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的seal_det_thresh参数相关说明"
+                           },
+                           "sealDetBoxThresh": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的seal_det_box_thresh参数相关说明"
+                           },
+                           "sealDetUnclipRatio": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的seal_det_unclip_ratio参数相关说明"
+                           },
+                           "sealRecScoreThresh": {
+                              "oneOf": [
+                                 {
+                                    "type": "number"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中visual_predict方法的seal_rec_score_thresh参数相关说明"
+                           },
+                           "visualize": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否返回可视化结果图以及处理过程中的中间图像等。true：返回图像；false：不返回图像；null：遵循产线配置文件Serving.visualize的设置"
+                           }
+                        },
+                        "required": [
+                           "file"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "分析成功",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/AnalyzeImagesResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "请求参数错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/chatocr-vector": {
+         "post": {
+            "operationId": "buildVectorStore",
+            "summary": "构建向量数据库",
+            "description": "构建向量数据库",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "visualInfo": {
+                              "type": "array",
+                              "description": "图像中的关键信息，由analyzeImages操作提供"
+                           },
+                           "minCharacters": {
+                              "type": "integer",
+                              "description": "请参阅产线对象中build_vector方法的min_characters参数相关说明"
+                           },
+                           "blockSize": {
+                              "type": "integer",
+                              "description": "请参阅产线对象中build_vector方法的block_size参数相关说明"
+                           },
+                           "retrieverConfig": {
+                              "oneOf": [
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中build_vector方法的retriever_config参数相关说明"
+                           }
+                        },
+                        "required": [
+                           "visualInfo"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "构建成功",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/BuildVectorStoreResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "请求参数错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/chatocr-mllm": {
+         "post": {
+            "operationId": "invokeMLLM",
+            "summary": "调用多模态大模型",
+            "description": "调用多模态大模型",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "image": {
+                              "type": "string",
+                              "description": "服务器可访问的图像文件的URL或图像文件内容的Base64编码结果"
+                           },
+                           "keyList": {
+                              "type": "array",
+                              "items": {
+                                 "type": "string"
+                              },
+                              "description": "键列表"
+                           },
+                           "mllmChatBotConfig": {
+                              "oneOf": [
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中mllm_pred方法的mllm_chat_bot_config参数相关说明"
+                           }
+                        },
+                        "required": [
+                           "image",
+                           "keyList"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "调用成功",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/InvokeMLLMResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "请求参数错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/chatocr-chat": {
+         "post": {
+            "operationId": "chat",
+            "summary": "与大语言模型交互",
+            "description": "与大语言模型交互，利用大语言模型提炼关键信息",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "keyList": {
+                              "type": "array",
+                              "items": {
+                                 "type": "string"
+                              },
+                              "description": "键列表"
+                           },
+                           "visualInfo": {
+                              "type": "object",
+                              "description": "图像中的关键信息，由analyzeImages操作提供"
+                           },
+                           "useVectorRetrieval": {
+                              "type": "boolean",
+                              "description": "请参阅产线对象中chat方法的use_vector_retrieval参数相关说明"
+                           },
+                           "vectorInfo": {
+                              "oneOf": [
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "向量数据库序列化结果，由buildVectorStore操作提供。请注意，反序列化过程需要进行unpickle操作，为了防止恶意攻击，请确保使用可信任来源的数据"
+                           },
+                           "minCharacters": {
+                              "type": "integer",
+                              "description": "请参阅产线对象中chat方法的min_characters参数相关说明"
+                           },
+                           "textTaskDescription": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的text_task_description参数相关说明"
+                           },
+                           "textOutputFormat": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的text_output_format参数相关说明"
+                           },
+                           "textRulesStr": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的text_rules_str参数相关说明"
+                           },
+                           "textFewShotDemoTextContent": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的text_few_shot_demo_text_content参数相关说明"
+                           },
+                           "textFewShotDemoKeyValueList": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的text_few_shot_demo_key_value_list参数相关说明"
+                           },
+                           "tableTaskDescription": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的table_task_description参数相关说明"
+                           },
+                           "tableOutputFormat": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的table_output_format参数相关说明"
+                           },
+                           "tableRulesStr": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的table_rules_str参数相关说明"
+                           },
+                           "tableFewShotDemoTextContent": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的table_few_shot_demo_text_content参数相关说明"
+                           },
+                           "tableFewShotDemoKeyValueList": {
+                              "oneOf": [
+                                 {
+                                    "type": "string"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的table_few_shot_demo_key_value_list参数相关说明"
+                           },
+                           "mllmPredictInfo": {
+                              "oneOf": [
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "多模态大模型调用结果，由invokeMllm操作提供"
+                           },
+                           "mllmIntegrationStrategy": {
+                              "type": "string",
+                              "description": "请参阅产线对象中chat方法的mllm_integration_strategy参数相关说明"
+                           },
+                           "chatBotConfig": {
+                              "oneOf": [
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的chat_bot_config参数相关说明"
+                           },
+                           "retrieverConfig": {
+                              "oneOf": [
+                                 {
+                                    "type": "object"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "请参阅产线对象中chat方法的retriever_config参数相关说明"
+                           }
+                        },
+                        "required": [
+                           "keyList",
+                           "visualInfo"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "交互成功",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/ChatResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "请求参数错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "components": {
+      "schemas": {
+         "AnalyzeImagesResult": {
+            "type": "object",
+            "description": "图像分析结果",
+            "properties": {
+               "layoutParsingResults": {
+                  "type": "array",
+                  "description": "使用计算机视觉模型得到的分析结果。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）",
+                  "items": {
+                     "type": "object",
+                     "properties": {
+                        "prunedResult": {
+                           "type": "object",
+                           "description": "产线对象的visual_predict方法生成的layout_parsing_result的JSON表示中res字段的简化版本"
+                        },
+                        "outputImages": {
+                           "oneOf": [
+                              {
+                                 "type": "object"
+                              },
+                              {
+                                 "type": "null"
+                              }
+                           ],
+                           "description": "参见产线视觉预测结果的img属性说明"
+                        },
+                        "inputImage": {
+                           "oneOf": [
+                              {
+                                 "type": "string"
+                              },
+                              {
+                                 "type": "null"
+                              }
+                           ],
+                           "description": "输入图像。图像为JPEG格式，使用Base64编码"
+                        }
+                     }
+                  }
+               },
+               "visualInfo": {
+                  "type": "array",
+                  "description": "图像中的关键信息，可用作其他操作的输入"
+               },
+               "dataInfo": {
+                  "type": "object",
+                  "description": "输入数据信息"
+               }
+            }
+         },
+         "BuildVectorStoreResult": {
+            "type": "object",
+            "description": "构建向量数据库结果",
+            "properties": {
+               "vectorInfo": {
+                  "type": "object",
+                  "description": "向量数据库序列化结果，可用作其他操作的输入"
+               }
+            }
+         },
+         "InvokeMLLMResult": {
+            "type": "object",
+            "description": "调用多模态大模型结果",
+            "properties": {
+               "mllmPredictInfo": {
+                  "type": "object",
+                  "description": "多模态大模型调用结果"
+               }
+            }
+         },
+         "ChatResult": {
+            "type": "object",
+            "description": "与大语言模型交互结果",
+            "properties": {
+               "chatResult": {
+                  "type": "object",
+                  "description": "关键信息抽取结果"
+               }
+            }
+         }
+      }
+   }
+}

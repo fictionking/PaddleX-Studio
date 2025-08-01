@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "时序预测产线",
+    "description": "时序预测是一种利用历史数据来预测未来趋势的技术，通过分析时间序列数据的变化模式。广泛应用于金融市场、天气预报和销售预测等领域。时序预测通常使用统计方法或深度学习模型（如LSTM、ARIMA等），能够处理数据中的时间依赖性，以提供准确的预判，帮助决策者做出更好的规划和响应。此技术在许多行业中发挥着重要作用，如能源管理、供应链优化和市场分析等。"
+  },
+  "paths": {
+    "/time-series-forecasting": {
+      "post": {
+        "operationId": "infer",
+        "summary": "进行时序预测",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "预测成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "description": "时序预测请求",
+        "properties": {
+          "csv": {
+            "type": "string",
+            "description": "服务器可访问的CSV文件的URL或CSV文件内容的Base64编码结果。CSV文件需要使用UTF-8编码",
+            "required": true
+          },
+          "visualize": {
+            "oneOf": [
+              {
+                "type": "boolean",
+                "description": "是否返回可视化结果图以及处理过程中的中间图像等"
+              },
+              {
+                "type": "null",
+                "description": "遵循产线配置文件Serving.visualize的设置"
+              }
+            ],
+            "description": "是否返回可视化结果图以及处理过程中的中间图像等。true：返回图像；false：不返回图像；null或未提供：遵循产线配置文件Serving.visualize的设置"
+          }
+        },
+        "required": ["csv"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "时序预测结果",
+        "properties": {
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "时序预测结果图。图像为JPEG格式，使用Base64编码"
+              },
+              {
+                "type": "null",
+                "description": "不返回图像"
+              }
+            ]
+          },
+          "csv": {
+            "type": "string",
+            "description": "CSV格式的时序预测结果。使用UTF-8+Base64编码"
+          }
+        },
+        "required": ["csv"]
+      }
+    }
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "通用OCR产线",
+    "description": "通用 OCR 产线用于解决文字识别任务，提取图片中的文字信息以文本形式输出，本产线集成了 PP-OCRv5 和 PP-OCRv4 的端到端 OCR 串联系统，支持超过 80 种语言的识别，并在此基础上，增加了对图像的方向矫正和扭曲矫正功能。基于本产线，可实现 CPU 上毫秒级的文本内容精准预测，使用场景覆盖通用、制造、金融、交通等各个领域。"
+  },
+  "paths": {
+    "/ocr": {
+      "post": {
+        "operationId": "infer",
+        "summary": "获取图像OCR结果",
+        "description": "对输入的图像或PDF文件进行OCR识别，提取文字信息",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。要解除页数限制，请在产线配置文件中添加以下配置：\nServing:\n  extra:\n    max_num_input_imgs: null",
+                    "required": true
+                  },
+                  "fileType": {
+                    "oneOf": [
+                      {"type": "integer", "enum": [0, 1], "description": "0表示PDF文件，1表示图像文件"},
+                      {"type": "null"}
+                    ],
+                    "description": "文件类型。0表示PDF文件，1表示图像文件。若请求体无此属性，则将根据URL推断文件类型。"
+                  },
+                  "useDocUnwarping": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_doc_unwarping参数相关说明。"
+                  },
+                  "useTextlineOrientation": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_textline_orientation参数相关说明。"
+                  },
+                  "textDetLimitSideLen": {
+                    "oneOf": [
+                      {"type": "integer"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_limit_side_len参数相关说明。"
+                  },
+                  "textDetLimitType": {
+                    "oneOf": [
+                      {"type": "string"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_limit_type参数相关说明。"
+                  },
+                  "textDetThresh": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_thresh参数相关说明。"
+                  },
+                  "textDetBoxThresh": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_box_thresh参数相关说明。"
+                  },
+                  "textDetUnclipRatio": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_det_unclip_ratio参数相关说明。"
+                  },
+                  "textRecScoreThresh": {
+                    "oneOf": [
+                      {"type": "number"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的text_rec_score_thresh参数相关说明。"
+                  },
+                  "visualize": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "是否返回可视化结果图以及处理过程中的中间图像等。传入true：返回图像；传入false：不返回图像；若请求体中未提供该参数或传入null：遵循产线配置文件Serving.visualize的设置。例如，在产线配置文件中添加如下字段：Serving:\n  visualize: False 将默认不返回图像，通过请求体中的visualize参数可以覆盖默认行为。如果请求体和配置文件中均未设置（或请求体传入null、配置文件中未设置），则默认返回图像。"
+                  },
+                  "useDocOrientationClassify": {
+                    "oneOf": [
+                      {"type": "boolean"},
+                      {"type": "null"}
+                    ],
+                    "description": "请参阅产线对象中predict方法的use_doc_orientation_classify参数相关说明。"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {"$ref": "#/components/schemas/SuccessResponse"},
+                    {"type": "object", "properties": {
+                      "result": {"$ref": "#/components/schemas/InferResult"}
+                    }}
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferResult": {
+        "type": "object",
+        "description": "OCR识别结果",
+        "properties": {
+          "ocrResults": {
+            "type": "array",
+            "description": "OCR结果。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）。对于PDF输入，数组中的每个元素依次表示PDF文件中实际处理的每一页的结果。",
+            "items": {"$ref": "#/components/schemas/OCRResult"}
+          },
+          "dataInfo": {
+            "$ref": "#/components/schemas/DataInfo"
+          }
+        },
+        "required": ["ocrResults", "dataInfo"]
+      },
+      "OCRResult": {
+        "type": "object",
+        "description": "单页OCR识别结果",
+        "properties": {
+          "prunedResult": {
+            "type": "object",
+            "description": "产线对象的predict方法生成结果的JSON表示中res字段的简化版本，其中去除了input_path和page_index字段。"
+          },
+          "ocrImage": {
+            "oneOf": [
+              {"type": "string", "description": "OCR结果图，其中标注检测到的文本位置。图像为JPEG格式，使用Base64编码。"},
+              {"type": "null"}
+            ]
+          },
+          "docPreprocessingImage": {
+            "oneOf": [
+              {"type": "string", "description": "可视化结果图像。图像为JPEG格式，使用Base64编码。"},
+              {"type": "null"}
+            ]
+          },
+          "inputImage": {
+            "oneOf": [
+              {"type": "string", "description": "输入图像。图像为JPEG格式，使用Base64编码。"},
+              {"type": "null"}
+            ]
+          }
+        },
+        "required": ["prunedResult"]
+      },
+      "DataInfo": {
+        "type": "object",
+        "description": "输入数据信息",
+        "properties": {}
+      },
+      "SuccessResponse": {
+        "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+      },
+      "ErrorResponse": {
+        "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+      }
+    }
+  }
+}

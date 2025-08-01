@@ -1,0 +1,156 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "多语种语音识别产线",
+    "description": "语音识别是一种先进的工具，它能够将人类口述的多种语言自动转换为相应的文本或命令。该技术还在智能客服、语音助手、会议记录等多个领域发挥着重要作用。多语种语音识别则可以支持自动进行语种检索，支持多种不同语言的语音的识别。"
+  },
+  "paths": {
+    "/multilingual-speech-recognition": {
+      "post": {
+        "operationId": "infer",
+        "summary": "对音频进行多语种语音识别",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "识别成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "description": "语音识别请求",
+        "properties": {
+          "audio": {
+            "type": "string",
+            "description": "服务器可访问的音频文件的URL或路径"
+          }
+        },
+        "required": ["audio"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "语音识别结果",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "语音识别结果文本"
+          },
+          "segments": {
+            "type": "array",
+            "description": "带时间戳的结果文本",
+            "items": {
+              "$ref": "#/components/schemas/Segment"
+            }
+          },
+          "language": {
+            "type": "string",
+            "description": "识别语种"
+          }
+        },
+        "required": ["text", "segments", "language"]
+      },
+      "Segment": {
+        "type": "object",
+        "description": "语音片段",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "语音片段ID"
+          },
+          "seek": {
+            "type": "integer",
+            "description": "语音片段指针"
+          },
+          "start": {
+            "type": "number",
+            "description": "语音片段开始时间"
+          },
+          "end": {
+            "type": "number",
+            "description": "语音片段结束时间"
+          },
+          "text": {
+            "type": "string",
+            "description": "语音片段识别文本"
+          },
+          "tokens": {
+            "type": "array",
+            "description": "语音片段的token id",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "temperature": {
+            "type": "number",
+            "description": "变速比例"
+          },
+          "avgLogProb": {
+            "type": "number",
+            "description": "平均log概率"
+          },
+          "compressionRatio": {
+            "type": "number",
+            "description": "压缩比"
+          },
+          "noSpeechProb": {
+            "type": "number",
+            "description": "非语音概率"
+          }
+        },
+        "required": ["id", "seek", "start", "end", "text", "tokens", "temperature", "avgLogProb", "compressionRatio", "noSpeechProb"]
+      }
+    }
+  }
+}

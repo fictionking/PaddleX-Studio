@@ -1,0 +1,199 @@
+{
+   "openapi": "3.0.0",
+   "info": {
+      "title": "文档图像预处理产线",
+      "description": "文档图像预处理产线集成了文档方向分类和形变矫正两大功能。文档方向分类可自动识别文档的四个方向（0°、90°、180°、270°），确保文档以正确的方向进行后续处理。文本图像矫正模型则用于修正文档拍摄或扫描过程中的几何扭曲，恢复文档的原始形状和比例。适用于数字化文档管理、OCR类任务前处理、以及任何需要提高文档图像质量的场景。通过自动化的方向校正与形变矫正，该模块显著提升了文档处理的准确性和效率，为用户提供更为可靠的图像分析基础。"
+   },
+   "paths": {
+      "/document-preprocessing": {
+         "post": {
+            "operationId": "infer",
+            "summary": "获取图像文档图像预处理结果",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "file": {
+                              "type": "string",
+                              "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。要解除页数限制，请在产线配置文件中添加相关配置。"
+                           },
+                           "fileType": {
+                              "oneOf": [
+                                 {
+                                    "type": "integer",
+                                    "description": "文件类型",
+                                    "enum": [
+                                       0,
+                                       1
+                                    ],
+                                    "enumDescriptions": [
+                                       "PDF文件",
+                                       "图像文件"
+                                    ]
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "文件类型。0表示PDF文件，1表示图像文件。若请求体无此属性，则将根据URL推断文件类型。"
+                           },
+                           "useDocOrientationClassify": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否使用文档方向分类功能。"
+                           },
+                           "useDocUnwarping": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否使用文档形变矫正功能。"
+                           },
+                           "visualize": {
+                              "oneOf": [
+                                 {
+                                    "type": "boolean"
+                                 },
+                                 {
+                                    "type": "null"
+                                 }
+                              ],
+                              "description": "是否返回可视化结果图以及处理过程中的中间图像等。true：返回图像；false：不返回图像；null：遵循产线配置文件Serving.visualize的设置。"
+                           }
+                        },
+                        "required": [
+                           "file"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "处理成功",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "allOf": [
+                              {
+                                 "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                              },
+                              {
+                                 "type": "object",
+                                 "properties": {
+                                    "result": {
+                                       "$ref": "#/components/schemas/InferResult"
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "请求参数错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               },
+               "500": {
+                  "description": "服务器内部错误",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "components": {
+      "schemas": {
+         "InferResult": {
+            "type": "object",
+            "description": "文档图像预处理结果",
+            "properties": {
+               "docPreprocessingResults": {
+                  "type": "array",
+                  "description": "文档图像预处理结果数组。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）。",
+                  "items": {
+                     "$ref": "#/components/schemas/DocPreprocessingResult"
+                  }
+               },
+               "dataInfo": {
+                  "$ref": "#/components/schemas/DataInfo"
+               }
+            },
+            "required": [
+               "docPreprocessingResults",
+               "dataInfo"
+            ]
+         },
+         "DocPreprocessingResult": {
+            "type": "object",
+            "description": "单页文档图像预处理结果",
+            "properties": {
+               "outputImage": {
+                  "type": "string",
+                  "description": "经过预处理的图像。图像为PNG格式，使用Base64编码。"
+               },
+               "prunedResult": {
+                  "type": "object",
+                  "description": "产线对象的predict方法生成结果的JSON表示中res字段的简化版本。"
+               },
+               "docPreprocessingImage": {
+                  "oneOf": [
+                     {
+                        "type": "string",
+                        "description": "可视化结果图。图像为JPEG格式，使用Base64编码。"
+                     },
+                     {
+                        "type": "null"
+                     }
+                  ]
+               },
+               "inputImage": {
+                  "oneOf": [
+                     {
+                        "type": "string",
+                        "description": "输入图像。图像为JPEG格式，使用Base64编码。"
+                     },
+                     {
+                        "type": "null"
+                     }
+                  ]
+               }
+            },
+            "required": [
+               "outputImage",
+               "prunedResult"
+            ]
+         },
+         "DataInfo": {
+            "type": "object",
+            "description": "输入数据信息"
+         }
+      }
+   }
+}

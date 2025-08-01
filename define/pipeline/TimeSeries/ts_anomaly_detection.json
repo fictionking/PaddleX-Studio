@@ -1,0 +1,133 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "时序异常检测产线",
+    "description": "时序异常检测是一种识别时间序列数据中异常模式或行为的技术，广泛应用于网络安全、设备监控和金融欺诈检测等领域。它通过分析历史数据中的正常趋势和规律，来发现与预期行为显著不同的事件，例如突然增加的网络流量或异常的交易活动。时序异常检测能够自动识别数据中的异常点，为企业和组织提供实时警报，帮助及时应对潜在风险和问题。这项技术在保障系统稳定性和安全性方面发挥着重要作用。"
+  },
+  "paths": {
+    "/time-series-anomaly-detection": {
+      "post": {
+        "operationId": "infer",
+        "summary": "进行时序异常检测",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "检测成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "description": "时序异常检测请求",
+        "properties": {
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "时序异常检测结果图。图像为JPEG格式，使用Base64编码"
+              },
+              {
+                "type": "null",
+                "description": "不提供图像"
+              }
+            ]
+          },
+          "csv": {
+            "type": "string",
+            "description": "服务器可访问的CSV文件的URL或CSV文件内容的Base64编码结果。CSV文件需要使用UTF-8编码"
+          },
+          "visualize": {
+            "oneOf": [
+              {
+                "type": "boolean",
+                "description": "是否返回可视化结果图以及处理过程中的中间图像等"
+              },
+              {
+                "type": "null",
+                "description": "遵循产线配置文件Serving.visualize的设置"
+              }
+            ],
+            "description": "是否返回可视化结果图以及处理过程中的中间图像等。true：返回图像；false：不返回图像；null或未提供：遵循产线配置文件Serving.visualize的设置"
+          }
+        },
+        "required": ["csv"]
+      },
+      "InferResult": {
+        "type": "object",
+        "description": "时序异常检测结果",
+        "properties": {
+          "csv": {
+            "type": "string",
+            "description": "CSV格式的时序异常检测结果。使用UTF-8+Base64编码"
+          },
+          "visualize": {
+            "oneOf": [
+              {
+                "type": "boolean",
+                "description": "是否返回可视化结果图"
+              },
+              {
+                "type": "null",
+                "description": "未设置可视化选项"
+              }
+            ],
+            "description": "是否返回可视化结果图以及处理过程中的中间图像等"
+          }
+        },
+        "required": ["csv"]
+      }
+    }
+  }
+}

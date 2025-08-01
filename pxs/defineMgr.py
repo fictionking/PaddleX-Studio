@@ -16,14 +16,16 @@ from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_
 define_bp = Blueprint('define', __name__)
 
 modules = []
+pipelines = []
 dataset_types = []
 cancel_cache=False
 train_params={}
 def init():
-    global modules
+    global modules,pipelines
     global dataset_types
     global train_params
     modules = load_module_definitions()
+    pipelines = load_pipeline_definitions()
     dataset_types = load_dataset_type_definitions()
     train_params=load_train_params()
 
@@ -75,6 +77,49 @@ def load_module_definitions():
         result.append({
             'category': category,
             'modules': modules_define
+        })
+
+    return result
+
+
+def load_pipeline_definitions():
+    # 读取分类信息
+    category_info_path = os.path.join(os.getcwd(), 'define', 'pipeline', 'category_info.json')
+    try:
+        with open(category_info_path, 'r', encoding='utf-8') as f:
+            categories = json.load(f)
+    except Exception as e:
+        logging.error(f"加载分类信息失败: {str(e)}")
+        return []
+
+    result = []
+    for category in categories:
+        category_id = category.get('id')
+        if not category_id:
+            continue
+
+        # 构建分类目录路径
+        category_dir = os.path.join(os.getcwd(), 'define', 'pipeline', category_id)
+        if not os.path.isdir(category_dir):
+            continue
+
+        pipelines_define = []
+        # 遍历分类目录下的所有模型定义文件
+        for filename in os.listdir(category_dir):
+            if filename.endswith('.json'):
+                file_path = os.path.join(category_dir, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        pipeline = json.load(f)
+                        pipeline['info']['id']=filename.split('.')[0]
+                        pipelines_define.append(pipeline['info'])
+                except Exception as e:
+                    logging.error(f"加载pipeline定义文件 {filename} 失败: {str(e)}")
+                    continue
+
+        result.append({
+            'category': category,
+            'pipelines': pipelines_define
         })
 
     return result
@@ -457,3 +502,7 @@ def get_dataset_doc(category_id,module_id):
         #重定向
         return redirect(docpath)
     
+
+@define_bp.route('/define/pipelines', methods=['GET'])
+def get_pipelines_definitions():
+    return jsonify(pipelines)

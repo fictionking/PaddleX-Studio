@@ -1,0 +1,308 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "印章文本识别产线",
+    "description": "印章文本识别是一种自动从文档或图像中提取和识别印章内容的技术，印章文本的识别是文档处理的一部分，在很多场景都有用途，例如合同比对，出入库审核以及发票报销审核等场景。\n印章文本识别产线用于识别印章的文本内容，提取印章图像中的文字信息以文本形式输出，本产线集成了业界知名的 PP-OCRv4 的端到端 OCR 串联系统，支持弯曲印章文本的检测和识别。同时，本产线集成了可选的版面区域定位模块，可以在整个文档中准确定位印章所在的版面位置。此外也增加可选的文档图像的方向矫正和扭曲矫正功能。基于本产线，可实现 CPU 上毫秒级的文本内容精准预测。"
+  },
+  "paths": {
+    "/seal-recognition": {
+      "post": {
+        "operationId": "infer",
+        "summary": "进行印章文本识别",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "../common_api_responses.json#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/InferResult"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common_api_responses.json#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InferRequest": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "服务器可访问的图像文件或PDF文件的URL，或上述类型文件内容的Base64编码结果。默认对于超过10页的PDF文件，只有前10页的内容会被处理。\n要解除页数限制，请在产线配置文件中添加以下配置：\nServing:\n  extra:\n    max_num_input_imgs: null"
+          },
+          "fileType": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "enum": [0, 1],
+                "description": "文件类型。0表示PDF文件，1表示图像文件"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文件类型。0表示PDF文件，1表示图像文件。若请求体无此属性，则将根据URL推断文件类型。"
+          },
+          "useDocOrientationClassify": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_doc_orientation_classify 参数相关说明。"
+          },
+          "useDocUnwarping": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_doc_unwarping 参数相关说明。"
+          },
+          "useLayoutDetection": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 use_layout_detection 参数相关说明。"
+          },
+          "layoutThreshold": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 layout_threshold 参数相关说明。"
+          },
+          "layoutNms": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 layout_nms 参数相关说明。"
+          },
+          "layoutUnclipRatio": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 layout_unclip_ratio 参数相关说明。"
+          },
+          "layoutMergeBboxesMode": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 layout_merge_bboxes_mode 参数相关说明。"
+          },
+          "sealDetLimitSideLen": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 seal_det_limit_side_len 参数相关说明。"
+          },
+          "sealDetLimitType": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 seal_det_limit_type 参数相关说明。"
+          },
+          "sealDetThresh": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 seal_det_thresh 参数相关说明。"
+          },
+          "sealDetBoxThresh": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 seal_det_box_thresh 参数相关说明。"
+          },
+          "sealDetUnclipRatio": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 seal_det_unclip_ratio 参数相关说明。"
+          },
+          "sealRecScoreThresh": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "请参阅产线对象中 predict 方法的 seal_rec_score_thresh 参数相关说明。"
+          },
+          "visualize": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "是否返回可视化结果图以及处理过程中的中间图像等。\n- 传入 true：返回图像。\n- 传入 false：不返回图像。\n- 若请求体中未提供该参数或传入 null：遵循产线配置文件Serving.visualize 的设置。\n例如，在产线配置文件中添加如下字段：\nServing:\n  visualize: False\n将默认不返回图像，通过请求体中的visualize参数可以覆盖默认行为。如果请求体和配置文件中均未设置（或请求体传入null、配置文件中未设置），则默认返回图像。"
+          }
+        },
+        "required": ["file"]
+      },
+      "InferResult": {
+        "type": "object",
+        "properties": {
+          "sealRecResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SealRecResult"
+            },
+            "description": "印章文本识别结果。数组长度为1（对于图像输入）或实际处理的文档页数（对于PDF输入）。对于PDF输入，数组中的每个元素依次表示PDF文件中实际处理的每一页的结果。"
+          },
+          "dataInfo": {
+            "type": "object",
+            "description": "输入数据信息。"
+          }
+        },
+        "required": ["sealRecResults", "dataInfo"]
+      },
+      "SealRecResult": {
+        "type": "object",
+        "properties": {
+          "prunedResult": {
+            "type": "object",
+            "description": "产线对象的 predict 方法生成结果的 JSON 表示中 res 字段的简化版本，其中去除了 input_path 和 page_index 字段。"
+          },
+          "outputImages": {
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "参见产线预测结果的 img 属性说明。图像为JPEG格式，使用Base64编码。"
+          },
+          "inputImage": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "输入图像。图像为JPEG格式，使用Base64编码。"
+          }
+        },
+        "required": ["prunedResult"]
+      }
+    }
+  }
+}

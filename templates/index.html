@@ -274,6 +274,7 @@
             routes: [
                 { path: '/', redirect: '/module' },
                 { path: '/module', component: () => import('/components/ModuleList.vue') },
+                { path: '/pipline', component: () => import('/components/PipeLineList.vue') },
                 { path: '/train', component: () => import('/components/TrainList.vue') },
                 { path: '/dataset', component: () => import('/components/DatasetList.vue') },
                 { path: '/app', component: () => import('/components/AppList.vue') },
