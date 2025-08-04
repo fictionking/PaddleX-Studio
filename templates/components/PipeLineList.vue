@@ -46,10 +46,12 @@
           <el-input v-model="newAppFormData.id" placeholder="请输入唯一标识"></el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="showCreateAppDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitAppForm">确定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="showCreateAppDialog = false">取消</el-button>
+          <el-button type="primary" @click="submitAppForm">确定</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <!-- 下载进度对话框 -->
@@ -144,10 +146,10 @@ export default {
       this.$refs.appForm.validate(async (valid) => {
         if (valid) {
           try {
-            await axios.post('/define/module/createapp', this.newAppFormData);
+            await axios.post('/define/pipelines/createapp', this.newAppFormData);
             this.$message.success('应用创建成功');
             this.showCreateAppDialog = false;
-            this.$router.push(`/app/${this.newAppFormData.id}`);
+            this.$router.push(`/app/pipeline/${this.newAppFormData.id}`);
           } catch (error) {
             this.$message.error('应用创建失败:' + error.response.data.message);
           }

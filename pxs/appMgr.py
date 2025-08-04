@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request,send_file
+from flask import Blueprint, config, jsonify, request,send_file
 import os
 import shutil
 import json
@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import threading
 import pxs.paddlexCfg as cfg
 from pxs.model_infer import ModelProcess
+import yaml
 
 # 全局变量跟踪当前运行的应用和模型
 current_app_id = None
@@ -100,11 +101,21 @@ def new_applications(app_id,app_name,app_type,tags,app_config):
         # 创建应用目录
         os.makedirs(app_dir, exist_ok=True)
 
-        # 创建配置文件
-        config_path = os.path.join(app_dir, 'config.json')
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(app_config, f, ensure_ascii=False, indent=2)
-
+        if app_type=='module':
+            # 创建配置文件
+            config_path = os.path.join(app_dir, 'config.json')
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(app_config, f, ensure_ascii=False, indent=2)
+        if app_type=='pipeline':
+            yaml_path = os.path.join(cfg.paddlex_root,'paddlex','configs','pipelines',f'{app_config["pipeline_id"]}.yaml')
+            config_path= os.path.join(app_dir, 'config.yaml')
+            #读取yaml文件
+            with open(yaml_path, 'r', encoding='utf-8') as f:
+                yaml_content = yaml.safe_load(f)
+            yaml_content['category']=app_config['category_id']
+            # 写入config.yaml文件
+            with open(config_path, 'w', encoding='utf-8') as f:
+                yaml.dump(yaml_content, f, allow_unicode=True)
         return True,'success'
 
     except Exception as e:
@@ -655,3 +666,14 @@ def check_predict_params(predict_params, current_predict_params):
         
         params[param_name] = param_value
     return len(errors) == 0,params, ", ".join(errors)
+
+@app_mgr.route('/apps/pipeline/config/<app_id>', methods=['GET'])
+def get_pipeline_config(app_id):
+    app_dir = os.path.join(apps_root, app_id)
+    config_path = os.path.join(app_dir, 'config.yaml')
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config_data = yaml.safe_load(f)
+        return jsonify(config_data)
+    else:
+        return jsonify({"error": "配置文件不存在"}), 404

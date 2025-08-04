@@ -506,3 +506,38 @@ def get_dataset_doc(category_id,module_id):
 @define_bp.route('/define/pipelines', methods=['GET'])
 def get_pipelines_definitions():
     return jsonify(pipelines)
+
+
+@define_bp.route('/define/pipelines/createapp', methods=['POST'])
+def create_pipeline_app():
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': '请提供应用配置'}),400
+    app_id = data['id']
+    app_name = data['name']
+    category_id=data['category']
+    pipeline_id=data['pipeline_id']
+    pipeline_name=data['pipeline_name']
+
+    succ,msg=new_applications(app_id,app_name,"pipeline",[category_id,pipeline_name],{'category_id':category_id,'pipeline_id':pipeline_id})
+    if succ:
+        return jsonify({'message': '应用创建成功'}),200
+    return jsonify({'message': msg}),400
+
+@define_bp.route('/define/pipeline/<category_id>/<pipeline_id>', methods=['GET'])
+def get_pipeline_definition(category_id, pipeline_id):
+    apidoc = None
+    try:
+        spec_path = os.path.join('define', 'pipeline', category_id, f'{pipeline_id}.json')
+        with open(spec_path, 'r', encoding='utf-8') as f:
+            apidoc = json.load(f)
+        if apidoc:
+            return jsonify(apidoc)
+        return jsonify({"error": "未找到外部API的OpenAPI规范文件"}), 404
+    except FileNotFoundError:
+        return jsonify({"error": f"文件不存在: {spec_path}"}), 404
+    except json.JSONDecodeError:
+        return jsonify({"error": "JSON文件格式错误"}), 500
+    except Exception as e:
+        return jsonify({"error": f"获取OpenAPI规范失败: {str(e)}"}), 500
+

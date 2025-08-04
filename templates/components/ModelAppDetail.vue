@@ -175,7 +175,7 @@
 
 <script>
 export default {
-  name: 'AppDetail',
+  name: 'ModelAppDetail',
   props: ['appId'],
   data() {
     return {

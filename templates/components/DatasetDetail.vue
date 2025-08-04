@@ -25,15 +25,18 @@
 
     <!-- 文件列表区域 -->
     <div class="file-manager">
-      <div class="file-tree"
-        ref="fileTreeRef">
-        <el-tree accordion highlight-current empty-text="载入中..." :data="fileTree" node-key="path" :default-expanded-keys="['']" :props="treeProps" :expand-on-click-node="true" @node-click="handleNodeClick" @node-contextmenu="handleContextMenu" ref="fileTreeRef" v-slot="{ data }" draggable @node-drop="handleNodeDrop">
-          <span class="custom-tree-node">
-            <span
-              :style="data.type === 'directory' ? { color: 'var(--el-color-primary)', fontWeight: 'bold' } : { color: 'var(--el-color-success)' }">
-              {{ data.name }}
+      <div class="file-tree" ref="fileTreeRef">
+        <el-tree accordion highlight-current empty-text="载入中..." :data="fileTree" node-key="path"
+          :default-expanded-keys="['']" :props="treeProps" :expand-on-click-node="true" @node-click="handleNodeClick"
+          @node-contextmenu="handleContextMenu" ref="fileTreeRef" draggable @node-drop="handleNodeDrop">
+          <template #default="{ data }">
+            <span class="custom-tree-node">
+              <span
+                :style="data.type === 'directory' ? { color: 'var(--el-color-primary)', fontWeight: 'bold' } : { color: 'var(--el-color-success)' }">
+                {{ data.name }}
+              </span>
             </span>
-          </span>
+          </template>
         </el-tree>
         <!-- 右键菜单 -->
         <div v-show="contextMenuVisible" ref="contextMenu" class="context-menu"
@@ -86,19 +89,23 @@
     <!-- 删除确认对话框 -->
     <el-dialog title="确认删除" v-model="deleteDialogVisible" width="30%">
       <p>确定要删除 <strong>{{ selectedFile?.name }}</strong> 吗？</p>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="deleteSelectedFile">确定</el-button>
-      </span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="deleteDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="deleteSelectedFile">确定</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <!-- 批量删除确认对话框 -->
     <el-dialog title="确认批量删除" v-model="batchDeleteDialogVisible" width="30%">
       <p>确定要删除选中的 {{ selectedNodes.length }} 个项目吗？</p>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="batchDeleteDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="deleteSelectedNodes">确定</el-button>
-      </span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="batchDeleteDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="deleteSelectedNodes">确定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -368,7 +375,7 @@ export default {
 
       const fromPath = draggingNode.data.path;
       let toPath = dropNode.data.path;
-      
+
       // 根据拖拽类型确定目标路径
       if (dropType === 'inner') {
         // 拖到文件夹内部
@@ -469,11 +476,12 @@ export default {
 </script>
 <style scoped>
 .upload-section {
-  margin-bottom: 20px; 
-  padding: 20px; 
+  margin-bottom: 20px;
+  padding: 20px;
   border: 1px dashed var(--el-border-color-light);
   border-radius: 14px;
 }
+
 .dataset-detail-container {
   padding: 20px;
 }
@@ -481,15 +489,18 @@ export default {
 .tag-font {
   font-size: 14px;
 }
+
 .el-menu-custom {
   --el-menu-item-height: 32px;
 }
+
 .file-manager {
   display: flex;
   gap: 20px;
   height: calc(100vh - 450px);
   overflow: hidden;
 }
+
 .file-tree {
   width: 30%;
   height: 95%;
@@ -499,6 +510,7 @@ export default {
   border-radius: 4px;
   padding: 10px;
 }
+
 .file-preview {
   width: 70%;
   height: 95%;
@@ -507,6 +519,7 @@ export default {
   border-radius: 4px;
   padding: 10px;
 }
+
 .preview-header {
   display: flex;
   justify-content: space-between;
@@ -515,6 +528,7 @@ export default {
   padding-bottom: 10px;
   border-bottom: 1px solid #e6e6e6;
 }
+
 .empty-preview {
   height: 100%;
   display: flex;
@@ -524,14 +538,17 @@ export default {
   background-color: var(--el-bg-color);
   border-radius: 4px;
 }
+
 .image-preview {
   text-align: center;
 }
+
 .image-preview img {
   max-width: 100%;
   max-height: calc(100vh - 320px);
   object-fit: contain;
 }
+
 .text-preview {
   background-color: var(--el-fill-color-light);
   padding: 15px;
@@ -542,17 +559,21 @@ export default {
   overflow-y: auto;
   max-height: calc(100vh - 610px);
 }
+
 .truncated-warning {
   margin-top: 10px;
 }
+
 .context-menu {
   position: absolute;
   z-index: 1000;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
+
 .el-upload__text-custom {
   margin-bottom: 20px;
 }
+
 .btn-bold {
   font-weight: bold;
 }

@@ -101,10 +101,12 @@
                     <el-input v-model="newAppFormData.id" placeholder="请输入唯一标识"></el-input>
                 </el-form-item>
             </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="showCreateAppDialog = false">取消</el-button>
-                <el-button type="primary" @click="submitAppForm">确定</el-button>
-            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="showCreateAppDialog = false">取消</el-button>
+                    <el-button type="primary" @click="submitAppForm">确定</el-button>
+                </div>
+            </template>
         </el-dialog>
     </div>
 </template>

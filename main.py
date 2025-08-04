@@ -4,7 +4,6 @@ import time
 import json
 from flask import Flask, send_from_directory, jsonify, send_file, request, Response, stream_with_context
 import pxs.paddlexCfg as cfg
-from pxs.VueSFCRender import get_cached_vue_component
 import nvitop
 import logging
 
@@ -40,24 +39,29 @@ def favico():
 
 @mainapp.route('/components/<path:filename>')
 def send_components(filename):
-    path = os.path.join('templates', 'components', filename)
-    # 返回使用Vue编译后的JavaScript组件
-    if filename.endswith('.vue'):
-        # 直接返回render_vue_component生成的Response对象
-        return get_cached_vue_component(path)
-    else:
-        # 其他文件直接返回，如CSS、图片等
-        return send_from_directory('templates/components', filename)
+    path = os.path.join('templates', 'components',filename)
+    return send_file(path)
+
+# @mainapp.route('/components/<path:filename>')
+# def send_components(filename):
+#     path = os.path.join('templates', 'components', filename)
+#     # 返回使用Vue编译后的JavaScript组件
+#     if filename.endswith('.vue'):
+#         # 直接返回render_vue_component生成的Response对象
+#         return get_cached_vue_component(path)
+#     else:
+#         # 其他文件直接返回，如CSS、图片等
+#         return send_from_directory('templates/components', filename)
 
 @mainapp.route('/assets/<path:filename>')
 def send_assets(filename):
-    filepath = os.path.join('templates', 'assets')
-    return send_from_directory(filepath,filename)
+    filepath = os.path.join('templates', 'assets',filename)
+    return send_file(filepath)
 
 @mainapp.route('/libs/<path:filename>')
 def send_libs(filename):
-    filepath = os.path.join('templates', 'libs')
-    return send_from_directory(filepath,filename)
+    filepath = os.path.join('templates', 'libs',filename)
+    return send_file(filepath)
 
 @mainapp.route('/system/usage')
 def system_usage():

@@ -65,10 +65,12 @@
                     </el-select>
                 </el-form-item>
             </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="resetForm('form')">取消</el-button>
-                <el-button type="primary" @click="submitForm('form')">确定</el-button>
-            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="resetForm('form')">取消</el-button>
+                    <el-button type="primary" @click="submitForm('form')">确定</el-button>
+                </div>
+            </template>
         </el-dialog>
 
     </div>
