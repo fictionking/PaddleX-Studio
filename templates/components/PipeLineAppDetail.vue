@@ -379,9 +379,9 @@ export default {
 }
 
 .config-item {
-  margin-bottom: 10px;
-  border-bottom: 1px dashed #787878;
-  padding-bottom: 10px;
+  margin-bottom: 0px;
+  border-bottom: 1px dashed #78787876;
+  padding-bottom: 0px;
 }
 
 .config-item:last-child {
@@ -399,7 +399,7 @@ export default {
 }
 
 .config-item-header:hover {
-  background-color: #7b7b7b;
+  background-color: #0000003a;
 }
 
 .config-key {
@@ -408,7 +408,7 @@ export default {
 }
 
 .config-value {
-  /* color: #666; */
+  opacity: 0.5;
   flex: 1;
   text-align: left;
   margin-right: 10px;
