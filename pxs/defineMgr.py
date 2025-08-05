@@ -12,6 +12,7 @@ import shutil
 import yaml
 import mimetypes
 from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
+
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
 
@@ -524,20 +525,15 @@ def create_pipeline_app():
         return jsonify({'message': '应用创建成功'}),200
     return jsonify({'message': msg}),400
 
-@define_bp.route('/define/pipeline/<category_id>/<pipeline_id>', methods=['GET'])
-def get_pipeline_definition(category_id, pipeline_id):
-    apidoc = None
-    try:
-        spec_path = os.path.join('define', 'pipeline', category_id, f'{pipeline_id}.json')
-        with open(spec_path, 'r', encoding='utf-8') as f:
-            apidoc = json.load(f)
-        if apidoc:
-            return jsonify(apidoc)
-        return jsonify({"error": "未找到外部API的OpenAPI规范文件"}), 404
-    except FileNotFoundError:
-        return jsonify({"error": f"文件不存在: {spec_path}"}), 404
-    except json.JSONDecodeError:
-        return jsonify({"error": "JSON文件格式错误"}), 500
-    except Exception as e:
-        return jsonify({"error": f"获取OpenAPI规范失败: {str(e)}"}), 500
-
+# 产线API文档路由 - 提供API规范JSON
+@define_bp.route('/define/pipeline/<path:filename>')
+def get_pipeline_definition(filename):
+    path=os.path.join('define','pipeline',filename)
+    #安全检查
+    if not path.startswith(os.path.join('define','pipeline')):
+        return jsonify({'message': '文件不存在'}),400
+    #读取文件并添加测试服务地址返回
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        data['servers']=[{'url':f'/proxy/pipeline/'},{'url':f'http://127.0.0.1:8080/'}]
+        return jsonify(data)

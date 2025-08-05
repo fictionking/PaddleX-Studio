@@ -178,7 +178,7 @@
     <script src="libs/index.iife.min.js"></script>
     <!-- 引入axios -->
     <script src="libs/axios.min.js"></script>
-
+    <script type="module" src="libs/rapidoc-min.js"></script>
 </head>
 
 <body>
@@ -290,6 +290,8 @@
                 const ref = document.head.getElementsByTagName('style')[0] || null;
                 document.head.insertBefore(style, ref);
             },
+            // 配置自定义元素识别
+            isCustomElement: (tag) => tag === 'rapi-doc'
         }
 
         // 定义路由
@@ -297,11 +299,11 @@
             history: createWebHashHistory(),
             routes: [
                 { path: '/', redirect: '/module' },
-                { path: '/module', component: () => loadModule('/components/ModuleList.vue', SFCOptions)},
-                { path: '/pipline', component: () => loadModule('/components/PipeLineList.vue', SFCOptions)},
-                { path: '/train', component: () => loadModule('/components/TrainList.vue', SFCOptions)},
-                { path: '/dataset', component: () => loadModule('/components/DatasetList.vue', SFCOptions)},
-                { path: '/app', component: () => loadModule('/components/AppList.vue', SFCOptions)},
+                { path: '/module', component: () => loadModule('/components/ModuleList.vue', SFCOptions) },
+                { path: '/pipline', component: () => loadModule('/components/PipeLineList.vue', SFCOptions) },
+                { path: '/train', component: () => loadModule('/components/TrainList.vue', SFCOptions) },
+                { path: '/dataset', component: () => loadModule('/components/DatasetList.vue', SFCOptions) },
+                { path: '/app', component: () => loadModule('/components/AppList.vue', SFCOptions) },
                 { path: '/dataset/:datasetId', component: () => loadModule('/components/DatasetDetail.vue', SFCOptions) },
                 { path: '/train/:modelId', component: () => loadModule('/components/TrainDetail.vue', SFCOptions) },
                 { path: '/app/module/:appId', component: () => loadModule('/components/ModelAppDetail.vue', SFCOptions) },
@@ -317,6 +319,12 @@
         ]
         // 确保app在引用前初始化
         const app = createApp({
+            provide() {
+                return {
+                    isDark: Vue.computed(() => this.isDark)
+                }
+            },
+
             data() {
                 return {
                     isDark: localStorage.getItem('isDark') ? localStorage.getItem('isDark') === 'true' : true,

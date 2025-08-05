@@ -13,12 +13,12 @@
           "errorCode": {
             "type": "integer",
             "description": "错误码，固定为0",
-            "enum": [0]
+            "const":0
           },
           "errorMsg": {
             "type": "string",
             "description": "错误说明，固定为Success",
-            "enum": ["Success"]
+            "const":"Success"
           },
           "result": {
             "type": "object",
@@ -37,11 +37,13 @@
           },
           "errorCode": {
             "type": "integer",
-            "description": "错误码，与响应状态码相同"
+            "description": "错误码，固定为0",
+            "const": 0
           },
           "errorMsg": {
             "type": "string",
-            "description": "错误说明"
+            "description": "错误说明，固定为Success",
+            "const": "Success"
           }
         },
         "required": ["logId", "errorCode", "errorMsg"]

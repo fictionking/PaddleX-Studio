@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 # 初始化Flask应用
 mainapp = Flask(__name__, template_folder='templates')  # 明确模板目录
 from pxs.defineMgr import define_bp,init as defineMgr_init
+# 显式指定url_prefix，确保路由正确映射
 mainapp.register_blueprint(define_bp)
 
 from pxs.trainMgr import train_bp,init as trainMgr_init,get_queue_size
