@@ -107,15 +107,10 @@ def new_applications(app_id,app_name,app_type,tags,app_config):
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(app_config, f, ensure_ascii=False, indent=2)
         if app_type=='pipeline':
-            yaml_path = os.path.join(cfg.paddlex_root,'paddlex','configs','pipelines',f'{app_config["pipeline_id"]}.yaml')
             config_path= os.path.join(app_dir, 'config.yaml')
-            #读取yaml文件
-            with open(yaml_path, 'r', encoding='utf-8') as f:
-                yaml_content = yaml.safe_load(f)
-            yaml_content['category']=app_config['category_id']
             # 写入config.yaml文件
             with open(config_path, 'w', encoding='utf-8') as f:
-                yaml.dump(yaml_content, f, allow_unicode=True)
+                yaml.dump(app_config, f, allow_unicode=True)
         return True,'success'
 
     except Exception as e:
@@ -125,6 +120,16 @@ def new_applications(app_id,app_name,app_type,tags,app_config):
             os.rmdir(app_dir)
             save_app_config()
         return False,f'Failed to create app: {str(e)}'
+
+@app_mgr.route('/apps/info/<app_id>', methods=['GET'])
+def get_app_info(app_id):
+    global apps
+    if app_id in apps:
+        app=apps[app_id]
+        app['status'] = 'running' if app['id'] == current_app_id else 'stopped'
+        return jsonify(app), 200
+    else:
+        return jsonify({'success': False, 'error': f'App ID {app_id} not exists'}), 404
 
 @app_mgr.route('/apps/delete/<app_id>', methods=['DELETE'])
 def del_applcation(app_id):
@@ -176,15 +181,15 @@ def get_application_config(app_id):
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
-        #将app的所有属性添加到config
-        app=apps[app_id]
-        for key in app:
-            config[key]=app[key]
+        # #将app的所有属性添加到config
+        # app=apps[app_id]
+        # for key in app:
+        #     config[key]=app[key]
         
-        if app_id == current_app_id:
-            config['status']='running'
-        else:
-            config['status']='stopped'
+        # if app_id == current_app_id:
+        #     config['status']='running'
+        # else:
+        #     config['status']='stopped'
         
         return jsonify({
             'status': 'success',

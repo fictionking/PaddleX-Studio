@@ -2,13 +2,13 @@
   <div class="app-detail-container">
     <div class="page-header">
       <div class="page-header-info">
-        <h2 class="page-header h2" v-text="appConfig.name"></h2>
-        <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="appConfig.id"></el-tag>
-        <el-tag type="success" v-text="appConfig.type === 'module' ? '模型' : '产线'"></el-tag>
-        <el-tag type="success" v-for="tag in appConfig.tags" :key="tag">{{ tag }}</el-tag>
-        <el-tag :class="appConfig.status === 'running' ? 'status_running' : 'status_stopped'"
-          :type="appConfig.status == 'stopped' ? 'primary' : 'success'"
-          v-text="appConfig.status === 'running' ? '运行中' : '未运行'"></el-tag>
+        <h2 class="page-header h2" v-text="appInfo.name"></h2>
+        <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="appInfo.id"></el-tag>
+        <el-tag type="success" v-text="appInfo.type === 'module' ? '模型' : '产线'"></el-tag>
+        <el-tag type="success" v-for="tag in appInfo.tags" :key="tag">{{ tag }}</el-tag>
+        <el-tag :class="appInfo.status === 'running' ? 'status_running' : 'status_stopped'"
+          :type="appInfo.status == 'stopped' ? 'primary' : 'success'"
+          v-text="appInfo.status === 'running' ? '运行中' : '未运行'"></el-tag>
       </div>
       <el-button type="primary" plain @click="$router.push('/app')">返回</el-button>
     </div>
@@ -31,7 +31,8 @@
                 <el-input v-else-if="param.type === 'list'" v-model="modelFormData[key]" type="textarea"
                   placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :rows=4
                   :readonly="!param.config_able"></el-input>
-                <el-select v-else-if="param.type === 'enum'" v-model="modelFormData[key]" :readonly="!param.config_able">
+                <el-select v-else-if="param.type === 'enum'" v-model="modelFormData[key]"
+                  :readonly="!param.config_able">
                   <el-option v-for="item in param.enum" :key="item" :label="item" :value="item"></el-option>
                 </el-select>
                 <el-input v-else v-model="modelFormData[key]" :readonly="!param.config_able"></el-input>
@@ -39,9 +40,9 @@
             </el-form-item>
             <el-form-item label=" ">
               <el-button type="primary" @click="saveConfig">保存配置</el-button>
-              <el-button v-if="appConfig.status == 'stopped'" type="primary"
+              <el-button v-if="appInfo.status == 'stopped'" type="primary"
                 @click.stop="handleAppStart()">启动</el-button>
-              <el-button v-if="appConfig.status == 'running'" type="danger" @click.stop="handleAppStop()">停止</el-button>
+              <el-button v-if="appInfo.status == 'running'" type="danger" @click.stop="handleAppStop()">停止</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -75,13 +76,13 @@
           <h3>API</h3>
           <el-form label-width="auto">
             <el-form-item label="启动服务">
-              <el-text>GET /apps/start/{{ appConfig.id }}</el-text>
+              <el-text>GET /apps/start/{{ appInfo.id }}</el-text>
             </el-form-item>
             <el-form-item label="停止服务">
               <el-text>GET /apps/stop</el-text>
             </el-form-item>
             <el-form-item label="推理">
-              <el-text>POST /apps/infer/{{ appConfig.id }}/{{ current_result_type }}</el-text>
+              <el-text>POST /apps/infer/{{ appInfo.id }}/{{ current_result_type }}</el-text>
             </el-form-item>
           </el-form>
         </div>
@@ -119,14 +120,15 @@
               <el-input v-model="inputText" type="textarea" rows="4" placeholder="请输入文本内容"></el-input>
             </el-form-item>
 
-            <el-form-item v-if="typeof input_types === 'object' && !Array.isArray(input_types) && input_types !== null" v-for="(param, key) in input_types" :key="key"
-              :label="key">
+            <el-form-item v-if="typeof input_types === 'object' && !Array.isArray(input_types) && input_types !== null"
+              v-for="(param, key) in input_types" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
-                <el-upload v-if="['img', 'file'].includes(param.type)" action="#" :limit="1" :auto-upload="false" :on-change="(file, fileList) => handleFileChange(file, fileList, key)">
+                <el-upload v-if="['img', 'file'].includes(param.type)" action="#" :limit="1" :auto-upload="false"
+                  :on-change="(file, fileList) => handleFileChange(file, fileList, key)">
                   <el-button size="small" type="primary">点击上传文件</el-button>
                 </el-upload>
                 <el-input v-else-if="param.type === 'text'" v-model="inputDict[key]" type="textarea"
-                  placeholder="请输入文本内容" :rows=4 ></el-input>
+                  placeholder="请输入文本内容" :rows=4></el-input>
               </el-tooltip>
             </el-form-item>
 
@@ -176,9 +178,10 @@
 <script>
 export default {
   name: 'ModelAppDetail',
-  props: ['appId'],
   data() {
     return {
+      appId: '',
+      appInfo: {},
       appConfig: {},
       modelParams: {},
       predict_params: {},
@@ -198,12 +201,27 @@ export default {
     this.revokeSafeObjectURL(this.inferenceResult.data);
   },
   mounted() {
+  },
+  async created() {
+    this.appId = this.$route.params.appId;
+    await this.fetchAppInfo();
     // 页面加载时获取配置数据
     this.fetchConfig();
   },
-  async created() {
-  },
   methods: {
+    /**
+     * 获取应用详情
+     */
+    async fetchAppInfo() {
+      try {
+        this.loadingConfig = true;
+        const response = await axios.get(`/apps/info/${this.appId}`);
+        this.appInfo = response.data;
+      } catch (error) {
+        console.error('获取应用详情失败:', error);
+        this.errorConfig = '获取应用详情失败，请重试';
+      }
+    },
     /**
      * 从后端获取模型参数配置
      */
@@ -253,7 +271,7 @@ export default {
       axios.get(`/apps/start/${this.$route.params.appId}`)
         .then(response => {
           this.$message.success('应用启动成功');
-          this.appConfig.status = 'running'
+          this.appInfo.status = 'running'
         })
         .catch(error => {
           this.$message.error('应用启动失败');
@@ -277,7 +295,7 @@ export default {
       axios.get(`/apps/stop`)
         .then(response => {
           this.$message.success('应用停止成功');
-          this.appConfig.status = 'stopped'
+          this.appInfo.status = 'stopped'
         })
         .catch(error => {
           this.$message.error('应用停止失败');
@@ -293,7 +311,7 @@ export default {
     handleFileChange(file, fileList, key = 'default') {
       if (key === 'default') {
         this.uploadedFiles = file.raw;
-      }else{
+      } else {
         this.inputDict[key] = file.raw;
       }
     },
@@ -322,7 +340,7 @@ export default {
       // 根据input_types类型验证输入
       const isDictType = typeof this.input_types === 'object';
       let hasInput = false;
-      
+
       // 验证输入是否存在
       if (['img', 'file'].includes(this.input_types)) {
         hasInput = !!this.uploadedFiles;
@@ -331,7 +349,7 @@ export default {
       } else if (isDictType) {
         hasInput = Object.keys(this.inputDict).length > 0;
       }
-      
+
       if (!hasInput) {
         this.$message.warning('请提供推理输入内容');
         return;
@@ -352,7 +370,7 @@ export default {
             // 如果是文件，添加到FormData，并在inputObj中记录文件标识
             const fileKey = `file_${Date.now()}_${key}`;
             formData.append(fileKey, value);
-            inputObj[key] = {uid: fileKey };
+            inputObj[key] = { uid: fileKey };
           } else {
             inputObj[key] = value;
           }

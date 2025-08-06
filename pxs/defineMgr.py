@@ -193,15 +193,27 @@ def getModule(category_id,module_id):
 def getModel(category_id,module_id,model_id):
     module=getModule(category_id,module_id)
     if module:
-        model=module['models'][model_id]
+        model=module['models'].get(model_id,None)
         return model
     return None
 
 def getModelByModule(module,model_id):
     if module:
-        model=module['models'][model_id]
+        model=module['models'].get(model_id,None)
         return model
     return None
+
+def findModel(model_id,module_id=None,category_id=None):
+    for category in modules:
+        if category_id and category['category']['id'] != category_id:
+            continue
+        for module in category['modules']:
+            if module_id and module['id'] != module_id:
+                continue
+            model=getModelByModule(module,model_id)
+            if model:
+                return category['category']['id'],module['id'],model
+    return None,None,None
 
 @define_bp.route('/define/modules', methods=['GET'])
 def get_module_definitions():
@@ -233,6 +245,11 @@ def get_module_cache_model(category_id, module_id, model_id):
     返回:
     - 流式响应，包含下载进度信息（text/event-stream）
     """
+    downloads=[download_model(category_id, module_id, model_id)]   
+    # 返回SSE响应
+    return Response(stream_with_context(download_generator(downloads)), mimetype='text/event-stream')
+
+def download_model(category_id, module_id, model_id):
     # 从配置文件中获取缓存路径
     cache_dir = os.path.join(cfg.weights_root,model_id)
     pretrained_model_url = None
@@ -263,67 +280,87 @@ def get_module_cache_model(category_id, module_id, model_id):
     
     # 确保缓存目录存在
     is_new=not os.path.exists(cache_dir)
-    os.makedirs(cache_dir, exist_ok=True)
-    
-    def extract_tar(file_path,dest_path):
-        """解压tar文件到同名子目录并删除原tar文件
 
-        增强功能：如果tar包中只包含一个顶层目录，则将该目录下的内容直接解压到目标路径，
-        否则保持原行为（将所有内容解压到同名子目录）
-        """
-        if file_path.endswith('.tar'):
-            os.makedirs(dest_path, exist_ok=True)
-            # 解压文件
-            with tarfile.open(file_path, 'r') as tar:
-                # 获取所有成员并分析顶层目录
-                members = tar.getmembers()
-                top_level_dirs = set()
-                for member in members:
-                    # 分割路径并获取顶层目录（处理不同操作系统的路径分隔符）
-                    if '/' in member.name:
-                        parts = member.name.split('/')
-                    else:
-                        parts = member.name.split('\\')
-                    
-                    # 过滤空字符串和当前目录符号'.'
-                    filtered_parts = [p for p in parts if p not in ('', '.')]
-                    
-                    top_level = filtered_parts[0]
-                    top_level_dirs.add(top_level)
-                
-                # 如果只有一个顶层目录且存在文件
-                if len(top_level_dirs) == 1:
-                    top_dir = top_level_dirs.pop()
-                    # 提取该目录下的所有文件并调整路径
-                    for member in members:
-                        if member.name.startswith(f'./{top_dir}/') or member.name.startswith(f'.\\{top_dir}\\'):
-                            # 移除顶层目录
-                            member.name = member.name[len(top_dir)+3:]
-                            tar.extract(member, path=dest_path)
-                        elif member.name.startswith(f'{top_dir}/') or member.name.startswith(f'{top_dir}\\'):
-                            # 移除顶层目录
-                            member.name = member.name[len(top_dir)+1:]
-                            tar.extract(member, path=dest_path)
+    return {
+        'model_id':model_id,
+        'category_id':category_id,
+        'module_id':module_id,
+        'cache_dir':cache_dir,
+        'is_new':is_new,
+        'download_urls':download_urls,
+    }
+
+def extract_tar(file_path,dest_path):
+    """解压tar文件到同名子目录并删除原tar文件
+
+    增强功能：如果tar包中只包含一个顶层目录，则将该目录下的内容直接解压到目标路径，
+    否则保持原行为（将所有内容解压到同名子目录）
+    """
+    if file_path.endswith('.tar'):
+        os.makedirs(dest_path, exist_ok=True)
+        # 解压文件
+        with tarfile.open(file_path, 'r') as tar:
+            # 获取所有成员并分析顶层目录
+            members = tar.getmembers()
+            top_level_dirs = set()
+            for member in members:
+                # 分割路径并获取顶层目录（处理不同操作系统的路径分隔符）
+                if '/' in member.name:
+                    parts = member.name.split('/')
                 else:
-                    # 正常解压所有文件
-                    tar.extractall(path=dest_path)
-            #如果有子目录名称与当前模型id相同的，则把子目录内容移动到当前目录
-            for dir in os.listdir(dest_path):
-                if dir != model_id:
-                    continue
-                src_dir = os.path.join(dest_path, dir)
-                #把src_dir下的子内容移到dest_path，并删除src_dir
-                for file in os.listdir(src_dir):
-                    src_file = os.path.join(src_dir, file)
-                    shutil.move(src_file, dest_path)
-                shutil.rmtree(src_dir)
-            # 解压完成后删除tar文件
-            os.remove(file_path)
-            return True
-        return False
-    
-    # 定义流式下载生成器函数
-    def download_generator():
+                    parts = member.name.split('\\')
+                
+                # 过滤空字符串和当前目录符号'.'
+                filtered_parts = [p for p in parts if p not in ('', '.')]
+                
+                top_level = filtered_parts[0]
+                top_level_dirs.add(top_level)
+            
+            # 如果只有一个顶层目录且存在文件
+            if len(top_level_dirs) == 1:
+                top_dir = top_level_dirs.pop()
+                # 提取该目录下的所有文件并调整路径
+                for member in members:
+                    if member.name.startswith(f'./{top_dir}/') or member.name.startswith(f'.\\{top_dir}\\'):
+                        # 移除顶层目录
+                        member.name = member.name[len(top_dir)+3:]
+                        tar.extract(member, path=dest_path)
+                    elif member.name.startswith(f'{top_dir}/') or member.name.startswith(f'{top_dir}\\'):
+                        # 移除顶层目录
+                        member.name = member.name[len(top_dir)+1:]
+                        tar.extract(member, path=dest_path)
+            else:
+                # 正常解压所有文件
+                tar.extractall(path=dest_path)
+        #如果有子目录名称与dest_path目录相同的，则把子目录内容移动到当前目录
+        for dir in os.listdir(dest_path):
+            if dir != os.path.basename(dest_path):
+                continue
+            src_dir = os.path.join(dest_path, dir)
+            #把src_dir下的子内容移到dest_path，并删除src_dir
+            for file in os.listdir(src_dir):
+                src_file = os.path.join(src_dir, file)
+                shutil.move(src_file, dest_path)
+            shutil.rmtree(src_dir)
+        # 解压完成后删除tar文件
+        os.remove(file_path)
+        return True
+    return False
+
+# 定义流式下载生成器函数
+def download_generator(downloads):
+    count=len(downloads)
+    i=0
+    for j,download in enumerate(downloads):
+        i=j+1
+        model_id=download['model_id']
+        category_id=download['category_id']
+        module_id=download['module_id']
+        download_urls=download['download_urls']
+        cache_dir=download['cache_dir']
+        is_new=download['is_new']
+        os.makedirs(cache_dir, exist_ok=True)
+
         for model_type, url in download_urls:
             try:
                 # 从URL中提取文件名（处理可能的查询参数）
@@ -333,7 +370,7 @@ def get_module_cache_model(category_id, module_id, model_id):
                 save_path_tmp = f"{save_path}.tmp"
                 os.makedirs(extract_path, exist_ok=True)
                 # 发送开始下载事件
-                yield f"data: {json.dumps({'status': 'starting', 'type': model_type, 'file': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
+                yield f"data: {json.dumps({'idx':i,'count':count,'model_id':model_id,'category_id':category_id,'module_id':module_id,'status': 'starting', 'type': model_type, 'file': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
                 
                 # 发送GET请求，流式获取内容
                 start_time = time.time()
@@ -373,7 +410,7 @@ def get_module_cache_model(category_id, module_id, model_id):
                                     sec = int(remain_time - hour * 3600 - min * 60)
                                     remain_time_str = f"{hour}:{min}:{sec}"
 
-                                    yield f"data: {json.dumps({'status': 'downloading', 'type': model_type, 'progress': progress, 'file': filename,'speed':speed_str,'remain_time':remain_time_str})}\n\n"
+                                    yield f"data: {json.dumps({'idx':i,'count':count,'model_id':model_id,'category_id':category_id,'module_id':module_id,'status': 'downloading', 'type': model_type, 'progress': progress, 'file': filename,'speed':speed_str,'remain_time':remain_time_str})}\n\n"
                 
                 # 下载完成，先删除已存在文件再重命名临时文件
                 if os.path.exists(save_path):
@@ -383,10 +420,10 @@ def get_module_cache_model(category_id, module_id, model_id):
                 # 下载完成，检查是否需要解压
                 is_tar = extract_tar(save_path,extract_path)
                 if is_tar:
-                    yield f"data: {json.dumps({'status': 'extracted', 'model_type': model_type, 'filename': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
+                    yield f"data: {json.dumps({'idx':i,'count':count,'model_id':model_id,'category_id':category_id,'module_id':module_id,'status': 'extracted', 'model_type': model_type, 'filename': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
                 
                 # 发送完成事件
-                yield f"data: {json.dumps({'status': 'completed', 'type': model_type, 'progress': 100, 'file': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
+                yield f"data: {json.dumps({'idx':i,'count':count,'model_id':model_id,'category_id':category_id,'module_id':module_id,'status': 'completed', 'type': model_type, 'progress': 100, 'file': filename,'speed':'-- MB/s','remain_time':'--:--:--'})}\n\n"
                 
             except Exception as e:
                 # 捕获并发送错误信息
@@ -394,16 +431,13 @@ def get_module_cache_model(category_id, module_id, model_id):
                     os.remove(save_path_tmp)
                 if is_new:
                     shutil.rmtree(cache_dir)
-                yield f"data: {json.dumps({'status': 'failed', 'type': model_type, 'error': str(e)})}\n\n"
+                yield f"data: {json.dumps({'idx':i,'count':count,'model_id':model_id,'category_id':category_id,'module_id':module_id,'status': 'failed', 'type': model_type, 'error': str(e)})}\n\n"
                 return
         
-        # 所有文件处理完成
-        yield f"data: {json.dumps({'status': 'all_completed'})}\n\n"
-    
-    # 返回SSE响应
-    return Response(stream_with_context(download_generator()), mimetype='text/event-stream')
+    # 所有文件处理完成
+    yield f"data: {json.dumps({'idx':i,'count':count,'model_id':'','category_id':'','module_id':'','status': 'all_completed'})}\n\n"
 
-@define_bp.route('/define/module/cacheModel/cancel', methods=['GET'])
+@define_bp.route('/define/cancelCache', methods=['GET'])
 def cancel_cache_model():
     global cancel_cache
     cancel_cache=True
@@ -519,8 +553,12 @@ def create_pipeline_app():
     category_id=data['category']
     pipeline_id=data['pipeline_id']
     pipeline_name=data['pipeline_name']
-
-    succ,msg=new_applications(app_id,app_name,"pipeline",[category_id,pipeline_name],{'category_id':category_id,'pipeline_id':pipeline_id})
+    yaml_path = os.path.join(cfg.paddlex_root,'paddlex','configs','pipelines',f'{pipeline_id}.yaml')
+     #读取yaml文件
+    with open(yaml_path, 'r', encoding='utf-8') as f:
+        app_config = yaml.safe_load(f)
+    app_config['category']=category_id
+    succ,msg=new_applications(app_id,app_name,"pipeline",[category_id,pipeline_name],app_config)
     if succ:
         return jsonify({'message': '应用创建成功'}),200
     return jsonify({'message': msg}),400
@@ -537,3 +575,41 @@ def get_pipeline_definition(filename):
         data = json.load(f)
         data['servers']=[{'url':f'/proxy/pipeline/'},{'url':f'http://127.0.0.1:8080/'}]
         return jsonify(data)
+
+@define_bp.route('/define/pipelines/cacheModels/<pipeline_id>', methods=['GET'])
+def get_cache_pipeline_models(pipeline_id):
+    yaml_path = os.path.join(cfg.paddlex_root,'paddlex','configs','pipelines',f'{pipeline_id}.yaml')
+     #读取yaml文件
+    with open(yaml_path, 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
+    downloads=parse_pipeline(config)
+    # 返回SSE响应
+    return Response(stream_with_context(download_generator(downloads)), mimetype='text/event-stream')
+
+def parse_submodules(subModules):
+    if not subModules:
+        return []
+    models=[]
+    #处理subModules的每个属性
+    for key in subModules:
+        subModule=subModules[key]
+        if isinstance(subModule, dict):
+            model_dir=subModule.get('model_dir',None)
+            model_name=subModule.get('model_name',None)
+            module_name=subModule.get('module_name',None)
+            if model_dir==None and model_name and module_name:
+                category_id,module_id,model=findModel(model_name)
+                if category_id and module_id and model:
+                    models.append(download_model(category_id,module_id,model['name']))
+    return models
+
+def parse_pipeline(pipeline):
+    downloads=[]
+    subModules=pipeline.get('SubModules',{})
+    downloads.extend(parse_submodules(subModules))
+    subPipelines=pipeline.get('SubPipelines',{})
+    for key in subPipelines:
+        subPipeline=subPipelines[key]
+        if isinstance(subPipeline, dict):
+            downloads.extend(parse_pipeline(subPipeline))
+    return downloads

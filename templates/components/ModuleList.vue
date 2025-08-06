@@ -369,7 +369,7 @@ export default {
      * 取消模型更新
      */
     cancelUpdate() {
-      fetch(`/define/module/cacheModel/cancel`, {
+      fetch(`/define/cancelCache`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

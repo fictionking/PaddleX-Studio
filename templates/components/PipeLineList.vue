@@ -21,7 +21,8 @@
           </el-carousel-item>
         </el-carousel>
         <p v-else class="pipeline-type-description" v-html="pipeline.description || '无描述信息'"></p>
-        <div class="pipeline-type-footer">
+        <div class="pipeline-type-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <el-button type="primary" round text @click="handleUpdateModel(pipeline)">缓存产线所用模型</el-button>
           <el-button type="primary" round text @click="openCreateAppDialog(pipeline)">应用</el-button>
         </div>
       </div>
@@ -157,17 +158,15 @@ export default {
       });
     },
     /**
-     * 处理模型更新功能
-     * @param {Object} model - 要更新的模型对象
+     * 处理产线更新功能
+     * @param {Object} pipeline - 要更新的产线对象
      */
-    handleUpdateModel(model) {
+    handleUpdateModel(pipeline) {
       this.updateDialogVisible = true;
       this.downloadProgress = 0;
       this.progressText = '准备开始下载...';
       this.speedText = '';
-      // 获取当前分类ID
-      const categoryId = this.definitions[this.activeCategoryIndex].category.id;
-      const eventSource = new EventSource(`/define/module/${categoryId}/${this.selectedModule.id}/${model.name}/cacheModel`);
+      const eventSource = new EventSource(`/define/pipelines/cacheModels/${pipeline.id}`);
 
       eventSource.onmessage = (event) => {
         // 忽略心跳包空数据
@@ -177,7 +176,7 @@ export default {
         // 处理下载中状态
         if (data.status === 'downloading') {
           this.downloadProgress = data.progress;
-          this.progressText = `正在下载${data.type}模型: ${data.file}`;
+          this.progressText = `正在下载[${data.idx}/${data.count}]${data.category_id}/${data.module_id}/${data.model_id}的${data.type}模型: ${data.file}`;
           this.speedText = '下载速度:' + data.speed + '  剩余时间:' + data.remain_time;
         }
         // 处理开始下载状态
@@ -224,7 +223,7 @@ export default {
      * 取消模型更新
      */
     cancelUpdate() {
-      fetch(`/define/module/cacheModel/cancel`, {
+      fetch(`/define/cancelCache`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

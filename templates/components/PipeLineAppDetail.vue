@@ -1,12 +1,18 @@
 <template>
   <div class="pipeline-app-detail-container">
-    <el-card>
-      <div>
-        <div class="card-header">
-          <span>产线应用详情</span>
-        </div>
+    <div class="page-header">
+      <div class="page-header-info">
+        <h2 class="page-header h2" v-text="appInfo.name"></h2>
+        <el-tag type="info" effect="plain" style="font-size: 14px;" v-text="appInfo.id"></el-tag>
+        <el-tag type="success" v-text="appInfo.type === 'module' ? '模型' : '产线'"></el-tag>
+        <el-tag type="success" v-for="tag in appInfo.tags" :key="tag">{{ tag }}</el-tag>
+        <el-tag :class="appInfo.status === 'running' ? 'status_running' : 'status_stopped'"
+          :type="appInfo.status == 'stopped' ? 'primary' : 'success'"
+          v-text="appInfo.status === 'running' ? '运行中' : '未运行'"></el-tag>
       </div>
-
+      <el-button type="primary" plain @click="$router.push('/app')">返回</el-button>
+    </div>
+    <el-card>
       <el-tabs v-model="activeTab">
         <!-- 参数配置标签页 -->
         <el-tab-pane label="参数配置" name="config">
@@ -48,6 +54,9 @@
               <el-form-item>
                 <el-button type="primary" @click="saveConfig">保存配置</el-button>
                 <el-button @click="resetConfig">重置</el-button>
+                <el-button v-if="appInfo.status == 'stopped'" type="primary"
+                @click.stop="handleAppStart()">启动</el-button>
+                <el-button v-if="appInfo.status == 'running'" type="danger" @click.stop="handleAppStop()">停止</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -81,6 +90,8 @@ export default {
   },
   data() {
     return {
+      appId: '',
+      appInfo: {},
       activeTab: 'config',
       // 配置相关数据
       configData: {},
@@ -115,11 +126,25 @@ export default {
      * 初始化数据
      */
     async initData() {
+      await this.fetchAppInfo();
       await this.fetchConfig();
       // 只有当configData有值且没有错误时才获取API文档
       if (Object.keys(this.configData).length > 0 && !this.errorConfig) {
         this.fetchApiDocs();
       }
+    },
+    /**
+     * 获取应用详情
+     */
+    async fetchAppInfo() {
+      try {
+        this.loadingConfig = true;
+        const response = await axios.get(`/apps/info/${this.appId}`);
+        this.appInfo = response.data;
+      } catch (error) {
+        console.error('获取应用详情失败:', error);
+        this.errorConfig = '获取应用详情失败，请重试';
+      } 
     },
     /**
      * 获取配置数据
@@ -344,8 +369,51 @@ export default {
         options.inactiveText = '否';
       }
       return options;
+    },
+    handleAppStart() {
+      // 显示加载中模态框
+      const loading = this.$loading({
+        lock: true,
+        text: '应用启动中，请稍候...',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      axios.get(`/apps/start/${this.appId}`)
+        .then(response => {
+          this.$message.success('应用启动成功');
+          this.appInfo.status = 'running'
+        })
+        .catch(error => {
+          this.$message.error('应用启动失败');
+          console.error(error);
+        })
+        .finally(() => {
+          loading.close();  // 无论成功失败都关闭加载框
+        });
+    },
+    /**
+     * 处理应用停止操作
+     * @param {string} appId - 应用ID
+     */
+    handleAppStop() {
+      // 显示加载中模态框
+      const loading = this.$loading({
+        lock: true,
+        text: '应用停止中，请稍候...',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      axios.get(`/apps/stop`)
+        .then(response => {
+          this.$message.success('应用停止成功');
+          this.appInfo.status = 'stopped'
+        })
+        .catch(error => {
+          this.$message.error('应用停止失败');
+          console.error(error);
+        })
+        .finally(() => {
+          loading.close();  // 无论成功失败都关闭加载框
+        });
     }
-
   }
 }
 </script>
@@ -372,7 +440,7 @@ export default {
 }
 
 .flat-config-list {
-  max-height: 500px;
+  max-height: 700px;
   overflow-y: auto;
   padding: 10px;
   margin-bottom: 20px;
@@ -403,11 +471,13 @@ export default {
 }
 
 .config-key {
+  font-size: 14px;
   font-weight: bold;
   margin-right: 10px;
 }
 
 .config-value {
+  font-size: 12px;
   opacity: 0.5;
   flex: 1;
   text-align: left;
