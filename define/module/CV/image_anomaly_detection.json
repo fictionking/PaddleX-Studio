@@ -1,6 +1,7 @@
 {
     "name": "异常检测",
-    "id": "image_anomaly_detection",
+    "id": "anomaly_detection",
+    "dir_alias": "image_anomaly_detection",
     "description": "异常检测模块是计算机视觉领域中的重要技术，用于识别图像或视频中与正常模式偏离的异常区域或目标。该模块广泛应用于工业质检、安防监控等场景，能够有效提高检测效率和准确性。",
     "is_trainable": true,
     "models": {
@@ -23,7 +24,13 @@
             {
                 "label": "LabelMe标注集",
                 "value": "LabelMe",
-                "convert_enable": true
+                "convert_enable": true,
+                "files": [
+                    "annotations",
+                    "images",
+                    "train.txt",
+                    "val.txt"
+                ]
             },
             {
                 "label": "自定义标注集",
@@ -31,12 +38,7 @@
                 "convert_enable": false
             }
         ],
-        "files": [
-            "annotations",
-            "images",
-            "train.txt",
-            "val.txt"
-        ],
-        "doc":"paddlex://docs/data_annotations/cv_modules/semantic_segmentation.md"
+        "files": [],
+        "doc": "paddlex://docs/data_annotations/cv_modules/semantic_segmentation.md"
     }
 }

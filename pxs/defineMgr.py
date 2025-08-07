@@ -127,7 +127,8 @@ def load_pipeline_definitions():
 
 def parse_module_define(module):
     #从paddlex\configs\modules中读取对应的模型清单合并
-    module_dir=os.path.join(cfg.paddlex_root,'paddlex','configs', 'modules', module['id'])
+    #如果module存在dir_alias则使用dir_alias,否则使用id
+    module_dir=os.path.join(cfg.paddlex_root,'paddlex','configs', 'modules', module['dir_alias'] if 'dir_alias' in module else module['id'])
     if not os.path.isdir(module_dir):
         return module
     #读取module_dir下的所有yml文件
@@ -573,7 +574,9 @@ def get_pipeline_definition(filename):
     #读取文件并添加测试服务地址返回
     with open(path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        data['servers']=[{'url':f'/proxy/pipeline/'},{'url':f'http://127.0.0.1:8080/'}]
+        # 获取当前请求的主机地址
+        host = request.host.split(':')[0]  # 获取IP地址部分，去掉端口
+        data['servers']=[{'url':f'/proxy/pipeline/'},{'url':f'http://{host}:8080/'}]
         return jsonify(data)
 
 @define_bp.route('/define/pipelines/cacheModels/<pipeline_id>', methods=['GET'])

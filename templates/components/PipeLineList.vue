@@ -59,9 +59,9 @@
     <el-dialog title="模型更新" v-model="updateDialogVisible" width="600px" align-center :close-on-click-modal="false"
       @close="cancelUpdate">
       <div class="progress-container">
+        <p class="progress-text">{{ progressText }}</p>
         <el-progress :percentage="downloadProgress" :stroke-width="10" striped striped-flow
           :duration="10"></el-progress>
-        <p class="progress-text">{{ progressText }}</p>
         <p class="progress-text">{{ speedText }}</p>
       </div>
     </el-dialog>

@@ -417,8 +417,8 @@ export default {
 }
 </script>
 <style>
-.log-scrollbar {
-    height: calc(100vh - 300px);
+.el-scrollbar.log-scrollbar {
+    height: calc(100vh - 300px) !important;
     width: 100%;
     padding: 20px 0;
 }

@@ -414,7 +414,7 @@ def delete_dataset_files(dataset_id):
         'results': results,
         'total': len(results),
         'success_count': sum(1 for r in results if r['success'])
-    }),204
+    }),200
 
 def _create_directory_safely(base_dir, relative_path):
     """安全地创建目录

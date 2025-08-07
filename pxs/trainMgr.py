@@ -260,6 +260,15 @@ def send_dataset_file(model_id, filename):
     dataset_path = os.path.join(models_root, model_id, 'dataset')
     return send_from_directory(dataset_path, filename)
 
+def getModuleDir(category_id,module_id):
+    module=defineMgr.getModule(category_id,module_id)
+    if not module:
+        return None
+    module_dir=os.path.join(cfg.paddlex_root,'paddlex','configs', 'modules', module['dir_alias'] if 'dir_alias' in module else module['id'])
+    if not os.path.isdir(module_dir):
+        return None
+    return module_dir
+
 @train_bp.route('/models/<model_id>/check', methods=['POST'])
 def checkDataSet(model_id):
     check_data = request.get_json()
@@ -273,7 +282,7 @@ def checkDataSet(model_id):
     if not dataset:
         return jsonify({'code': 404,'message': '未找到指定数据集'}), 404
     # 运行检查命令
-    yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    yaml_path = os.path.join(getModuleDir(model['category'],model['module_id']), model['pretrained']+".yaml")
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     check_path = os.path.join(models_root, model_id, 'check')
     target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
@@ -332,7 +341,7 @@ def get_train_params(model_id):
     model = models[model_id]
     if not model:
         return jsonify({'code': 404,'message': '未找到指定模型'}), 404
-    yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    yaml_path = os.path.join(getModuleDir(model['category'],model['module_id']), model['pretrained']+".yaml")
     with open(yaml_path, 'r', encoding='utf-8') as f:
         yaml_data = yaml.safe_load(f)
     params=[]
@@ -377,7 +386,8 @@ def train(model_id):
     model = models[model_id]
     if not model:
         return jsonify({'code': 404,'message': '未找到指定模型'}), 404
-    yaml_path = os.path.join(cfg.paddlex_root, "paddlex","configs","modules", model['module_id'], model['pretrained']+".yaml")
+    
+    yaml_path = os.path.join(getModuleDir(model['category'],model['module_id']), model['pretrained']+".yaml")
     output_dir = os.path.join(models_root, model_id, 'train')
     dataset_dir = os.path.join(models_root, model_id, 'dataset')
     # 删除已存在的训练目录
@@ -551,18 +561,26 @@ def copydataset(model_id):
     dataset_path = os.path.join(datasetMgr.dataset_root, dataset_id)
     model_path = os.path.join(models_root, model_id,'dataset')
     # 根据模型的类型选择复制方式
-    copyDatasetFiles(model['category'],model['module_id'],dataset_path,model_path)
+    copyDatasetFiles(model['category'],model['module_id'],dataset_path,model_path,dataset['dataset_type'])
     model['update_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 更新时间
     save_model_config(model)
     return jsonify({'code': 200,'message': '复制完成','data': model})
 
-def copyDatasetFiles(category_id,module_id,dataset_path,model_path):
+def copyDatasetFiles(category_id,module_id,dataset_path,model_path,dataset_type):
     filelist=[]
     for category in defineMgr.dataset_types:
         if category['id'] == category_id:
             for module in category['modules']:
                 if module['id'] == module_id:
-                    files=module['dataset_files']
+                    files=[]
+                    for type in module['dataset_types']:
+                        if type['value'] == dataset_type['value']:
+                            #使用类型定义的文件列表
+                            files=type.get('files',[])
+                            break
+                    if not files:
+                        #使用默认文件列表
+                        files=module['dataset_files']
                     for file in files:
                         filelist.append({"src":os.path.join(dataset_path,file),"dst":os.path.join(model_path,file)})
                     break
