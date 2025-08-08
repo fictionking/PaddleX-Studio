@@ -24,22 +24,18 @@
           </div>
           <div v-else class="config-form-container">
             <el-form ref="configForm" :model="configData" label-width="120px">
-              <el-form-item label="产线名称">
-                <el-input v-model="configData.pipeline_name" disabled />
-              </el-form-item>
-
               <!-- 扁平化配置列表 -->
               <div class="flat-config-list">
                 <div v-for="item in flatConfigItems" :key="item.id" class="config-item">
                   <div :style="{ 'padding-left': item.depth * 40 + 'px' }" class="config-item-header"
-                    @click="!isObject(item.value) ? toggleEdit(item.id) : null">
+                    @click="isEditable(item) ? toggleEdit(item.id) : null">
                     <span class="config-key">{{ item.key }}: </span>
                     <span v-if="!isObject(item.value)" class="config-value">{{ formatValue(item.value) }}</span>
-                    <el-icon v-if="!isObject(item.value)" class="edit-icon">
+                    <el-icon v-if="isEditable(item)" class="edit-icon">
                       <Edit />
                     </el-icon>
                   </div>
-                  <div v-if="editingItemId === item.id && !isObject(item.value)" class="config-item-editor">
+                  <div v-if="editingItemId === item.id" class="config-item-editor">
                     <component :is="getComponentType(item.value)" v-model="editValue"
                       :options="getComponentOptions(item.key, item.value)"
                       @change="handleValueChange(item.path, editValue)" />
@@ -55,7 +51,7 @@
                 <el-button type="primary" @click="saveConfig">保存配置</el-button>
                 <el-button @click="resetConfig">重置</el-button>
                 <el-button v-if="appInfo.status == 'stopped'" type="primary"
-                @click.stop="handleAppStart()">启动</el-button>
+                  @click.stop="handleAppStart()">启动</el-button>
                 <el-button v-if="appInfo.status == 'running'" type="danger" @click.stop="handleAppStop()">停止</el-button>
               </el-form-item>
             </el-form>
@@ -65,11 +61,10 @@
         <!-- API文档标签页 -->
         <el-tab-pane label="API文档" name="api-docs">
           <div class="api-docs-container" style="display: flex; width: 100%; overflow: hidden;">
-            <rapi-doc style="flex:1; margin:0px; max-width: 100%; box-sizing: border-box;"
-              :spec-url="apiDocsUrl" schema-style="tree" :theme="isDark ? 'dark' : 'light'" show-header='false'
-              show-info='false' allow-authentication='false' allow-server-selection='true'
-              allow-api-list-style-selection='false' update-route="false"
-              render-style="focused" schema-description-expanded="true" ></rapi-doc>
+            <rapi-doc style="flex:1; margin:0px; max-width: 100%; box-sizing: border-box;" :spec-url="apiDocsUrl"
+              schema-style="tree" :theme="isDark ? 'dark' : 'light'" show-header='false' show-info='false'
+              allow-authentication='false' allow-server-selection='true' allow-api-list-style-selection='false'
+              update-route="false" render-style="focused" schema-description-expanded="true"></rapi-doc>
           </div>
         </el-tab-pane>
 
@@ -121,7 +116,15 @@ export default {
     isObject(value) {
       return value !== null && typeof value === 'object' && !Array.isArray(value);
     },
-
+    isEditable(item) {
+      if (item.value !== null && typeof item.value === 'object' && !Array.isArray(item.value)) {
+        return false;
+      }
+      if (['module_name', 'pipeline_name', 'category'].includes(item.key)) {
+        return false;
+      }
+      return true;
+    },
     /**
      * 初始化数据
      */
@@ -144,7 +147,7 @@ export default {
       } catch (error) {
         console.error('获取应用详情失败:', error);
         this.errorConfig = '获取应用详情失败，请重试';
-      } 
+      }
     },
     /**
      * 获取配置数据
@@ -173,7 +176,7 @@ export default {
      * @param {Number} depth - 当前深度
      * @returns {Array} 扁平化后的配置项数组
      */
-    flattenConfig(config, path = ['SubModules'], depth = 0) {
+    flattenConfig(config, path = [], depth = 0) {
       let result = [];
       if (!config || typeof config !== 'object') return result;
 
@@ -240,8 +243,8 @@ export default {
       if (index !== -1) {
         // 更新配置项的值
         this.flatConfigItems[index].value = this.deepClone(this.editValue);
-        // 更新原始配置对象
-        this.updateNestedValue(this.configData, this.flatConfigItems[index].path, this.editValue);
+        // 更新原始配置对象（使用深拷贝的值）
+        this.updateNestedValue(this.configData, this.flatConfigItems[index].path, this.deepClone(this.editValue));
         // 关闭编辑状态
         this.toggleEdit(null);
       }
@@ -255,13 +258,9 @@ export default {
      */
     updateNestedValue(obj, path, value) {
       if (path.length === 0) return;
-
       let current = obj;
       for (let i = 0; i < path.length - 1; i++) {
         const key = path[i];
-        if (!current.hasOwnProperty(key)) {
-          current[key] = {};
-        }
         current = current[key];
       }
       current[path[path.length - 1]] = value;
@@ -319,7 +318,7 @@ export default {
      */
     async saveConfig() {
       try {
-        await axios.post(`/apps/${this.appId}/config`, this.configData);
+        await axios.post(`/apps/config/${this.appId}`, this.configData);
         this.$message.success('配置保存成功');
       } catch (error) {
         console.error('保存配置失败:', error);

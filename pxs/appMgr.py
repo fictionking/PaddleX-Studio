@@ -231,30 +231,51 @@ def save_application_config(app_id):
     
     # 构建应用配置文件路径
     app_dir = os.path.join(apps_root, app_id)
-    config_path = os.path.join(app_dir, 'config.json')
-    
-    # 保存配置文件
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        #将config_data中的属性添加到config
-        for key in config_data['model_params']:
-            config['model_params'][key]['value']=config_data['model_params'][key]
+    app=apps[app_id]
+    if app['type']=='module':
+        config_path = os.path.join(app_dir, 'config.json')
         
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(config, f, ensure_ascii=False, indent=2)
+        # 保存配置文件
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            #将config_data中的属性添加到config
+            for key in config_data['model_params']:
+                config['model_params'][key]['value']=config_data['model_params'][key]
+            
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
 
-        return jsonify({
-            'status': 'success',
-            'message': f'应用 {app_id} 配置保存成功',
-            'data': config_data
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': f'保存应用 {app_id} 配置失败: {str(e)}',
-            'data': None
-        }), 500
+            return jsonify({
+                'status': 'success',
+                'message': f'应用 {app_id} 配置保存成功',
+                'data': config_data
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'保存应用 {app_id} 配置失败: {str(e)}',
+                'data': None
+            }), 500
+    if app['type']=='pipeline':
+        # 构建应用配置文件路径
+        config_path = os.path.join(app_dir, 'config.yaml')
+        # 保存配置文件
+        try:
+            with open(config_path, 'w', encoding='utf-8') as f:
+                yaml.dump(config_data, f, allow_unicode=True)
+            return jsonify({
+                'status': 'success',
+                'message': f'应用 {app_id} 配置保存成功',
+                'data': config_data
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'保存应用 {app_id} 配置失败: {str(e)}',
+                'data': None
+            }), 500
+
 
 def start_application(app_id):
     """

@@ -265,15 +265,15 @@ def download_model(category_id, module_id, model_id):
     # 收集需要下载的URL列表
     download_urls = []
     if pretrained_model_url:
-        absurl=os.path.abspath(pretrained_model_url)
+        abspath=os.path.abspath(pretrained_model_url)
         #如果和cache_dir相同，则不下载
-        if not absurl.startswith(cache_dir):
+        if not abspath.startswith(cache_dir):
             download_urls.append(('pretrained', pretrained_model_url))
     
     if inference_model_url:
-        absurl=os.path.abspath(inference_model_url)
+        abspath=os.path.abspath(inference_model_url)
         #如果和cache_dir相同，则不下载
-        if not absurl.startswith(cache_dir):
+        if not abspath.startswith(cache_dir):
             download_urls.append(('inference', inference_model_url))
         
     if not download_urls:
@@ -559,6 +559,31 @@ def create_pipeline_app():
     with open(yaml_path, 'r', encoding='utf-8') as f:
         app_config = yaml.safe_load(f)
     app_config['category']=category_id
+    def fill_submodules_model_dir(subModules):
+        if not subModules:
+            return
+        #处理subModules的每个属性
+        for key in subModules:
+            subModule=subModules[key]
+            if isinstance(subModule, dict):
+                model_dir=subModule.get('model_dir',None)
+                model_name=subModule.get('model_name',None)
+                module_name=subModule.get('module_name',None)
+                if model_dir==None and model_name and module_name:
+                    category_id,module_id,model=findModel(model_name)
+                    if category_id and module_id and model:
+                        cache_path=os.path.join(cfg.weights_root,model_name,'inference')
+                        subModule['model_dir']=cache_path
+
+    def _parse_pipeline(pipeline):
+        subModules=pipeline.get('SubModules',{})
+        fill_submodules_model_dir(subModules)
+        subPipelines=pipeline.get('SubPipelines',{})
+        for key in subPipelines:
+            subPipeline=subPipelines[key]
+            if isinstance(subPipeline, dict):
+                _parse_pipeline(subPipeline)
+    _parse_pipeline(app_config)
     succ,msg=new_applications(app_id,app_name,"pipeline",[category_id,pipeline_name],app_config)
     if succ:
         return jsonify({'message': '应用创建成功'}),200
