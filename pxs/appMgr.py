@@ -1,14 +1,16 @@
-from flask import Blueprint, config, jsonify, request,send_file
+from flask import Blueprint, make_response, jsonify, request,send_file
 import os
 import shutil
 import json
 import logging
 import time
+import requests
 from werkzeug.utils import secure_filename
 import threading
 import pxs.paddlexCfg as cfg
 from pxs.model_infer import ModelProcess
 import yaml
+from flask_cors import CORS
 
 # 全局变量跟踪当前运行的应用和模型
 current_app_id = None
@@ -26,6 +28,8 @@ apps_root = None
 apps_config_path = None
 apps = {}
 
+# 解决跨域问题
+CORS(app_mgr)
 
 def init():
     """初始化应用管理器，加载应用配置"""
@@ -703,3 +707,41 @@ def get_pipeline_config(app_id):
         return jsonify(config_data)
     else:
         return jsonify({"error": "配置文件不存在"}), 404
+
+
+# API代理，解决Swagger UI调试外部API时的跨域问题
+@app_mgr.route('/proxy/pipeline/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+def api_proxy(path):
+    """
+    代理外部API请求，解决跨域问题
+    
+    参数:
+    - path: 代理的API路径
+    """
+    base_url = "http://127.0.0.1:8080"
+
+    # 构建完整的请求URL
+    url = f"{base_url}/{path}" if path else base_url
+    
+    try:
+        # 转发请求
+        response = requests.request(
+            method=request.method,
+            url=url,
+            headers={key: value for key, value in request.headers if key != 'Host'},
+            data=request.get_data(),
+            params=request.args,
+            allow_redirects=False
+        )
+        
+        # 构建响应
+        proxy_response = make_response(response.content)
+        proxy_response.status_code = response.status_code
+        
+        # 复制原始响应头
+        for key, value in response.headers.items():
+            proxy_response.headers[key] = value
+        
+        return proxy_response
+    except Exception as e:
+        return jsonify({'error': f'代理请求失败: {str(e)}'}), 500
