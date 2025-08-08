@@ -572,7 +572,7 @@ def create_pipeline_app():
                 if model_dir==None and model_name and module_name:
                     category_id,module_id,model=findModel(model_name)
                     if category_id and module_id and model:
-                        cache_path=os.path.join(cfg.weights_root,model_name,'inference')
+                        cache_path=os.path.join('weights',model_name,'inference')
                         subModule['model_dir']=cache_path
 
     def _parse_pipeline(pipeline):

@@ -25,6 +25,8 @@
           <div v-else class="config-form-container">
             <el-form ref="configForm" :model="configData" label-width="120px">
               <!-- 扁平化配置列表 -->
+              <p>💡使用自训练模型请从自训练模型测试应用处复制model_name和model_dir替换配置中对应module类型下的model_name和model_dir。</p>
+
               <div class="flat-config-list">
                 <div v-for="item in flatConfigItems" :key="item.id" class="config-item">
                   <div :style="{ 'padding-left': item.depth * 40 + 'px' }" class="config-item-header"
