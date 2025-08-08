@@ -43,17 +43,6 @@ def send_components(filename):
     path = os.path.join('templates', 'components',filename)
     return send_file(path)
 
-# @mainapp.route('/components/<path:filename>')
-# def send_components(filename):
-#     path = os.path.join('templates', 'components', filename)
-#     # 返回使用Vue编译后的JavaScript组件
-#     if filename.endswith('.vue'):
-#         # 直接返回render_vue_component生成的Response对象
-#         return get_cached_vue_component(path)
-#     else:
-#         # 其他文件直接返回，如CSS、图片等
-#         return send_from_directory('templates/components', filename)
-
 @mainapp.route('/assets/<path:filename>')
 def send_assets(filename):
     filepath = os.path.join('templates', 'assets',filename)
