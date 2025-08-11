@@ -69,7 +69,12 @@
               update-route="false" render-style="focused" schema-description-expanded="true"></rapi-doc>
           </div>
         </el-tab-pane>
-
+        <!-- 日志标签页 -->
+        <el-tab-pane label="日志" name="log">
+          <div class="log-container" style="height: 700px; overflow: auto;">
+            <pre v-html="logContent"></pre>
+          </div>
+        </el-tab-pane>
       </el-tabs>
 
     </el-card>
@@ -101,6 +106,9 @@ export default {
       editValue: null,
       // API文档相关数据
       apiDocsUrl: '',
+      // 日志相关数据
+      logContent: '',
+      logPollingTimer: null,
     };
   },
   created() {
@@ -108,6 +116,14 @@ export default {
     this.appId = this.$route.params.appId;
     // 使用异步函数确保fetchConfig执行完成后再执行fetchApiDocs
     this.initData();
+    this.startLogPolling();
+  },
+  beforeUnmount() {
+    // 组件卸载时清除定时器
+    if (this.logPollingTimer) {
+      clearInterval(this.logPollingTimer);
+      this.logPollingTimer = null;
+    }
   },
   methods: {
     /**
@@ -414,7 +430,27 @@ export default {
         .finally(() => {
           loading.close();  // 无论成功失败都关闭加载框
         });
-    }
+    },
+    startLogPolling() {
+      // 每2秒获取一次日志
+      this.logPollingTimer = setInterval(() => {
+        this.fetchTrainLog();
+      }, 2000);
+      // 立即获取一次初始日志
+      this.fetchTrainLog();
+    },
+    fetchTrainLog() {
+      // 调用后端日志接口
+      axios.get(`/apps/log/${this.appId}`)
+        .then(res => {
+          if (res.data.code === 200) {
+            this.logContent = res.data.data;  // 更新日志内容
+          }
+        })
+        .catch(err => {
+          console.error('获取训练日志失败:', err);
+        });
+    },
   }
 }
 </script>

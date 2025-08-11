@@ -5,16 +5,23 @@ import json
 import logging
 import time
 import requests
+import subprocess
+import signal
+import os  # 添加os模块导入
+import atexit  # 添加atexit模块导入
 from werkzeug.utils import secure_filename
 import threading
 import pxs.paddlexCfg as cfg
 from pxs.model_infer import ModelProcess
 import yaml
 from flask_cors import CORS
+import sys
+
 
 # 全局变量跟踪当前运行的应用和模型
 current_app_id = None
 current_model_thread = None
+current_pipeline_process = None  # 新增：跟踪产线进程
 current_result_types = None
 current_predict_params = None
 current_input_types = None
@@ -38,6 +45,8 @@ def init():
     # 加载应用配置
     apps_config_path = os.path.join(apps_root, 'apps_config.json')
     apps = load_or_create_apps_config()
+    # 注册程序退出时的钩子函数
+    atexit.register(stop_current_application)
 
 def load_or_create_apps_config():
     """加载或创建应用配置文件，并返回以app id为键的字典"""
@@ -283,7 +292,7 @@ def save_application_config(app_id):
 
 def start_application(app_id):
     """
-    启动指定应用的模型，在独立线程中运行
+    启动指定应用，根据应用类型选择不同的启动方式
     
     Args:
         app_id: 要启动的应用ID
@@ -291,91 +300,188 @@ def start_application(app_id):
     Returns:
         tuple: (状态消息, HTTP状态码)
     """
-    global current_app_id, current_model_thread, current_result_types, current_predict_params,current_input_types
+    global current_app_id, current_model_thread, current_result_types, current_predict_params, current_input_types, current_pipeline_process
     # 停止当前运行的应用
     stop_current_application()
 
     try:
         with app_lock:
-
             if app_id not in apps:
                 raise ValueError(f'应用 {app_id} 不存在')
 
-            # 构建应用目录路径
+            app = apps[app_id]
             app_dir = os.path.join(apps_root, app_id)
-            config_path = os.path.join(app_dir, 'config.json')
+            
+            # 根据应用类型选择不同的启动方式
+            if app['type'] == 'module':
+                # 模型类型应用启动逻辑
+                config_path = os.path.join(app_dir, 'config.json')
+                
+                if not os.path.exists(config_path):
+                    raise ValueError('配置文件不存在')
 
-            # 读取推理配置参数
-            if not os.path.exists(config_path):
-                raise ValueError('配置文件不存在')
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
 
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
+                # 提取推理所需参数
+                model_params = config.get('model_params', {})
+                params={}
+                for key, value in model_params.items():
+                    if 'value' in value:
+                        v = value['value']
+                        if v and v!='':
+                            params[key] = v
+                params['device'] = cfg.device
 
-            # 提取推理所需参数
-            model_params = config.get('model_params', {})
-            params={}
-            for key, value in model_params.items():
-                if 'value' in value:
-                    v = value['value']
-                    if v and v!='':
-                        params[key] = v
-            params['device'] = cfg.device
+                # 创建并启动模型线程
+                current_model_thread = ModelProcess(params)
+                current_model_thread.start()
 
-            # 创建并启动模型线程
-            current_model_thread = ModelProcess(params)
-            current_model_thread.start()
+                # 等待模型加载完成（最多等待30分钟）
+                start_time = time.time()
+                while not current_model_thread.is_loaded() and time.time() - start_time < 30 * 60:
+                    if current_model_thread.get_error():
+                        raise RuntimeError(f'模型加载失败: {current_model_thread.get_error()}')
+                    time.sleep(0.5)
 
-            # 等待模型加载完成（最多等待30分钟）
-            start_time = time.time()
-            while not current_model_thread.is_loaded() and time.time() - start_time < 30 * 60:
-                if current_model_thread.get_error():
-                    raise RuntimeError(f'模型加载失败: {current_model_thread.get_error()}')
-                time.sleep(0.5)
+                if not current_model_thread.is_loaded():
+                    raise RuntimeError('模型加载超时')
 
-            if not current_model_thread.is_loaded():
-                raise RuntimeError('模型加载超时')
+                # 更新全局状态
+                current_result_types = config.get('result_types', {})
+                current_predict_params = config.get('predict_params', {})
+                current_input_types = config.get('input_types', {})
+            elif app['type'] == 'pipeline':
+                # 产线类型应用启动逻辑
+                config_path = os.path.join(app_dir, 'config.yaml')
+                
+                if not os.path.exists(config_path):
+                    raise ValueError('产线配置文件不存在')
 
-            # 更新全局状态
+                # 构建paddlex命令行
+                cmd = [
+                    'paddlex',
+                    '--serve',
+                    '--pipeline',
+                    config_path
+                ]
+                
+                logging.info(f'启动产线命令: {" ".join(cmd)}')
+                
+                # 打开日志文件
+                log_path = os.path.join(app_dir, "app.log")
+                target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
+                log_file = open(log_path, "w", encoding=target_encoding)
+                
+                # 启动进程，将输出重定向到日志文件
+                current_pipeline_process = subprocess.Popen(
+                    cmd,
+                    stdout=log_file,
+                    stderr=log_file,
+                    text=True,
+                    shell=False,
+                    cwd=cfg.studio_root  # 设置当前工作目录
+                )
+                
+                # 记录进程和日志文件引用，以便后续关闭
+                current_pipeline_process.log_file = log_file
+                
+                # 等待进程启动并检查日志中是否出现特定字符串
+                start_time = time.time()
+                timeout = 300  # 设置30秒超时
+                found = False
+                
+                while time.time() - start_time < timeout:
+                    # 检查进程是否存活
+                    if current_pipeline_process.poll() is not None:
+                        raise RuntimeError(f'产线启动失败')
+                    
+                    # 检查日志文件内容
+                    # 使用独立的只读句柄打开日志文件
+                    with open(log_path, 'r', encoding=target_encoding) as read_log_file:
+                        log_content = read_log_file.read()
+                    if "Uvicorn running on" in log_content:
+                        found = True
+                        break
+                    
+                    time.sleep(0.5)  # 每0.5秒检查一次
+                
+                if not found:
+                    raise RuntimeError(f'产线启动超时')
+                
+                logging.info('产线已成功启动并监听请求')
+            else:
+                raise ValueError(f'不支持的应用类型: {app["type"]}')
+
+            # 更新当前应用ID
             current_app_id = app_id
-            current_predict_params = config.get('predict_params', {})
-            current_result_types = config.get('result_types', {})
-            current_input_types = config.get('input_types', {})
 
-        logging.info(f'应用 {app_id} 已在独立线程启动')
+        logging.info(f'应用 {app_id} 已启动')
 
     except Exception as e:
         logging.error(f'启动应用失败: {str(e)}', exc_info=True)
-        # 确保线程被正确清理
+        # 确保资源被正确清理
         if current_model_thread:
             current_model_thread.stop()
             current_model_thread = None
+        if current_pipeline_process:
+            current_pipeline_process.terminate()
+            current_pipeline_process = None
         raise e
 
 
 def stop_current_application():
     """
-    停止当前运行的应用线程
+    停止当前运行的应用
     
     Returns:
         tuple: (状态消息, HTTP状态码)
     """
-    global current_app_id, current_model_thread
-
+    global current_app_id, current_model_thread, current_pipeline_process
+    
     try:
         with app_lock:
-            if current_model_thread and current_model_thread.is_alive():
-                current_model_thread.stop()
-                current_model_thread = None
-            current_app_id = None
-        logging.info('当前应用已停止')
+            if current_app_id is not None:
+                if current_model_thread is not None and current_model_thread.is_alive():
+                    # 停止模型线程
+                    current_model_thread.stop()
+                    current_model_thread.join(timeout=5)
+                    current_model_thread = None
+                elif current_pipeline_process is not None:
+                    # 停止产线进程
+                    # 在Windows上使用terminate
+                    if current_pipeline_process is not None:
+                        try:
+                            # 终止进程
+                            current_pipeline_process.terminate()
+                            current_pipeline_process.wait(timeout=5)
+
+                            logging.info('产线进程已成功终止')
+                        except subprocess.TimeoutExpired:
+                            # 超时后强制终止
+                            current_pipeline_process.kill()
+                            logging.info('产线进程已强制终止')
+                        except Exception as e:
+                            logging.error(f'终止产线进程时出错: {str(e)}')
+                        finally:
+                            # 关闭日志文件
+                            if hasattr(current_pipeline_process, 'log_file') and current_pipeline_process.log_file:
+                                current_pipeline_process.log_file.write('产线进程已终止')
+                                current_pipeline_process.log_file.close()
+                                current_pipeline_process.log_file = None
+                            current_pipeline_process = None
+                current_app_id = None
+                logging.info('当前应用已停止')
     except Exception as e:
         logging.error(f'停止应用失败: {str(e)}', exc_info=True)
         raise e
 
 def get_apps_status():
-    if current_model_thread:
+    if current_model_thread and current_model_thread.is_alive() or current_pipeline_process and current_pipeline_process.poll() is None:
         return '运行中'
+    else:
+        global current_app_id
+        current_app_id = None
     return '未运行'
 
 @app_mgr.route('/apps/start/<app_id>', methods=['GET'])
@@ -745,3 +851,22 @@ def api_proxy(path):
         return proxy_response
     except Exception as e:
         return jsonify({'error': f'代理请求失败: {str(e)}'}), 500
+
+
+@app_mgr.route('/apps/log/<app_id>', methods=['GET'])
+def get_app_log(app_id):
+    app_dir = os.path.join(apps_root, app_id)
+    log_path = os.path.join(app_dir, "app.log")
+    # 读取日志内容（最多返回最后1000行防止内存溢出）
+    try:
+        # 动态判断编码：Windows使用gbk，其他系统使用utf-8
+        target_encoding = 'gbk' if sys.platform == 'win32' else 'utf-8'
+        with open(log_path, 'r', encoding=target_encoding) as f:
+            lines = f.readlines()
+            # 取最后1000行保证实时性
+            log_content = ''.join(lines[-1000:]) if len(lines) > 1000 else ''.join(lines)
+        if log_content=='':
+            log_content = '正在启动应用...'
+        return jsonify({'code': 200, 'data': log_content})
+    except FileNotFoundError:
+        return jsonify({'code': 200, 'data': '日志文件未生成或应用未启动'}), 200
