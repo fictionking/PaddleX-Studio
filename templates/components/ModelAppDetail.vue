@@ -19,10 +19,14 @@
           <el-form :model="modelFormData" label-width="auto" @submit.prevent="saveConfig">
             <el-form-item v-for="(param, key) in modelParams" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
-                <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="modelFormData[key]"
-                  :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
-                  :max="param.max !== null ? param.max : undefined" controls-position="right"
-                  :readonly="!param.config_able"></el-input-number>
+                <el-slider v-if="['int', 'float'].includes(param.type) && param.min !== null && param.max !== null"
+                  v-model="modelFormData[key]" :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
+                  :min="param.min" :max="param.max" :disabled="!param.config_able" show-tooltip show-input size="small"
+                  class="slider-input"></el-slider>
+                <el-input-number v-else-if="['int', 'float'].includes(param.type)" v-model="modelFormData[key]"
+                  :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
+                  :min="param.min !== null ? param.min : undefined" :max="param.max !== null ? param.max : undefined"
+                  controls-position="right" :readonly="!param.config_able"></el-input-number>
                 <el-switch v-else-if="param.type === 'bool'" v-model="modelFormData[key]" active-text="True"
                   inactive-text="False" :readonly="!param.config_able"></el-switch>
                 <el-input v-else-if="param.type === 'dict'" v-model="modelFormData[key]" type="textarea"
@@ -40,8 +44,7 @@
             </el-form-item>
             <el-form-item label=" ">
               <el-button type="primary" @click="saveConfig">保存配置</el-button>
-              <el-button v-if="appInfo.status == 'stopped'" type="primary"
-                @click.stop="handleAppStart()">启动</el-button>
+              <el-button v-if="appInfo.status == 'stopped'" type="primary" @click.stop="handleAppStart()">启动</el-button>
               <el-button v-if="appInfo.status == 'running'" type="danger" @click.stop="handleAppStop()">停止</el-button>
             </el-form-item>
           </el-form>
@@ -51,10 +54,14 @@
           <el-form :model="predictFormData" label-width="auto">
             <el-form-item v-for="(param, key) in predict_params" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
-                <el-input-number v-if="['int', 'float'].includes(param.type)" v-model="predictFormData[key]"
-                  :step="param.type === 'float' ? 0.01 : 1" :min="param.min !== null ? param.min : undefined"
-                  :max="param.max !== null ? param.max : undefined" controls-position="right"
-                  :readonly="!param.config_able"></el-input-number>
+                <el-slider v-if="['int', 'float'].includes(param.type) && param.min !== null && param.max !== null"
+                  v-model="predictFormData[key]" :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
+                  :min="param.min" :max="param.max" :disabled="!param.config_able" show-tooltip show-input size="small"
+                  class="slider-input"></el-slider>
+                <el-input-number v-else-if="['int', 'float'].includes(param.type)" v-model="predictFormData[key]"
+                  :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
+                  :min="param.min !== null ? param.min : undefined" :max="param.max !== null ? param.max : undefined"
+                  controls-position="right" :readonly="!param.config_able"></el-input-number>
                 <el-switch v-else-if="param.type === 'bool'" v-model="predictFormData[key]" active-text="True"
                   inactive-text="False" :readonly="!param.config_able"></el-switch>
                 <el-input v-else-if="param.type === 'dict'" v-model="predictFormData[key]" type="textarea"
@@ -582,5 +589,21 @@ export default {
 
   border-radius: 4px;
   margin: 20px auto;
+}
+
+.slider-input {
+  --el-slider-main-bg-color: var(--el-color-primary);
+  --el-slider-runway-bg-color: var(--el-border-color-light);
+  --el-slider-stop-bg-color: var(--el-color-white);
+  --el-slider-disabled-color: var(--el-text-color-placeholder);
+  --el-slider-border-radius: 3px;
+  --el-slider-height: 3px;
+  --el-slider-button-size: 10px;
+  --el-slider-button-wrapper-size: 20px;
+  --el-slider-button-wrapper-offset: -10px;
+  align-items: center;
+  display: flex;
+  height: 32px;
+  width: 100%;
 }
 </style>
