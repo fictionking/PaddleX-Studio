@@ -99,10 +99,14 @@ class WorkflowPipeline(BasePipeline):
         # 初始化执行队列，存储元组 (node_id, input_value, port)
         execution_queue = []
 
-        # 首先运行所有常量节点
+        # 首先处理所有常量节点
         for node_id, node in self.nodes.items():
             if isinstance(node, ConstantNode):
+                # 检查kwargs中是否有与节点ID同名的输入参数
+                if node_id in kwargs:
+                    node.set_params("default_value", kwargs[node_id])
                 node_result = node.run()
+                
                 # 传递常量节点结果到下一个节点
                 if node_id in self.connections:
                     for conn in self.connections[node_id]:
