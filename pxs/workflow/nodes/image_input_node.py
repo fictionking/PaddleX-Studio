@@ -10,16 +10,6 @@ class ImageInputNode(ComputeNode):
     用于读取图像文件并输出给后续处理节点
     """
 
-    def __init__(self, config: Dict, pipeline: Any) -> None:
-        """
-        初始化图像输入节点
-
-        Args:
-            config (Dict): 节点配置
-            pipeline (Any): 工作流管道实例
-        """
-        super().__init__(config, pipeline)
-
     def _run_compute(self, port: str, data: Any) -> 'NodeResult':
         """
         运行图像输入节点，读取图像文件

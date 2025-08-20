@@ -70,14 +70,10 @@ class BaseNode(ABC):
             config (Dict): 节点配置
             pipeline (Any): 工作流管道实例
         """
-        self.config = config
         self.id = config["id"]
         self.name = config["name"]
         self.type = config["type"]
         self.params = config.get("params", {})
-        self.inputs = config.get("inputs", [])
-        self.outputs = config.get("outputs", [])
-        self.pipeline = pipeline
         pass
 
     def set_params(self, port: str, data: Any) -> None:
@@ -151,7 +147,7 @@ class ConstantNode(BaseNode):
             config (Dict): 节点配置
             pipeline (Any): 工作流管道实例
         """
-        super().__init__(config, pipeline)
+        super().__init__(config, pipeline) 
         # 标记常量节点是否已运行
         self.has_run = False
         # 缓存常量节点的运行结果
@@ -179,12 +175,22 @@ class ConstantNode(BaseNode):
         return self.result_cache
 
     @abstractmethod
+    def set_value(self, value: Any) -> None:
+        """
+        设置节点常量值
+
+        Args:
+            value (Any): 常量值
+
+        Returns:
+            None
+        """
+        pass
+
+    @abstractmethod
     def _run_constant(self) -> 'NodeResult':
         """
         常量节点的具体运行逻辑
-
-        Args:
-            input_data (Any): 输入数据
 
         Returns:
             NodeResult: 节点运行结果封装对象

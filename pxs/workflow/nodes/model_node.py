@@ -16,11 +16,14 @@ class BaseModelNode(ComputeNode):
         """
         super().__init__(config, pipeline)
         self.model = None
-        self.initialize_model()
+        self.initialize_model(pipeline)
 
-    def initialize_model(self) -> None:
+    def initialize_model(self, pipeline: Any) -> None:
         """
         初始化模型
+
+        Args:
+            pipeline (Any): 工作流管道实例
         """
         if "module_name" in self.params and "model_name" in self.params:
             try:
@@ -32,7 +35,7 @@ class BaseModelNode(ComputeNode):
                 model_params = self.params.get("model_params", {})
 
                 # 创建模型实例
-                self.model = self.pipeline.create_model(config, **model_params)
+                self.model = pipeline.create_model(config, **model_params)
                 print(f"模型 {self.params['model_name']} 初始化成功")
             except Exception as e:
                 raise ValueError(f"创建模型 {self.params.get('model_name')} 失败: {str(e)}")
@@ -85,7 +88,7 @@ class BaseModelNode(ComputeNode):
         # 子类应根据不同的port实现特定的处理逻辑
         return result
 
-def ModelNode(config:Dict,pipeline:Any)->BaseModelNode:
+def ModelNode(config:Dict, pipeline:Any)->BaseModelNode:
     """
     代理创建模型节点
 

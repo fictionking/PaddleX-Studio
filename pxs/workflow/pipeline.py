@@ -104,7 +104,7 @@ class WorkflowPipeline(BasePipeline):
             if isinstance(node, ConstantNode):
                 # 检查kwargs中是否有与节点ID同名的输入参数
                 if node_id in kwargs:
-                    node.set_params("default_value", kwargs[node_id])
+                    node.set_value(kwargs[node_id])
                 node_result = node.run()
                 
                 # 传递常量节点结果到下一个节点
@@ -113,6 +113,10 @@ class WorkflowPipeline(BasePipeline):
                         from_port = conn["from_port"]
                         to_node = conn["to_node"]
                         to_port = conn["to_port"]
+                        # 检查是否连接到end节点
+                        if to_node == "end":
+                            yield node_result.get(from_port)
+                            continue
                         if to_node in self.nodes:
                             # 检查to_node是否为常量节点
                             self._is_constant_node(self.nodes[to_node], f"常量节点 {node_id} 不能连接到常量节点 {to_node}")
@@ -174,7 +178,7 @@ class WorkflowPipeline(BasePipeline):
 
                     # 检查是否连接到end节点
                     if to_node == "end":
-                        yield node_result.get(from_port)
+                        yield from node_result.get(from_port)
                         continue
 
                     if to_node in self.nodes:

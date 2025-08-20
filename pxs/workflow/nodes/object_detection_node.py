@@ -6,19 +6,13 @@ import numpy as np
 class ObjectDetectionNode(BaseModelNode):
     """目标检测节点"""
 
-    def __init__(self, config: Dict, pipeline: Any) -> None:
-        """
-        初始化目标检测节点
-
-        Args:
-            config (Dict): 节点配置
-            pipeline (Any): 工作流管道实例
-        """
-        super().__init__(config, pipeline)
-
     def prepare_input(self,port:str,data: Any) -> Any:
         """
         准备目标检测模型输入数据
+
+        Args:
+            port (str): 输入端口名称
+            data (Any): 输入数据
 
         Returns:
             Any: 处理后的输入数据
@@ -36,23 +30,6 @@ class ObjectDetectionNode(BaseModelNode):
             raise TypeError("列表中的元素必须都是np.ndarray类型")
         return data
         
-    # def _run_compute(self, input_data: Any) -> NodeResult:
-    #     # 运行模型推理
-    #     try:
-    #         results = []
-    #         if isinstance(input_data, list):
-    #             # 列表输入，每个元素都是np.ndarray,每个都执行一次推理并组成列表返回
-    #             for item in input_data:
-    #                 for result in self.model(item, **self.params.get("infer_params")):
-    #                     results.append(result)
-    #         else:
-    #             # 单张图片输入，执行一次推理
-    #             for result in self.model(input_data, **self.params.get("infer_params")):
-    #                 results.append(result)
-    #         return NodeResult(results,self)
-    #     except Exception as e:
-    #         raise RuntimeError(f"节点 {self.id} 运行失败: {str(e)}")
-
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:
         """
         处理目标检测模型输出结果
@@ -64,6 +41,7 @@ class ObjectDetectionNode(BaseModelNode):
         Returns:
             Any: 处理后的结果，类型取决于from_port参数
         """
+        assert port=="images" or port=="boxes",f"目标检测节点输出端口必须是images或boxes，当前端口是{port}"
         if isinstance(result,list):
             ret=[]
             for item in result:
