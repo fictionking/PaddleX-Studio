@@ -83,6 +83,8 @@
 </template>
 
 <script>
+import '/libs/rapidoc-min.js'
+
 export default {
   inject: ['isDark'],
 
