@@ -1,91 +1,86 @@
 <template>
     <div style="width: 100%; height: calc(100vh - 120px);">
         <VueFlow :nodes="nodes" :edges="edges">
+            <template #node-model="props">
+                <ModelNode :id="props.id" :data="props.data" />
+            </template>
         </VueFlow>
     </div>
 </template>
 <script>
-import { VueFlow, MarkerType } from '/libs/vue-flow/core/vue-flow-core.mjs';
+import {VueFlow} from '/libs/vue-flow/core/vue-flow-core.mjs';
+import ModelNode from '/components/nodes/model.vue';
 
 export default {
     components: {
-        VueFlow
+        VueFlow,
+        ModelNode
     },
     data() {
         return {
             nodes: [
                 {
-                    id: '1',
-                    type: 'input',
-                    data: { label: 'Node 1' },
-                    position: { x: 250, y: 0 },
-                    class: 'light',
+                    id: 'object_detection',
+                    type: 'model',
+                    data: {
+                        name: "目标识别节点",
+                        params: {
+                            module_name: "object_detection",
+                            model_name: "PP-YOLOE_plus-L",
+                            model_dir: "weights\PP-YOLOE_plus-L\inference",
+                            model_params: {
+                                threshold: 0.5
+                            },
+                            infer_params: {
+                                threshold: 0.5
+                            }
+                        },
+                        inputs: ["images"],
+                        outputs: ["images", "boxes"]
+                    },
+                    position: { x: 250, y: 0 }
                 },
                 {
-                    id: '2',
-                    type: 'output',
-                    data: { label: 'Node 2' },
-                    position: { x: 100, y: 100 },
-                    class: 'light',
-                },
-                {
-                    id: '3',
-                    data: { label: 'Node 3' },
-                    position: { x: 400, y: 100 },
-                    class: 'light',
-                },
-                {
-                    id: '4',
-                    data: { label: 'Node 4' },
-                    position: { x: 150, y: 200 },
-                    class: 'light',
-                },
-                {
-                    id: '5',
-                    type: 'output',
-                    data: { label: 'Node 5' },
-                    position: { x: 300, y: 300 },
-                    class: 'light',
-                },
+                    id: "image_classification",
+                    type: "model",
+                    data: {
+                        name: "图像分类节点",
+                        params: {
+                            module_name: "image_classification",
+                            model_name: "PP-HGNetV2-B6",
+                            model_dir: "weights\PP-HGNetV2-B6\inference",
+                            model_params: {
+                                topk: 5
+                            },
+                            infer_params: {
+                                topk: 1
+                            }
+                        },
+                        inputs: ["images"],
+                        outputs: ["labels"]
+                    },
+                    position: { x: 550, y: 0 }
+                }
             ],
             edges: [
                 {
-                    id: 'e1-2',
-                    source: '1',
-                    target: '2',
-                    animated: true,
-                },
-                {
-                    id: 'e1-3',
-                    source: '1',
-                    target: '3',
-                    label: 'edge with arrowhead',
-                    markerEnd: MarkerType.ArrowClosed,
-                },
-                {
-                    id: 'e4-5',
-                    type: 'step',
-                    source: '4',
-                    target: '5',
-                    label: 'Node 2',
-                    style: { stroke: 'orange' },
-                    labelBgStyle: { fill: 'orange' },
-                },
-                {
-                    id: 'e3-4',
-                    type: 'smoothstep',
-                    source: '3',
-                    target: '4',
-                    label: 'smoothstep-edge',
-                },
+                    id: 'object_detection_to_image_classification',
+                    source: 'object_detection',
+                    target: 'image_classification',
+                    sourceHandle: 'outputs.images',
+                    targetHandle: 'inputs.images',
+                }
             ]
         }
     }
 }
 </script>
 <style>
-/* import the necessary styles for Vue Flow to work */
 @import '/libs/vue-flow/core/style.css';
-/* import the default theme, this is optional but generally recommended */
 @import '/libs/vue-flow/core/theme-default.css';
+@import '/assets/ports.css';
+.vue-flow__edge-path {
+stroke: var(--el-border-color);
+stroke-width: 2;
+}
 </style>

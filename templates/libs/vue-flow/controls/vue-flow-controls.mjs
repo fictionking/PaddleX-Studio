@@ -1,5 +1,5 @@
-import { openBlock, createElementBlock, renderSlot, createElementVNode, defineComponent, toRef, createBlock, unref, withCtx, Fragment, createVNode, resolveDynamicComponent, createCommentVNode } from "vue";
-import { PanelPosition, useVueFlow, Panel } from "@vue-flow/core";
+const { openBlock, createElementBlock, renderSlot, createElementVNode, defineComponent, toRef, createBlock, unref, withCtx, Fragment, createVNode, resolveDynamicComponent, createCommentVNode } = Vue;
+import { PanelPosition, useVueFlow, Panel } from "/libs/vue-flow/core/vue-flow-core.mjs";
 const _sfc_main$1 = {
   name: "ControlButton",
   compatConfig: { MODE: 3 }

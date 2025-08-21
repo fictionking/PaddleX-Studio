@@ -1,5 +1,5 @@
-import { defineComponent, ref, toRef, computed, watchEffect, openBlock, createElementBlock, normalizeClass, unref, normalizeStyle, renderSlot, inject, watch, Fragment, renderList, createVNode, createCommentVNode } from "vue";
-import { useVueFlow, useGetPointerPosition, clamp, NodeIdInjection } from "@vue-flow/core";
+const { defineComponent, ref, toRef, computed, watchEffect, openBlock, createElementBlock, normalizeClass, unref, normalizeStyle, renderSlot, inject, watch, Fragment, renderList, createVNode, createCommentVNode } = Vue;
+import { useVueFlow, useGetPointerPosition, clamp, NodeIdInjection } from "/libs/vue-flow/core/vue-flow-core.mjs";
 var xhtml = "http://www.w3.org/1999/xhtml";
 const namespaces = {
   svg: "http://www.w3.org/2000/svg",

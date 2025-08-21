@@ -1,5 +1,5 @@
-import { defineComponent, inject, computed, openBlock, createBlock, Teleport, unref, createElementBlock, mergeProps, renderSlot, createCommentVNode } from "vue";
-import { Position, NodeIdInjection, useVueFlow, getRectOfNodes } from "@vue-flow/core";
+const { defineComponent, inject, computed, openBlock, createBlock, Teleport, unref, createElementBlock, mergeProps, renderSlot, createCommentVNode } = Vue;
+import { Position, NodeIdInjection, useVueFlow, getRectOfNodes } from "/libs/vue-flow/core/vue-flow-core.mjs";
 const __default__ = {
   name: "NodeToolbar",
   compatConfig: { MODE: 3 },

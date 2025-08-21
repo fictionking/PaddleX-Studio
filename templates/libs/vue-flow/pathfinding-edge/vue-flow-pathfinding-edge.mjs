@@ -1,5 +1,5 @@
-import { defineComponent as Ze, computed as O, useAttrs as Ke, unref as F, openBlock as G, createBlock as Ae, normalizeProps as It, mergeProps as xt, createElementBlock as et, Fragment as tt, createElementVNode as it, normalizeStyle as nt, createCommentVNode as rt } from "vue";
-import { useVueFlow as Ct, getSimpleBezierPath as at, BezierEdge as Et, EdgeText as st } from "@vue-flow/core";
+const { defineComponent: Ze, computed: O, useAttrs: Ke, unref: F, openBlock: G, createBlock: Ae, normalizeProps: It, mergeProps: xt, createElementBlock: et, Fragment: tt, createElementVNode: it, normalizeStyle: nt, createCommentVNode: rt } = Vue;
+import { useVueFlow as Ct, getSimpleBezierPath as at, BezierEdge as Et, EdgeText as st } from "/libs/vue-flow/core/vue-flow-core.mjs";
 var Rt = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}, R = {}, jt = {
   get exports() {
     return R;

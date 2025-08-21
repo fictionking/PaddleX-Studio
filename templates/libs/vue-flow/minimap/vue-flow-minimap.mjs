@@ -1,5 +1,5 @@
-import { defineComponent, inject, useAttrs, toRef, openBlock, createElementBlock, Fragment, unref, createBlock, resolveDynamicComponent, normalizeProps, mergeProps, createCommentVNode, useSlots, ref, provide, computed, watchEffect, normalizeClass, withCtx, toDisplayString, renderList, normalizeStyle, createElementVNode } from "vue";
-import { useVueFlow, getRectOfNodes, getBoundsofRects, wheelDelta, Panel, isMacOs, getConnectedEdges } from "@vue-flow/core";
+const { defineComponent, inject, useAttrs, toRef, openBlock, createElementBlock, Fragment, unref, createBlock, resolveDynamicComponent, normalizeProps, mergeProps, createCommentVNode, useSlots, ref, provide, computed, watchEffect, normalizeClass, withCtx, toDisplayString, renderList, normalizeStyle, createElementVNode } = Vue;
+import { useVueFlow, getRectOfNodes, getBoundsofRects, wheelDelta, Panel, isMacOs, getConnectedEdges } from "/libs/vue-flow/core/vue-flow-core.mjs";
 var noop = { value: () => {
 } };
 function dispatch() {

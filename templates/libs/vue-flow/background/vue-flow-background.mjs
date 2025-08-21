@@ -1,5 +1,5 @@
-import { h, defineComponent, computed, toRef, openBlock, createElementBlock, normalizeStyle, renderSlot, createElementVNode, unref, createBlock, createCommentVNode } from "vue";
-import { useVueFlow } from "@vue-flow/core";
+const { h, defineComponent, computed, toRef, openBlock, createElementBlock, normalizeStyle, renderSlot, createElementVNode, unref, createBlock, createCommentVNode } = Vue;
+import { useVueFlow } from "/libs/vue-flow/core/vue-flow-core.mjs";
 var BackgroundVariant = /* @__PURE__ */ ((BackgroundVariant2) => {
   BackgroundVariant2["Lines"] = "lines";
   BackgroundVariant2["Dots"] = "dots";
