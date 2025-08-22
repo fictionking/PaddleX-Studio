@@ -1,71 +1,45 @@
 <template>
-    <div class="custom-node model-node">
-        <div class="node-header">
-            <span>{{ data.name }}</span>
-        </div>
-        <div class="node-content">
-            <div class="io-container">
-                <!-- 左侧输入连接点 -->
-                <div class="node-inputs">
-                    <div v-for="input in data.inputs" :key="input" class="io-connection">
-                        <Handle :type="'target'" :position="Position.Left" :id="`inputs.${input}`"
-                            :class="['left-handle-pos', 'io-port', input.toLowerCase()]" />
-                        <span class="io-label"> {{ input }} </span>
-                    </div>
-                </div>
-
-                <!-- 右侧输出连接点 -->
-                <div class="node-outputs">
-                    <div v-for="output in data.outputs" :key="output" class="io-connection">
-                        <Handle :type="'source'" :position="Position.Right" :id="`outputs.${output}`"
-                            :class="['right-handle-pos', 'io-port', output.toLowerCase()]" />
-                        <span class="io-label"> {{ output }} </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 节点中间内容 -->
-            <div class="node-properties">
-                <div class="property-item">
-                    <Handle :type="'target'" :position="Position.Left" :id="`params.format`"
-                        :class="['left-handle-pos', 'params-port', 'format']" />
-
-                    <span class="property-label">图片格式:</span>
-                    <el-select v-model="data.params.format" class="property-value select nodrag" size="small">
-                        <el-option label="png" value="png" />
-                        <el-option label="jpg" value="jpg" />
-                        <template #label="{ label, value }">
-                            <span style="font-size: 10px;">{{ label }}</span>
-                        </template>
-                    </el-select>
-                </div>
-                <div class="property-item">
-                    <Handle :type="'target'" :position="Position.Left" :id="`params.path`"
-                        :class="['left-handle-pos', 'params-port', 'path']" />
-
-                    <span class="property-label">输出目录:</span>
-                    <el-input v-model="data.params.path" class="property-value input nodrag" size="small" />
-                </div>
-                <div class="property-item">
-                    <Handle :type="'target'" :position="Position.Left" :id="`params.filename`"
-                        :class="['left-handle-pos', 'params-port', 'filename']" />
-
-                    <span class="property-label">保存文件名:</span>
-                    <el-input v-model="data.params.filename" class="property-value input nodrag" size="small" />
-                </div>
-
-            </div>
-
-        </div>
-    </div>
+    <WorkflowNode :id="id" :data="data">
+        <template #properties>
+                <SelectProperty
+                    label="图片格式"
+                    v-model="data.params.format"
+                    :options="[{ label: 'png', value: 'png' }, { label: 'jpg', value: 'jpg' }]"
+                    handleId="params.format"
+                    handleClass="format"
+                />
+                <InputProperty
+                    label="输出目录"
+                    v-model="data.params.path"
+                    handleId="params.path"
+                    handleClass="path"
+                />
+                <InputProperty
+                    label="保存文件名"
+                    v-model="data.params.filename"
+                    handleId="params.filename"
+                    handleClass="filename"
+                />
+                    </template>
+    </WorkflowNode>
 </template>
 
 <script>
-import { Handle, Position } from '/libs/vue-flow/core/vue-flow-core.mjs';
 
+import WorkflowNode from './base/WorkflowNode.vue';
+import InputProperty from './base/InputProperty.vue';
+import SelectProperty from './base/SelectProperty.vue';
+
+
+/**
+ * 图像文件输出节点组件
+ * 用于配置和展示图像输出相关参数
+ */
 export default {
     components: {
-        Handle
+        WorkflowNode,
+        InputProperty,
+        SelectProperty
     },
     props: {
         id: {
@@ -76,133 +50,6 @@ export default {
             type: Object,
             required: true,
         }
-    },
-    setup(props) {
-        return {
-            Position
-        };
     }
 };
 </script>
-
-<style scoped>
-
-.custom-node {
-    min-width: 120px;
-    max-width: 500px;
-    width: fit-content;
-    border: 1px solid var(--el-border-color-dark);
-    border-radius: 6px;
-    overflow: hidden;
-    background-color: var(--el-fill-color-dark);
-    box-shadow: var(--el-box-shadow);
-}
-
-.node-header {
-    background-color: var(--el-fill-color);
-    color: var(--el-text-color-primary);
-    padding: 8px 8px;
-    font-weight: bold;
-    font-size: var(--el-font-size-small);
-    margin-bottom: 5px;
-}
-
-.node-content {
-    font-size: var(--el-font-size-extra-small);
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-.node-inputs {
-    min-width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 5px;
-}
-
-.node-outputs {
-    min-width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-bottom: 5px;
-}
-
-.node-properties {
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 10px;
-}
-
-.property-item {
-    color: var(--el-text-color-secondary);
-    position: relative;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.property-label {
-    min-width: 50px;
-    margin-right: 8px;
-}
-
-.property-value {
-    flex: 1;
-    font-size: 10px;
-    max-width: 100px;
-    word-break: break-all;
-    --el-input-text-color: var(--el-text-color-secondary);
-    background-color: transparent;
-}
-
-.property-value.input {
-    --el-input-border: none;
-    --el-input-border-color: transparent;
-    border-width: 0;
-}
-
-.property-value.select {
-    --el-border-color:transparent
-}
-
-.io-connection {
-    position: relative;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.io-label {
-    font-weight: bold;
-    white-space: nowrap;
-    color: var(--el-text-color-regular);
-}
-
-.io-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.property-group {
-    margin-top: 0px;
-}
-
-.group-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #42b983;
-}
-
-.left-handle-pos {
-    position: absolute;
-    left: -10px;
-}
-
-.right-handle-pos {
-    position: absolute;
-    right: -10px;
-}
-</style>

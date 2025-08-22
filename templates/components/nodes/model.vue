@@ -1,71 +1,57 @@
 <template>
-    <div class="custom-node model-node">
-        <div class="node-header">
-            <span>{{data.name}}</span>
-        </div>
-        <div class="node-content">
-            <div class="io-container">
-                <!-- 左侧输入连接点 -->
-                <div class="node-inputs">
-                    <div v-for="input in data.inputs" :key="input" class="io-connection">
-                        <Handle :type="'target'" :position="Position.Left" :id="`inputs.${input}`"
-                            :class="['left-handle-pos', 'io-port', input.toLowerCase()]" />
-                        <span class="io-label"> {{ input }} </span>
-                    </div>
-                </div>
-
-                <!-- 右侧输出连接点 -->
-                <div class="node-outputs">
-                    <div v-for="output in data.outputs" :key="output" class="io-connection">
-                        <Handle :type="'source'" :position="Position.Right" :id="`outputs.${output}`"
-                            :class="['right-handle-pos', 'io-port', output.toLowerCase()]" />
-                        <span class="io-label"> {{ output }} </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 节点中间内容 -->
-            <div class="node-properties">
-                <div class="property-item">
-                    <span class="property-label">模块名称:</span>
-                    <span class="property-value">{{ data.params.module_name }}</span>
-                </div>
-                <div class="property-item">
-                    <span class="property-label">模型名称:</span>
-                    <span class="property-value">{{ data.params.model_name }}</span>
-                </div>
-                <div v-if="data.params?.model_params" class="property-group">
-                    <div class="group-label">模型参数:</div>
-                    <div v-for="(value, key) in data.params.model_params" :key="key" class="property-item">
-                        <Handle :type="'target'" :position="Position.Left" :id="`params.model_params.${key}`"
-                            :class="['left-handle-pos', 'params-port',`model_params_${key}`]" />
-
-
-                        <span class="property-label">{{ key }}:</span>
-                        <el-input v-model="data.params.model_params[key]" class="property-value input nodrag" size="small" />
-                    </div>
-                </div>
-                <div v-if="data.params?.infer_params" class="property-group">
-                    <div class="group-label">推理参数:</div>
-                    <div v-for="(value, key) in data.params.infer_params" :key="key" class="property-item">
-                        <Handle :type="'target'" :position="Position.Left" :id="`params.infer_params.${key}`"
-                            :class="['left-handle-pos', 'params-port',`infer_params_${key}`]" />
-                        <span class="property-label">{{ key }}:</span>
-                        <el-input v-model="data.params.infer_params[key]" class="property-value input nodrag" size="small" />
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
+    <WorkflowNode :id="id" :data="data">
+        <template #properties>
+                <ValueProperty
+                    label="模块名称"
+                    :value="data.params.module_name"
+                />
+                <ValueProperty
+                    label="模型名称"
+                    :value="data.params.model_name"
+                />
+                <GroupProperty label="模型参数" v-if="data.params?.model_params">
+                    <InputProperty
+                        v-for="(value, key) in data.params.model_params"
+                        :key="key"
+                        :label="key"
+                        v-model="data.params.model_params[key]"
+                        :handleId="`params.model_params.${key}`"
+                        :handleClass="`model_params_${key}`"
+                    />
+                </GroupProperty>
+                <GroupProperty label="推理参数" v-if="data.params?.infer_params">
+                    <InputProperty
+                        v-for="(value, key) in data.params.infer_params"
+                        :key="key"
+                        :label="key"
+                        v-model="data.params.infer_params[key]"
+                        :handleId="`params.infer_params.${key}`"
+                        :handleClass="`infer_params_${key}`"
+                    />
+                </GroupProperty>
+                    </template>
+    </WorkflowNode>
 </template>
 
 <script>
-import { Handle, Position} from '/libs/vue-flow/core/vue-flow-core.mjs';
 
+import WorkflowNode from './base/WorkflowNode.vue';
+import ValueProperty from './base/ValueProperty.vue';
+import GroupProperty from './base/GroupProperty.vue';
+import InputProperty from './base/InputProperty.vue';
+
+
+/**
+ * 模型节点组件
+ * 用于展示和配置模型相关参数
+ */
 export default {
     components: {
-        Handle
+        WorkflowNode,
+        ValueProperty,
+        GroupProperty,
+        InputProperty
+
     },
     props: {
         id: {
@@ -76,134 +62,6 @@ export default {
             type: Object,
             required: true,
         }
-    },
-    setup(props) {
-        return {
-            Position
-        };
     }
 };
 </script>
-
-<style scoped>
-
-.custom-node {
-    min-width: 120px;
-    max-width: 500px;
-    width: fit-content;
-    border: 1px solid var(--el-border-color-dark);
-    border-radius: 6px;
-    overflow: hidden;
-    background-color: var(--el-fill-color-dark);
-    box-shadow: var(--el-box-shadow);
-}
-
-.node-header {
-    background-color: var(--el-fill-color);
-    color: var(--el-text-color-primary);
-    padding: 8px 8px;
-    font-weight: bold;
-    font-size: var(--el-font-size-small);
-    margin-bottom: 5px;
-}
-
-.node-content {
-    font-size: var(--el-font-size-extra-small);
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-.node-inputs {
-    min-width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 5px;
-}
-
-.node-outputs {
-    min-width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-bottom: 5px;
-}
-
-.node-properties {
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 10px;
-}
-
-.property-item {
-    color: var(--el-text-color-secondary);
-    position: relative;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.property-label {
-    min-width: 50px;
-    margin-right: 8px;
-}
-
-.property-value {
-    flex: 1;
-    font-size: 10px;
-    max-width: 100px;
-    word-break: break-all;
-    --el-input-text-color: var(--el-text-color-secondary);
-    background-color: transparent;
-}
-
-.property-value.input {
-    --el-input-border: none;
-    --el-input-border-color: transparent;
-    border-width: 0;
-}
-
-.property-value.select {
-    --el-border-color:transparent
-}
-
-.io-connection {
-    position: relative;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.io-label {
-    font-weight: bold;
-    white-space: nowrap;
-    color: var(--el-text-color-regular);
-}
-
-.io-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.property-group {
-    margin-top: 0px;
-}
-
-.group-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #42b983;
-}
-
-.left-handle-pos {
-    position: absolute;
-    left: -10px;
-}
-
-.right-handle-pos {
-    position: absolute;
-    right: -10px;
-}
-
-</style>
