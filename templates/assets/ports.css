@@ -1,15 +1,39 @@
-.io-port-color-images {
+/* 基础端口样式 */
+.vue-flow__handle {
+    border: 2px solid var(--el-border-color-extra-light);
+}
+
+/* 输入输出类型端口样式 */
+.io-port {
+    background-color: #ffffff;
+}
+
+.io-port.images {
     background-color: #ec4899;
 }
 
-.io-port-color-boxes {
-    background-color: #8908df;
+.io-port.boxes {
+    background-color: #9d21ef;
 }
 
-.io-port-color-labels {
+.io-port.labels {
     background-color: #0093d1;
 }
 
-.params-port-color {
+.io-port.files {
+    background-color: #e7c230;
+}
+
+/* 参数端口样式 */
+.params-port {
     background-color: #01ac57;
 }
+
+/*指定特定参数的样式可以在params-port类名后添加参数名,用_连接所有父子参数名*/
+/* .params-port.filename {
+    background-color: #1966ff;
+}
+
+.params-port.model_params_topk {
+    background-color: #ffa20c;
+} */

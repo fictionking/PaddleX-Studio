@@ -1,23 +1,25 @@
 <template>
     <div style="width: 100%; height: calc(100vh - 120px);">
-        <VueFlow :nodes="nodes" :edges="edges">
-            <template #node-model="props">
-                <ModelNode :id="props.id" :data="props.data" />
-            </template>
+        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes">
         </VueFlow>
     </div>
 </template>
 <script>
+const {markRaw,defineAsyncComponent} = Vue;
 import {VueFlow} from '/libs/vue-flow/core/vue-flow-core.mjs';
-import ModelNode from '/components/nodes/model.vue';
 
 export default {
     components: {
         VueFlow,
-        ModelNode
+        // ModelNode
     },
     data() {
         return {
+            nodeTypes: {
+                model: defineAsyncComponent(() => import(`/components/nodes/model.vue`)),
+                imagefile_output: defineAsyncComponent(() => import(`/components/nodes/imagefile_output.vue`)),
+
+            },
             nodes: [
                 {
                     id: 'object_detection',
@@ -60,6 +62,21 @@ export default {
                         outputs: ["labels"]
                     },
                     position: { x: 550, y: 0 }
+                },
+                {
+                    id: "image_output",
+                    type: "imagefile_output",
+                    data: {
+                        name: "保存图像",
+                        params: {
+                            format:'png',
+                            path:'output/images',
+                            filename:'image'
+                        },
+                        inputs: ["images"],
+                        outputs: ["files"]
+                    },
+                    position: { x: 550, y: 300 }
                 }
             ],
             edges: [
@@ -67,6 +84,13 @@ export default {
                     id: 'object_detection_to_image_classification',
                     source: 'object_detection',
                     target: 'image_classification',
+                    sourceHandle: 'outputs.images',
+                    targetHandle: 'inputs.images',
+                },
+                {
+                    id: 'object_detection_to_image_output',
+                    source: 'object_detection',
+                    target: 'image_output',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
                 }

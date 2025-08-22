@@ -1,7 +1,7 @@
 <template>
     <div class="custom-node model-node">
         <div class="node-header">
-            <span>{{data.name}}</span>
+            <span>{{ data.name }}</span>
         </div>
         <div class="node-content">
             <div class="io-container">
@@ -27,33 +27,33 @@
             <!-- 节点中间内容 -->
             <div class="node-properties">
                 <div class="property-item">
-                    <span class="property-label">模块名称:</span>
-                    <span class="property-value">{{ data.params.module_name }}</span>
+                    <Handle :type="'target'" :position="Position.Left" :id="`params.format`"
+                        :class="['left-handle-pos', 'params-port', 'format']" />
+
+                    <span class="property-label">图片格式:</span>
+                    <el-select v-model="data.params.format" class="property-value select nodrag" size="small">
+                        <el-option label="png" value="png" />
+                        <el-option label="jpg" value="jpg" />
+                        <template #label="{ label, value }">
+                            <span style="font-size: 10px;">{{ label }}</span>
+                        </template>
+                    </el-select>
                 </div>
                 <div class="property-item">
-                    <span class="property-label">模型名称:</span>
-                    <span class="property-value">{{ data.params.model_name }}</span>
-                </div>
-                <div v-if="data.params?.model_params" class="property-group">
-                    <div class="group-label">模型参数:</div>
-                    <div v-for="(value, key) in data.params.model_params" :key="key" class="property-item">
-                        <Handle :type="'target'" :position="Position.Left" :id="`params.model_params.${key}`"
-                            :class="['left-handle-pos', 'params-port',`model_params_${key}`]" />
+                    <Handle :type="'target'" :position="Position.Left" :id="`params.path`"
+                        :class="['left-handle-pos', 'params-port', 'path']" />
 
+                    <span class="property-label">输出目录:</span>
+                    <el-input v-model="data.params.path" class="property-value input nodrag" size="small" />
+                </div>
+                <div class="property-item">
+                    <Handle :type="'target'" :position="Position.Left" :id="`params.filename`"
+                        :class="['left-handle-pos', 'params-port', 'filename']" />
 
-                        <span class="property-label">{{ key }}:</span>
-                        <el-input v-model="data.params.model_params[key]" class="property-value input nodrag" size="small" />
-                    </div>
+                    <span class="property-label">保存文件名:</span>
+                    <el-input v-model="data.params.filename" class="property-value input nodrag" size="small" />
                 </div>
-                <div v-if="data.params?.infer_params" class="property-group">
-                    <div class="group-label">推理参数:</div>
-                    <div v-for="(value, key) in data.params.infer_params" :key="key" class="property-item">
-                        <Handle :type="'target'" :position="Position.Left" :id="`params.infer_params.${key}`"
-                            :class="['left-handle-pos', 'params-port',`infer_params_${key}`]" />
-                        <span class="property-label">{{ key }}:</span>
-                        <el-input v-model="data.params.infer_params[key]" class="property-value input nodrag" size="small" />
-                    </div>
-                </div>
+
             </div>
 
         </div>
@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import { Handle, Position} from '/libs/vue-flow/core/vue-flow-core.mjs';
+import { Handle, Position } from '/libs/vue-flow/core/vue-flow-core.mjs';
 
 export default {
     components: {
@@ -205,5 +205,4 @@ export default {
     position: absolute;
     right: -10px;
 }
-
 </style>
