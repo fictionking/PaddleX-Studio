@@ -95,6 +95,7 @@ export default {
     max-width: 100px;
     word-break: break-all;
     --el-input-text-color: var(--el-text-color-secondary);
+    --el-input-bg-color: transparent;
     background-color: transparent;
 }
 

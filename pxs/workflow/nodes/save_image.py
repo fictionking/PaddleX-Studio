@@ -5,15 +5,15 @@ import json
 from PIL import Image
 import numpy as np
 
-class ImagefileOutputNode(ComputeNode):
-    """图像文件输出节点
+class SaveImageNode(ComputeNode):
+    """保存图像节点
 
     用于将输入数据写入图像文件
     """
 
     def __init__(self, config: Dict, pipeline: Any) -> None:
         """
-        初始化图像文件输出节点
+        初始化保存图像节点
 
         Args:
             config (Dict): 节点配置

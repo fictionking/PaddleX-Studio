@@ -1,0 +1,61 @@
+/* 基础端口样式 */
+.vue-flow__handle {
+    border: 2px solid rgba(0, 0, 0, 0.7);
+}
+
+/*节点标题颜色*/
+.node-header-color {
+    background-color: var(--el-fill-color);
+    color: var(--el-text-color-primary);
+}
+
+.node-header-color.start,
+.node-header-color.end {
+    background-color: hsl(0, 60%, 30%);
+    color: #fff;
+    justify-content: center;
+}
+
+/* 输入输出类型端口样式 */
+.io-port {
+    background-color: #fff;
+}
+
+.io-port.input,
+.io-port.output {
+    background-color: hsl(0, 90%, 60%);
+}
+
+.io-port.images {
+    background-color: hsl(300, 90%, 60%);
+}
+
+.io-port.boxes {
+    background-color: hsl(275, 90%, 60%);
+}
+
+.io-port.labels {
+    background-color: hsl(250, 90%, 60%);
+}
+
+.io-port.files {
+    background-color: hsl(225, 90%, 60%);
+}
+
+.io-port.count {
+    background-color: hsl(200, 90%, 60%);
+}
+
+/* 参数端口样式 */
+.params-port {
+    background-color: hsl(150, 90%, 60%);
+}
+
+/*指定特定参数的样式可以在params-port类名后添加参数名,用_连接所有父子参数名*/
+/* .params-port.filename {
+    background-color: #1966ff;
+}
+
+.params-port.model_params_topk {
+    background-color: #ffa20c;
+} */

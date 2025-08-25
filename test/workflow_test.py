@@ -21,10 +21,10 @@ config = {
         {
             "id": "image_input",
             "name": "图像输入节点",
-            "type": "image_input",
+            "type": "load_image",
             "params": {},
-            "inputs": ["path"],
-            "outputs": ["images"]
+            "inputs": ["files"],
+            "outputs": ["images","count"]
 
         },
         {
@@ -43,7 +43,7 @@ config = {
                 }
             },
             "inputs": ["images"],
-            "outputs": ["images", "boxes"]
+            "outputs": ["images", "boxes","count"]
         },
         {
             "id": "image_classification",
@@ -77,7 +77,7 @@ config = {
         {
             "id": "image_output",
             "name": "图像输出节点",
-            "type": "imagefile_output",
+            "type": "save_image",
             "params": {
                 "format": "png",
                 "path": f"output/images_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -108,7 +108,7 @@ config = {
     ],
     "connections": [
         {"from": "welcome.outputs.value", "to": "end"},
-        {"from": "start", "to": "image_input.inputs.path"},
+        {"from": "start", "to": "image_input.inputs.files"},
         {"from": "image_input.outputs.images", "to": "object_detection.inputs.images"},
         {"from": "object_detection.outputs.images", "to": "image_output.inputs.images"},
         {"from": "object_detection.outputs.images", "to": "image_classification.inputs.images"},

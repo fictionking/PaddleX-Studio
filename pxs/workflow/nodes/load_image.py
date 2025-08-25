@@ -4,15 +4,15 @@ import os
 import cv2
 import numpy as np
 
-class ImageInputNode(ComputeNode):
-    """图像输入节点
+class LoadImageNode(ComputeNode):
+    """加载图像节点
 
     用于读取图像文件并输出给后续处理节点
     """
 
     def _run_compute(self, port: str, data: Any) -> 'NodeResult':
         """
-        运行图像输入节点，读取图像文件
+        运行加载图像节点，读取图像文件
 
         Args:
             input_data (Any): 输入数据
@@ -59,7 +59,7 @@ class ImageInputNode(ComputeNode):
         # 根据输出端口返回不同格式的结果
         result = {
             "images": images,
-            "image_count": len(images)
+            "count": len(images)
         }
 
         return NodeResult(result, self)
@@ -77,8 +77,8 @@ class ImageInputNode(ComputeNode):
         """
         if port == "images":
             return result["images"]
-        elif port == "image_count":
-            return result["image_count"]
+        elif port == "count":
+            return result["count"]
         else:
             return result
 

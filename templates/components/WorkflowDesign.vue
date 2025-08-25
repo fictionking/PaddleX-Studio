@@ -5,8 +5,8 @@
     </div>
 </template>
 <script>
-const {markRaw,defineAsyncComponent} = Vue;
-import {VueFlow} from '/libs/vue-flow/core/vue-flow-core.mjs';
+const { defineAsyncComponent } = Vue;
+import { VueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
 
 export default {
     components: {
@@ -16,16 +16,54 @@ export default {
     data() {
         return {
             nodeTypes: {
+                start: defineAsyncComponent(() => import(`/components/nodes/simple.vue`)),
+                end: defineAsyncComponent(() => import(`/components/nodes/simple.vue`)),
                 model: defineAsyncComponent(() => import(`/components/nodes/model.vue`)),
-                imagefile_output: defineAsyncComponent(() => import(`/components/nodes/imagefile_output.vue`)),
-
+                save_image: defineAsyncComponent(() => import(`/components/nodes/save_image.vue`)),
+                load_image: defineAsyncComponent(() => import(`/components/nodes/simple.vue`)),
             },
             nodes: [
+                {
+                    id: 'start',
+                    type: 'start',
+                    data: {
+                        name: "开始",
+                        params: {
+                        },
+                        inputs: [],
+                        outputs: ["input"]
+                    },
+                    position: { x: 0, y: 0 }
+                },
+                {
+                    id: 'end',
+                    type: 'end',
+                    data: {
+                        name: "结束",
+                        params: {
+                        },
+                        inputs: ["output"],
+                        outputs: []
+                    },
+                    position: { x: 1000, y: 0 }
+                },
+                {
+                    id: 'load_image',
+                    type: 'load_image',
+                    data: {
+                        name: "加载图像",
+                        params: {
+                        },
+                        inputs: ["files"],
+                        outputs: ["images", "count"]
+                    },
+                    position: { x: 200, y: 0 }
+                },
                 {
                     id: 'object_detection',
                     type: 'model',
                     data: {
-                        name: "目标识别节点",
+                        name: "目标识别",
                         params: {
                             module_name: "object_detection",
                             model_name: "PP-YOLOE_plus-L",
@@ -38,9 +76,9 @@ export default {
                             }
                         },
                         inputs: ["images"],
-                        outputs: ["images", "boxes"]
+                        outputs: ["images", "boxes", "count"]
                     },
-                    position: { x: 250, y: 0 }
+                    position: { x: 400, y: 0 }
                 },
                 {
                     id: "image_classification",
@@ -61,25 +99,39 @@ export default {
                         inputs: ["images"],
                         outputs: ["labels"]
                     },
-                    position: { x: 550, y: 0 }
+                    position: { x: 700, y: 0 }
                 },
                 {
                     id: "image_output",
-                    type: "imagefile_output",
+                    type: "save_image",
                     data: {
                         name: "保存图像",
                         params: {
-                            format:'png',
-                            path:'output/images',
-                            filename:'image'
+                            format: 'png',
+                            path: 'output/images',
+                            filename: 'image'
                         },
                         inputs: ["images"],
                         outputs: ["files"]
                     },
-                    position: { x: 550, y: 300 }
+                    position: { x: 700, y: 300 }
                 }
             ],
             edges: [
+                {
+                    id: 'start_to_load_image',
+                    source: 'start',
+                    target: 'load_image',
+                    sourceHandle: 'outputs.input',
+                    targetHandle: 'inputs.files',
+                },
+                {
+                    id: 'load_image_to_object_detection',
+                    source: 'load_image',
+                    target: 'object_detection',
+                    sourceHandle: 'outputs.images',
+                    targetHandle: 'inputs.images',
+                },
                 {
                     id: 'object_detection_to_image_classification',
                     source: 'object_detection',
@@ -93,6 +145,13 @@ export default {
                     target: 'image_output',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
+                },
+                {
+                    id: 'image_classification_to_end',
+                    source: 'image_classification',
+                    target: 'end',
+                    sourceHandle: 'outputs.labels',
+                    targetHandle: 'inputs.output',
                 }
             ]
         }
@@ -102,9 +161,10 @@ export default {
 <style>
 @import '/libs/vue-flow/core/style.css';
 @import '/libs/vue-flow/core/theme-default.css';
-@import '/assets/ports.css';
+@import '/assets/workflow.css';
+
 .vue-flow__edge-path {
-stroke: var(--el-border-color);
-stroke-width: 2;
+    stroke: var(--el-border-color);
+    stroke-width: 2;
 }
 </style>

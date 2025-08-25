@@ -1,6 +1,6 @@
 <template>
     <div class="custom-node model-node">
-        <div class="node-header">
+        <div :class="['node-header', 'node-header-color', type]">
             <span>{{ data.name }}</span>
         </div>
         <div class="node-content">
@@ -45,6 +45,10 @@ export default {
             type: String,
             required: true,
         },
+        type: {
+            type: String,
+            required: true,
+        },
         data: {
             type: Object,
             required: true,
@@ -73,12 +77,12 @@ export default {
 }
 
 .node-header {
-    background-color: var(--el-fill-color);
-    color: var(--el-text-color-primary);
     padding: 8px 8px;
     font-weight: bold;
     font-size: var(--el-font-size-small);
     margin-bottom: 5px;
+    display: flex;
+
 }
 
 .node-content {

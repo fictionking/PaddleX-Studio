@@ -41,8 +41,10 @@ class ObjectDetectionNode(BaseModelNode):
         Returns:
             Any: 处理后的结果，类型取决于from_port参数
         """
-        assert port=="images" or port=="boxes",f"目标检测节点输出端口必须是images或boxes，当前端口是{port}"
+        assert port=="images" or port=="boxes" or port=="count",f"目标检测节点输出端口必须是images或boxes或count，当前端口是{port}"
         if isinstance(result,list):
+            if port=="count":
+                return len(result)
             ret=[]
             for item in result:
                 boxes = item["boxes"]
@@ -61,6 +63,8 @@ class ObjectDetectionNode(BaseModelNode):
                     return sub_image(image,boxes)
                 case "boxes":
                     return boxes
+                case "count":
+                    return 1
 
 def sub_image(image,boxes):
     images=[]

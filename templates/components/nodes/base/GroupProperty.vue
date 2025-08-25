@@ -29,6 +29,6 @@ export default {
 .group-label {
     font-weight: bold;
     margin-bottom: 5px;
-    color: #42b983;
+    color: hsl(150, 47%, 49%);
 }
 </style>
