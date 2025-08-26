@@ -1,20 +1,22 @@
 <template>
     <WorkflowNode :id="id" :type="type" :data="data">
         <template #properties>
+            <InputProperty label="常量值" v-model="data.params.value" />
         </template>
     </WorkflowNode>
 </template>
 
 <script>
-import { WorkflowNode } from './base/WorkflowNode.mjs';
+import { WorkflowNode, InputProperty } from './base/WorkflowNode.mjs';
 
 /**
- * 简单节点组件
- * 用于配置和展示只有输入输出点的节点
+ * 常量节点组件
+ * 用于配置和展示常量值
  */
 export default {
     components: {
         WorkflowNode,
+        InputProperty,
     },
     props: {
         id: {

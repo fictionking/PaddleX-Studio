@@ -4,18 +4,18 @@
 }
 
 /*节点标题颜色*/
-.node-header-color {
-    background-color: var(--el-fill-color);
-    color: var(--el-text-color-primary);
-}
-
-.node-header-color.start,
-.node-header-color.end {
-    background-color: hsl(0, 60%, 30%);
-    color: #fff;
+.node-header.start,
+.node-header.end {
     justify-content: center;
 }
-
+.node-color.start,
+.node-color.end {
+    background-color: hsl(0, 60%, 30%);
+}
+.io-label.start,
+.io-label.end {
+    color: #fff;
+}
 /* 输入输出类型端口样式 */
 .io-port {
     background-color: #fff;
@@ -47,6 +47,7 @@
 }
 
 /* 参数端口样式 */
+.io-port.value,
 .params-port {
     background-color: hsl(150, 90%, 60%);
 }

@@ -1,26 +1,37 @@
 <template>
     <div style="width: 100%; height: calc(100vh - 120px);">
-        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes">
+        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true"
+            @edge-update="updateConnect">
+            <template #edge-button="buttonEdgeProps">
+                <EdgeWithButton :id="buttonEdgeProps.id" :source-x="buttonEdgeProps.sourceX"
+                    :source-y="buttonEdgeProps.sourceY" :target-x="buttonEdgeProps.targetX"
+                    :target-y="buttonEdgeProps.targetY" :source-position="buttonEdgeProps.sourcePosition"
+                    :target-position="buttonEdgeProps.targetPosition" :marker-end="buttonEdgeProps.markerEnd"
+                    :style="buttonEdgeProps.style" />
+            </template>
         </VueFlow>
     </div>
 </template>
 <script>
-const { defineAsyncComponent } = Vue;
-import { VueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
+const { defineAsyncComponent, markRaw } = Vue;
+import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
+import EdgeWithButton from '/components/nodes/base/EdgeWithButton.vue';
 
 export default {
     components: {
         VueFlow,
-        // ModelNode
+        EdgeWithButton,
     },
     data() {
         return {
             nodeTypes: {
-                start: defineAsyncComponent(() => import(`/components/nodes/simple.vue`)),
-                end: defineAsyncComponent(() => import(`/components/nodes/simple.vue`)),
-                model: defineAsyncComponent(() => import(`/components/nodes/model.vue`)),
-                save_image: defineAsyncComponent(() => import(`/components/nodes/save_image.vue`)),
-                load_image: defineAsyncComponent(() => import(`/components/nodes/simple.vue`)),
+                start: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
+                end: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
+                model: markRaw(defineAsyncComponent(() => import(`/components/nodes/model.vue`))),
+                save_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/save_image.vue`))),
+                load_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
+                number_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
+                string_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
             },
             nodes: [
                 {
@@ -28,6 +39,7 @@ export default {
                     type: 'start',
                     data: {
                         name: "开始",
+                        fixName: true,
                         params: {
                         },
                         inputs: [],
@@ -40,6 +52,7 @@ export default {
                     type: 'end',
                     data: {
                         name: "结束",
+                        fixName: true,
                         params: {
                         },
                         inputs: ["output"],
@@ -115,6 +128,19 @@ export default {
                         outputs: ["files"]
                     },
                     position: { x: 700, y: 300 }
+                },
+                {
+                    id: "topk_const",
+                    type: "number_const",
+                    data: {
+                        name: "TopK",
+                        params: {
+                            value: 0
+                        },
+                        inputs: [],
+                        outputs: ["value"]
+                    },
+                    position: { x: 400, y: 300 }
                 }
             ],
             edges: [
@@ -124,6 +150,7 @@ export default {
                     target: 'load_image',
                     sourceHandle: 'outputs.input',
                     targetHandle: 'inputs.files',
+                    type: 'button',
                 },
                 {
                     id: 'load_image_to_object_detection',
@@ -131,6 +158,7 @@ export default {
                     target: 'object_detection',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
+                    type: 'button',
                 },
                 {
                     id: 'object_detection_to_image_classification',
@@ -138,6 +166,15 @@ export default {
                     target: 'image_classification',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
+                    type: 'button',
+                },
+                {
+                    id: 'topk_const_to_image_classification',
+                    source: 'topk_const',
+                    target: 'image_classification',
+                    sourceHandle: 'outputs.value',
+                    targetHandle: 'params.infer_params.topk',
+                    type: 'button',
                 },
                 {
                     id: 'object_detection_to_image_output',
@@ -145,6 +182,7 @@ export default {
                     target: 'image_output',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
+                    type: 'button',
                 },
                 {
                     id: 'image_classification_to_end',
@@ -152,8 +190,46 @@ export default {
                     target: 'end',
                     sourceHandle: 'outputs.labels',
                     targetHandle: 'inputs.output',
+                    type: 'button',
                 }
             ]
+        }
+    },
+    setup() {
+        /** 初始化vue flow相关函数 */
+        const { onInit, onNodeDragStop, onConnect, updateEdge, addEdges, setViewport, toObject } = useVueFlow()
+        return {
+            onInit,
+            onNodeDragStop,
+            onConnect,
+            updateEdge,
+            addEdges,
+            setViewport,
+            toObject
+        }
+    },
+    async created() {
+        this.onConnect(this.newConnect)
+    },
+    methods: {
+        newConnect(connection) {
+            if (this.checkConnect(connection)) {
+                connection.type = 'button'
+                this.addEdges(connection)
+            }
+        },
+        updateConnect({ edge, connection }) {
+            if (this.checkConnect(connection)) {
+                this.updateEdge(edge, connection)
+            }
+        },
+        checkConnect(connection) {
+            if (connection.sourceHandle.startsWith('outputs.')
+                && (connection.targetHandle.startsWith('inputs.') ||
+                    connection.targetHandle.startsWith('params.'))) {
+                return true
+            }
+            return false
         }
     }
 }
@@ -165,6 +241,6 @@ export default {
 
 .vue-flow__edge-path {
     stroke: var(--el-border-color);
-    stroke-width: 2;
+    stroke-width: 3;
 }
 </style>

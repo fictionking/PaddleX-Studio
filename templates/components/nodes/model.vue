@@ -4,12 +4,12 @@
             <ValueProperty label="模块名称" :value="data.params.module_name" />
             <ValueProperty label="模型名称" :value="data.params.model_name" />
             <GroupProperty label="模型参数" v-if="data.params?.model_params">
-                <InputProperty v-for="(value, key) in data.params.model_params" :key="key" :label="key"
+                <InputProperty v-for="(value, key) in data.params.model_params" :label="key"
                     v-model="data.params.model_params[key]" :handleId="`params.model_params.${key}`"
                     :handleClass="`model_params_${key}`" />
             </GroupProperty>
             <GroupProperty label="推理参数" v-if="data.params?.infer_params">
-                <InputProperty v-for="(value, key) in data.params.infer_params" :key="key" :label="key"
+                <InputProperty v-for="(value, key) in data.params.infer_params" :label="key"
                     v-model="data.params.infer_params[key]" :handleId="`params.infer_params.${key}`"
                     :handleClass="`infer_params_${key}`" />
             </GroupProperty>

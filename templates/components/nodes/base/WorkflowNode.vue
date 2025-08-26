@@ -1,31 +1,40 @@
 <template>
-    <div class="custom-node model-node">
-        <div :class="['node-header', 'node-header-color', type]">
-            <span>{{ data.name }}</span>
+    <div :class="['custom-node', 'node-color', type]">
+        <div :class="['node-header', type]" @click="!fixName && startEditName()">
+            <span v-if="!nameEditing || fixName">{{ data.name }}</span>
+            <input 
+                v-else 
+                v-model="editingName" 
+                @blur="finishEditName" 
+                @keyup.enter="finishEditName"
+                @click.stop
+                class="name-input nodrag"
+                ref="nameInput"
+            />
         </div>
-        <div class="node-content">
-            <div class="io-container">
+        <div :class="['node-content', type]">
+            <div :class="['io-container', type]">
                 <!-- 左侧输入连接点 -->
-                <div class="node-inputs">
-                    <div v-for="input in data.inputs" :key="input" class="io-connection">
+                <div :class="['node-inputs', type]">
+                    <div v-for="input in data.inputs" :key="input" :class="['io-connection', type]">
                         <Handle :type="'target'" :position="Position.Left" :id="`inputs.${input}`"
-                            :class="['left-handle-pos', 'io-port', input.toLowerCase()]" />
-                        <span class="io-label"> {{ input }} </span>
+                            :class="['left-handle-pos', 'io-port', input.toLowerCase(), type]" />
+                        <span :class="['io-label', type]"> {{ input }} </span>
                     </div>
                 </div>
 
                 <!-- 右侧输出连接点 -->
-                <div class="node-outputs">
-                    <div v-for="output in data.outputs" :key="output" class="io-connection">
+                <div :class="['node-outputs', type]">
+                    <div v-for="output in data.outputs" :key="output" :class="['io-connection', type]">
                         <Handle :type="'source'" :position="Position.Right" :id="`outputs.${output}`"
-                            :class="['right-handle-pos', 'io-port', output.toLowerCase()]" />
-                        <span class="io-label"> {{ output }} </span>
+                            :class="['right-handle-pos', 'io-port', output.toLowerCase(), type]" />
+                        <span :class="['io-label', type]"> {{ output }} </span>
                     </div>
                 </div>
             </div>
 
             <!-- 节点中间内容 -->
-            <div class="node-properties">
+            <div :class="['node-properties', type]">
                 <slot name="properties"></slot>
             </div>
 
@@ -52,13 +61,49 @@ export default {
         data: {
             type: Object,
             required: true,
-        }
+        },
+
+    },
+    data() {
+        return {
+            nameEditing: false,
+            editingName: '',
+            fixName: this.data.fixName || false
+        };
     },
     setup(props) {
         return {
             Position
         };
     },
+    methods: {
+        /** 开始编辑节点名称 */
+        startEditName() {
+            // 如果名称固定则不能编辑
+            if (this.fixName) {
+                return;
+            }
+            this.nameEditing = true;
+            this.editingName = this.data.name;
+            // 在下一个 tick 中聚焦输入框
+            this.$nextTick(() => {
+                if (this.$refs.nameInput) {
+                    this.$refs.nameInput.focus();
+                    this.$refs.nameInput.select();
+                }
+            });
+        },
+        /** 完成编辑节点名称 */
+        finishEditName() {
+            if (this.editingName.trim() !== '') {
+                // 通过事件通知父组件更新名称
+                this.data.name = this.editingName.trim();
+                this.$emit('update:name', this.editingName.trim());
+            }
+            this.nameEditing = false;
+            this.editingName = '';
+        }
+    }
 };
 
 </script>
@@ -69,11 +114,11 @@ export default {
     min-width: 120px;
     max-width: 500px;
     width: fit-content;
-    border: 1px solid var(--el-border-color-dark);
+    border: 1px solid rgba(0, 0, 0, 0.5);
     border-radius: 6px;
     overflow: hidden;
-    background-color: var(--el-fill-color-dark);
     box-shadow: var(--el-box-shadow);
+    background-color: var(--el-fill-color-dark);
 }
 
 .node-header {
@@ -82,7 +127,8 @@ export default {
     font-size: var(--el-font-size-small);
     margin-bottom: 5px;
     display: flex;
-
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
 }
 
 .node-content {
@@ -182,5 +228,15 @@ export default {
 .right-handle-pos {
     position: absolute;
     right: -10px;
+}
+
+.name-input {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-weight: bold;
+    font-size: var(--el-font-size-small);
+    width: 100%;
+    outline: none;
 }
 </style>

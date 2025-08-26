@@ -2,7 +2,7 @@
     <div class="property-item">
         <Handle
             v-if="handleId"
-            :type="'target'"
+            type="target"
             :position="Position.Left"
             :id="handleId"
             :class="['left-handle-pos', 'params-port', handleClass]"
