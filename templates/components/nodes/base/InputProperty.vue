@@ -1,19 +1,22 @@
 <template>
     <div class="property-item">
-        <Handle
-            v-if="handleId"
-            type="target"
-            :position="Position.Left"
-            :id="handleId"
-            :class="['left-handle-pos', 'params-port', handleClass]"
-        />
+        <Handle v-if="handleId" type="target" :position="Position.Left" :id="handleId"
+            :class="['left-handle-pos', 'params-port', handleClass]" />
         <span class="property-label">{{ label }}:</span>
-        <el-input
-            v-model="internalValue"
-            class="property-value input nodrag"
-            size="small"
-            @change="updateValue"
-        />
+        <el-input v-if="type === 'string'" v-model="internalValue" class="property-value input nodrag" size="small" @change="updateValue" />
+        <el-input-number v-else v-model="internalValue" class="property-value input nodrag" size="small" @change="updateValue"
+            :min="min" :max="max" :step="step">
+            <template #decrease-icon>
+                <el-icon>
+                    <CaretLeft />
+                </el-icon>
+            </template>
+            <template #increase-icon>
+                <el-icon>
+                    <CaretRight />
+                </el-icon>
+            </template>
+        </el-input-number>
     </div>
 </template>
 
@@ -39,6 +42,26 @@ export default {
             type: [String, Number],
             required: true,
             description: '输入框绑定的值，支持字符串和数值类型'
+        },
+        type: {
+            type: String,
+            default: 'string',
+            description: '属性类型，支持字符串和数值类型'
+        },
+        min: {
+            type: Number,
+            default: 0,
+            description: '数值类型的最小值'
+        },
+        max: {
+            type: Number,
+            default: 100,
+            description: '数值类型的最大值'
+        },
+        step: {
+            type: Number,
+            default: 1,
+            description: '数值类型的步长'
         },
         handleId: {
             type: String,

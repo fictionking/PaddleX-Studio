@@ -183,7 +183,7 @@
 </head>
 
 <body>
-    <div id="app" >
+    <div id="app">
         <el-container>
             <el-header class="navbar">
                 <img class="paddlex-title" src="/assets/banner2.png" alt="PaddleX Studio" />
@@ -273,7 +273,7 @@
         </el-container>
     </div>
     <script type="module">
-        const { createApp, defineAsyncComponent, markRaw} = Vue
+        const { createApp, defineAsyncComponent, markRaw } = Vue
         const { loadModule } = window['vue3-sfc-loader'];
         const { createRouter, createWebHashHistory } = VueRouter
         const { ElMessage, ElIcon, Document, Folder, ElCard, ElForm } = ElementPlus
@@ -415,6 +415,9 @@
                 })),
             }
         })
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component)
+        }
         app.use(ElementPlus)
         app.use(router)
         app.mount('#app')

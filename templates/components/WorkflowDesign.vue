@@ -1,26 +1,23 @@
 <template>
-    <div style="width: 100%; height: calc(100vh - 120px);">
-        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true"
-            @edge-update="updateConnect">
-            <template #edge-button="buttonEdgeProps">
-                <EdgeWithButton :id="buttonEdgeProps.id" :source-x="buttonEdgeProps.sourceX"
-                    :source-y="buttonEdgeProps.sourceY" :target-x="buttonEdgeProps.targetX"
-                    :target-y="buttonEdgeProps.targetY" :source-position="buttonEdgeProps.sourcePosition"
-                    :target-position="buttonEdgeProps.targetPosition" :marker-end="buttonEdgeProps.markerEnd"
-                    :style="buttonEdgeProps.style" />
-            </template>
+    <div style="width: 100%; height: calc(100vh - 120px); position: relative;">
+        <div class="tips">
+            • 按Backspace键删除节点或连接<br>
+            • 拖拽连线末端(靠近节点边缘处)调整连接目标<br>
+            • 按住Shift键可以框选多个节点<br>
+            • 按住Ctrl键可以点击选择多个节点<br>
+        </div>
+        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true" :connect-on-click="false"
+            @edge-update="updateConnect" class="vue-flow">
         </VueFlow>
     </div>
 </template>
 <script>
 const { defineAsyncComponent, markRaw } = Vue;
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
-import EdgeWithButton from '/components/nodes/base/EdgeWithButton.vue';
 
 export default {
     components: {
         VueFlow,
-        EdgeWithButton,
     },
     data() {
         return {
@@ -82,10 +79,22 @@ export default {
                             model_name: "PP-YOLOE_plus-L",
                             model_dir: "weights\PP-YOLOE_plus-L\inference",
                             model_params: {
-                                threshold: 0.5
+                                threshold: {
+                                    type: "number",
+                                    value: 0.5,
+                                    min: 0,
+                                    max: 1,
+                                    step: 0.1
+                                }
                             },
                             infer_params: {
-                                threshold: 0.5
+                                threshold: {
+                                    type: "number",
+                                    value: 0.5,
+                                    min: 0,
+                                    max: 1,
+                                    step: 0.1
+                                }
                             }
                         },
                         inputs: ["images"],
@@ -103,10 +112,22 @@ export default {
                             model_name: "PP-HGNetV2-B6",
                             model_dir: "weights\PP-HGNetV2-B6\inference",
                             model_params: {
-                                topk: 5
+                                topk: {
+                                    type: "number",
+                                    value: 5,
+                                    min: 1,
+                                    max: 10,
+                                    step: 1
+                                }
                             },
                             infer_params: {
-                                topk: 1
+                                topk: {
+                                    type: "number",
+                                    value: 1,
+                                    min: 1,
+                                    max: 10,
+                                    step: 1
+                                }
                             }
                         },
                         inputs: ["images"],
@@ -150,7 +171,7 @@ export default {
                     target: 'load_image',
                     sourceHandle: 'outputs.input',
                     targetHandle: 'inputs.files',
-                    type: 'button',
+                    style:".vue-flow"
                 },
                 {
                     id: 'load_image_to_object_detection',
@@ -158,7 +179,6 @@ export default {
                     target: 'object_detection',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
-                    type: 'button',
                 },
                 {
                     id: 'object_detection_to_image_classification',
@@ -166,7 +186,6 @@ export default {
                     target: 'image_classification',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
-                    type: 'button',
                 },
                 {
                     id: 'topk_const_to_image_classification',
@@ -174,7 +193,6 @@ export default {
                     target: 'image_classification',
                     sourceHandle: 'outputs.value',
                     targetHandle: 'params.infer_params.topk',
-                    type: 'button',
                 },
                 {
                     id: 'object_detection_to_image_output',
@@ -182,7 +200,6 @@ export default {
                     target: 'image_output',
                     sourceHandle: 'outputs.images',
                     targetHandle: 'inputs.images',
-                    type: 'button',
                 },
                 {
                     id: 'image_classification_to_end',
@@ -190,7 +207,6 @@ export default {
                     target: 'end',
                     sourceHandle: 'outputs.labels',
                     targetHandle: 'inputs.output',
-                    type: 'button',
                 }
             ]
         }
@@ -214,7 +230,6 @@ export default {
     methods: {
         newConnect(connection) {
             if (this.checkConnect(connection)) {
-                connection.type = 'button'
                 this.addEdges(connection)
             }
         },
@@ -238,9 +253,23 @@ export default {
 @import '/libs/vue-flow/core/style.css';
 @import '/libs/vue-flow/core/theme-default.css';
 @import '/assets/workflow.css';
-
+.tips {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--el-text-color-disabled);
+}
+.vue-flow__edge.selected .vue-flow__edge-path{
+    stroke: rgb(224, 154, 2) !important;
+}
+.vue-flow__edge.updating .vue-flow__edge-path{
+    stroke: var(--el-text-color-regular) !important;
+}
 .vue-flow__edge-path {
-    stroke: var(--el-border-color);
-    stroke-width: 3;
+    stroke: var(--el-border-color) !important;
+    stroke-width: 3 !important;
 }
 </style>

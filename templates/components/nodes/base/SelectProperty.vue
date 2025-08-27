@@ -127,4 +127,11 @@ export default {
     position: absolute;
     left: -10px;
 }
+.el-select-dropdown__item {
+    font-size: 10px;
+    height: 24px;
+    line-height: 24px;
+    overflow: hidden;
+    padding: 0 22px 0 10px;
+}
 </style>

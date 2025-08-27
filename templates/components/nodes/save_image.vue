@@ -1,5 +1,5 @@
 <template>
-    <WorkflowNode :id="id" :type="type" :data="data">
+    <WorkflowNode v-bind="$props">
         <template #properties>
             <SelectProperty label="图片格式" v-model="data.params.format"
                 :options="[{ label: 'png', value: 'png' }, { label: 'jpg', value: 'jpg' }]" handleId="params.format"

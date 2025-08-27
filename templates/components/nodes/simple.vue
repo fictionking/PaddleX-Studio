@@ -1,5 +1,5 @@
 <template>
-    <WorkflowNode :id="id" :type="type" :data="data">
+    <WorkflowNode v-bind="$props">
         <template #properties>
         </template>
     </WorkflowNode>

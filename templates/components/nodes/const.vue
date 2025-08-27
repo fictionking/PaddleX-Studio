@@ -1,5 +1,5 @@
 <template>
-    <WorkflowNode :id="id" :type="type" :data="data">
+    <WorkflowNode v-bind="$props">
         <template #properties>
             <InputProperty label="常量值" v-model="data.params.value" />
         </template>

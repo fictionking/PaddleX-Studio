@@ -1,7 +1,9 @@
 <template>
-    <div :class="['custom-node', 'node-color', type]">
-        <div :class="['node-header', type]" @click="!fixName && startEditName()">
-            <span v-if="!nameEditing || fixName">{{ data.name }}</span>
+    <div :class="['custom-node', 'node-color', type, { 'selected': selected }]">
+        <div :class="['node-header', type]" >
+            <span v-if="!nameEditing || fixName" @click="!fixName && startEditName()" :style="!fixName && { cursor: 'text' }">
+            {{ data.name }}
+            </span>
             <input 
                 v-else 
                 v-model="editingName" 
@@ -62,7 +64,10 @@ export default {
             type: Object,
             required: true,
         },
-
+        selected: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         return {
@@ -114,13 +119,15 @@ export default {
     min-width: 120px;
     max-width: 500px;
     width: fit-content;
-    border: 1px solid rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(0, 0, 0, 0.05);
     border-radius: 6px;
     overflow: hidden;
     box-shadow: var(--el-box-shadow);
     background-color: var(--el-fill-color-dark);
 }
-
+.custom-node.selected {
+    border: 2px solid rgb(224, 154, 2);
+}
 .node-header {
     padding: 8px 8px;
     font-weight: bold;
