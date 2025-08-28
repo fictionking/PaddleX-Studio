@@ -12,6 +12,12 @@
                     <SelectProperty v-else-if="value.type === 'select' && value.options" :label="key"
                         v-model="data.params.model_params[key].value" :options="value.options"
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
+                    <TextProperty v-else-if="value.type === 'text'" :label="key"
+                        v-model="data.params.model_params[key].value"
+                        :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
+                    <BoolProperty v-else-if="value.type === 'bool'" :label="key"
+                        v-model="data.params.model_params[key].value"
+                        :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
                     <InputProperty v-else :label="key" v-model="data.params.model_params[key].value"
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
                 </template>
@@ -25,6 +31,12 @@
                     <SelectProperty v-else-if="value.type === 'select' && value.options" :label="key"
                         v-model="data.params.infer_params[key].value" :options="data.params.infer_params[key].options"
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
+                    <TextProperty v-else-if="value.type === 'text'" :label="key"
+                        v-model="data.params.infer_params[key].value"
+                        :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
+                    <BoolProperty v-else-if="value.type === 'bool'" :label="key"
+                        v-model="data.params.infer_params[key].value"
+                        :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
                     <InputProperty v-else :label="key" v-model="data.params.infer_params[key].value"
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
                 </template>
@@ -34,7 +46,7 @@
 </template>
 
 <script>
-import { ValueProperty, InputProperty,InputNumberProperty,SelectProperty, GroupProperty, WorkflowNode } from './base/WorkflowNode.mjs'
+import { ValueProperty, InputProperty,InputNumberProperty,SelectProperty, GroupProperty, WorkflowNode,TextProperty,BoolProperty } from './base/WorkflowNode.mjs'
 
 /**
  * 模型节点组件
@@ -48,6 +60,8 @@ export default {
         InputProperty,
         InputNumberProperty,
         SelectProperty,
+        TextProperty,
+        BoolProperty,
     },
     // mixins: [WorkflowNondes],
     props: {

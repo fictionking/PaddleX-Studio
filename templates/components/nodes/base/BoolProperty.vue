@@ -3,19 +3,8 @@
         <Handle v-if="handleId" type="target" :position="Position.Left" :id="handleId"
             :class="['left-handle-pos', 'params-port', handleClass]" />
         <span class="property-label">{{ label }}:</span>
-        <el-input-number v-model="internalValue" class="property-value input-number nodrag" size="small" @change="updateValue"
-            :min="min" :max="max" :step="step">
-            <template #decrease-icon>
-                <el-icon>
-                    <CaretLeft />
-                </el-icon>
-            </template>
-            <template #increase-icon>
-                <el-icon>
-                    <CaretRight />
-                </el-icon>
-            </template>
-        </el-input-number>
+        <el-switch active-text="True" inactive-text="False" v-model="internalValue" class="property-value input nodrag"
+            size="small" @change="updateValue" />
     </div>
 </template>
 
@@ -29,7 +18,7 @@ import { ref, watch } from 'vue';
  */
 export default {
     components: {
-        Handle
+        Handle,
     },
     props: {
         label: {
@@ -38,24 +27,9 @@ export default {
             description: '属性标签'
         },
         modelValue: {
-            type: Number,
+            type: Boolean,
             required: true,
-            description: '输入框绑定的值'
-        },
-        min: {
-            type: Number,
-            default: 0,
-            description: '数值类型的最小值'
-        },
-        max: {
-            type: Number,
-            default: 100,
-            description: '数值类型的最大值'
-        },
-        step: {
-            type: Number,
-            default: 1,
-            description: '数值类型的步长'
+            description: '开关绑定的值'
         },
         handleId: {
             type: String,
@@ -105,31 +79,21 @@ export default {
     min-width: 50px;
     margin-right: 8px;
 }
-
-.property-value {
-    flex: 1;
-    font-size: 10px ;
-    max-width: 100px;
-    word-break: break-all;
-    --el-input-text-color: var(--el-text-color-secondary);
-    --el-input-bg-color: transparent;
-    background-color: transparent;
+:deep(.el-switch--small) {
+    font-size: 10px;
+    height: 16px;
+    line-height: 16px;
 }
-:deep(.property-value .el-input-number__decrease), 
-:deep(.property-value .el-input-number__increase) {
-    border-right: none;
-    border-left: none;
-    background-color: transparent;
+:deep(.el-switch--small .el-switch__label) {
+    font-size: 10px;
 }
-:deep(.property-value.input-number .el-input--small) {
-    font-size: 10px !important;
-    --el-input-text-color: var(--el-text-color-secondary);
-    --el-input-border: none;
-    --el-input-border-color: transparent;
-    --el-input-bg-color: transparent;
-    border-width: 0;
+ 
+:deep(.el-switch--small .el-switch__label *) {
+    font-size: 10px;
 }
-
+:deep(.el-switch__label) {
+    color: var(--el-text-color-secondary);
+}
 .left-handle-pos {
     position: absolute;
     left: -10px;

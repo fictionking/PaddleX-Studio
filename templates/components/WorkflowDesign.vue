@@ -94,6 +94,14 @@ export default {
                                     min: 0,
                                     max: 1,
                                     step: 0.1
+                                },
+                                prompt: {
+                                    type: "text",
+                                    value: "识别所有物体",
+                                },
+                                use_prompt: {
+                                    type: "bool",
+                                    value: false
                                 }
                             }
                         },

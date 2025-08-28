@@ -4,6 +4,8 @@ import InputProperty from "./InputProperty.vue";
 import InputNumberProperty from "./InputNumberProperty.vue";
 import SelectProperty from "./SelectProperty.vue";
 import GroupProperty from "./GroupProperty.vue";
+import TextProperty from "./TextProperty.vue";
+import BoolProperty from "./BoolProperty.vue";
 
 export {
     ValueProperty,
@@ -12,4 +14,6 @@ export {
     SelectProperty,
     GroupProperty,
     WorkflowNode,
+    TextProperty,
+    BoolProperty,
 };
