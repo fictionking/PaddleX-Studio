@@ -249,7 +249,7 @@ export default {
     }
 }
 </script>
-<style>
+<style scoped>
 @import '/libs/vue-flow/core/style.css';
 @import '/libs/vue-flow/core/theme-default.css';
 @import '/assets/workflow.css';
@@ -262,13 +262,13 @@ export default {
     font-size: 12px;
     color: var(--el-text-color-disabled);
 }
-.vue-flow__edge.selected .vue-flow__edge-path{
+:deep(.vue-flow .vue-flow__edge.selected .vue-flow__edge-path){
     stroke: rgb(224, 154, 2) !important;
 }
-.vue-flow__edge.updating .vue-flow__edge-path{
+:deep(.vue-flow .vue-flow__edge.updating .vue-flow__edge-path){
     stroke: var(--el-text-color-regular) !important;
 }
-.vue-flow__edge-path {
+:deep(.vue-flow .vue-flow__edge-path) {
     stroke: var(--el-border-color) !important;
     stroke-width: 3 !important;
 }

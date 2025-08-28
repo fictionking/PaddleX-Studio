@@ -12,6 +12,7 @@
             v-model="internalValue"
             class="property-value select nodrag"
             size="small"
+            popper-class="select-property-dropdown"
             @change="updateValue"
         >
             <el-option
@@ -127,11 +128,11 @@ export default {
     position: absolute;
     left: -10px;
 }
-.el-select-dropdown__item {
-    font-size: 10px;
-    height: 24px;
-    line-height: 24px;
+.select-property-dropdown .el-select-dropdown__item {
+    font-size: 10px !important;
+    height: 24px !important;
+    line-height: 24px !important;
     overflow: hidden;
-    padding: 0 22px 0 10px;
+    padding: 0 22px 0 10px !important;
 }
 </style>

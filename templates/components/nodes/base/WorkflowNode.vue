@@ -166,38 +166,6 @@ export default {
     margin-bottom: 10px;
 }
 
-.property-item {
-    color: var(--el-text-color-secondary);
-    position: relative;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.property-label {
-    min-width: 50px;
-    margin-right: 8px;
-}
-
-.property-value {
-    flex: 1;
-    font-size: 10px;
-    max-width: 100px;
-    word-break: break-all;
-    --el-input-text-color: var(--el-text-color-secondary);
-    background-color: transparent;
-}
-
-.property-value.input {
-    --el-input-border: none;
-    --el-input-border-color: transparent;
-    border-width: 0;
-}
-
-.property-value.select {
-    --el-border-color:transparent
-}
-
 .io-connection {
     position: relative;
     margin-bottom: 5px;
