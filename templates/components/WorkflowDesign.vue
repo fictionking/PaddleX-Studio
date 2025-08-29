@@ -1,7 +1,7 @@
 <template>
     <div style="width: 100%; height: calc(100vh - 120px); position: relative;">
         <div class="tips">
-            • 按Backspace键删除节点或连接<br>
+            • 按Backspace键删除节点或连线<br>
             • 拖拽连线末端(靠近节点边缘处)调整连接目标<br>
             • 按住Shift键可以框选多个节点<br>
             • 按住Ctrl键可以点击选择多个节点<br>
@@ -97,38 +97,13 @@ export default {
                                 },
                                 prompt: {
                                     type: "text",
-                                    value: `识别所有物体
-sdfdsfsdfsdfsdfsdfsdfasdfsdfsdafdsfasdfsdfsdfsdfdsfsdfsdfsdfsdfsdfsdfsdfasdfsdfsdfasdfsdfsdfdsfsdfsdfsdfsdfsdfdsfsdfsdfdsfdsafasdfsdfadsfdsfsdfsdfsadfsdfsdafsdfafsdfsdfasfsdfsdfdsfsdfsdfsdfsdfsdfdsfsdf
-sdfsdfdsfsdfsdfsd
-sdfsdfdsfsdfsadfsdfdsf
-sdfsdfsdfdsf
-sdfdsfsdfsdfas
-sdfsdfdsfsdfsdfsd
-sdfsdfdsfsdfsadfsdfdsf
-sdfsdfsdfdsf
-sdfdsfsdfsdfas
-
-sdfsdfsdfsdfsdf
-sdfdsfsdafsdfsdf
-sdfsdfsdfsdfsdfsd
-sdfsdafasdfsdafsdfds
-sdfasdfsdf
-sdfsdfsdfsdf
-sdfdsfsdafds
-sdfsdfsdfasdfds
-sdfsdfsdfsdfsdf
-sdfdsfsdafsdfsdf
-sdfsdfsdfsdfsdfsd
-sdfsdafasdfsdafsdfds
-sdfasdfsdf
-sdfsdfsdfsdf
-sdfdsfsdafds
-sdfsdfsdfasdfds
-`,
+                                    value: `识别所有物体`,
                                 },
                                 use_prompt: {
                                     type: "bool",
-                                    value: false
+                                    value: false,
+                                    trueLabel: "使用",
+                                    falseLabel: "不使用",
                                 }
                             }
                         },
@@ -196,7 +171,7 @@ sdfsdfsdfasdfds
                         inputs: [],
                         outputs: ["value"]
                     },
-                    position: { x: 400, y: 300 }
+                    position: { x: 400, y: 400 }
                 }
             ],
             edges: [
