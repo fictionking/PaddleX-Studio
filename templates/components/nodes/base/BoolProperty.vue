@@ -3,7 +3,7 @@
         <Handle v-if="handleId" type="target" :position="Position.Left" :id="handleId"
             :class="['left-handle-pos', 'params-port', handleClass]" />
         <span class="property-label">{{ label }}:</span>
-        <el-switch active-text="True" inactive-text="False" v-model="internalValue" class="property-value input nodrag"
+        <el-switch :active-text="trueLabel" :inactive-text="falseLabel" v-model="internalValue" class="property-value input nodrag"
             size="small" @change="updateValue" />
     </div>
 </template>
@@ -30,6 +30,16 @@ export default {
             type: Boolean,
             required: true,
             description: '开关绑定的值'
+        },
+        trueLabel: {
+            type: String,
+            default: 'True',
+            description: '开关开启时的标签'
+        },
+        falseLabel: {
+            type: String,
+            default: 'False',
+            description: '开关关闭时的标签'
         },
         handleId: {
             type: String,

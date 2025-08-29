@@ -6,8 +6,8 @@
             • 按住Shift键可以框选多个节点<br>
             • 按住Ctrl键可以点击选择多个节点<br>
         </div>
-        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true" :connect-on-click="false"
-            @edge-update="updateConnect" class="vue-flow">
+        <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true"
+            :connect-on-click="false" @edge-update="updateConnect" class="vue-flow">
         </VueFlow>
     </div>
 </template>
@@ -97,7 +97,34 @@ export default {
                                 },
                                 prompt: {
                                     type: "text",
-                                    value: "识别所有物体",
+                                    value: `识别所有物体
+sdfdsfsdfsdfsdfsdfsdfasdfsdfsdafdsfasdfsdfsdfsdfdsfsdfsdfsdfsdfsdfsdfsdfasdfsdfsdfasdfsdfsdfdsfsdfsdfsdfsdfsdfdsfsdfsdfdsfdsafasdfsdfadsfdsfsdfsdfsadfsdfsdafsdfafsdfsdfasfsdfsdfdsfsdfsdfsdfsdfsdfdsfsdf
+sdfsdfdsfsdfsdfsd
+sdfsdfdsfsdfsadfsdfdsf
+sdfsdfsdfdsf
+sdfdsfsdfsdfas
+sdfsdfdsfsdfsdfsd
+sdfsdfdsfsdfsadfsdfdsf
+sdfsdfsdfdsf
+sdfdsfsdfsdfas
+
+sdfsdfsdfsdfsdf
+sdfdsfsdafsdfsdf
+sdfsdfsdfsdfsdfsd
+sdfsdafasdfsdafsdfds
+sdfasdfsdf
+sdfsdfsdfsdf
+sdfdsfsdafds
+sdfsdfsdfasdfds
+sdfsdfsdfsdfsdf
+sdfdsfsdafsdfsdf
+sdfsdfsdfsdfsdfsd
+sdfsdafasdfsdafsdfds
+sdfasdfsdf
+sdfsdfsdfsdf
+sdfdsfsdafds
+sdfsdfsdfasdfds
+`,
                                 },
                                 use_prompt: {
                                     type: "bool",
@@ -179,7 +206,7 @@ export default {
                     target: 'load_image',
                     sourceHandle: 'outputs.input',
                     targetHandle: 'inputs.files',
-                    style:".vue-flow"
+                    style: ".vue-flow"
                 },
                 {
                     id: 'load_image_to_object_detection',
@@ -261,6 +288,7 @@ export default {
 @import '/libs/vue-flow/core/style.css';
 @import '/libs/vue-flow/core/theme-default.css';
 @import '/assets/workflow.css';
+
 .tips {
     position: absolute;
     top: 0px;
@@ -270,12 +298,15 @@ export default {
     font-size: 12px;
     color: var(--el-text-color-disabled);
 }
-:deep(.vue-flow .vue-flow__edge.selected .vue-flow__edge-path){
+
+:deep(.vue-flow .vue-flow__edge.selected .vue-flow__edge-path) {
     stroke: rgb(224, 154, 2) !important;
 }
-:deep(.vue-flow .vue-flow__edge.updating .vue-flow__edge-path){
+
+:deep(.vue-flow .vue-flow__edge.updating .vue-flow__edge-path) {
     stroke: var(--el-text-color-regular) !important;
 }
+
 :deep(.vue-flow .vue-flow__edge-path) {
     stroke: var(--el-border-color) !important;
     stroke-width: 3 !important;

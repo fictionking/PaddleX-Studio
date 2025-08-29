@@ -5,7 +5,7 @@
                 :class="['handle-inline', 'params-port', handleClass]" />
             <span class="property-label">{{ label }}:</span>
         </div>
-        <el-input type="textarea" v-model="internalValue" class="property-value input nodrag" :rows="3" size="small" @change="updateValue" />
+        <el-input type="textarea" v-model="internalValue" class="property-value input nodrag" :autosize="{ minRows: 3, maxRows: 20 }" resize="none" size="small" @change="updateValue" />
     </div>
 </template>
 
@@ -91,7 +91,7 @@ export default {
 .property-value {
     width: 100%;
     font-size: 10px ;
-    min-width: 200px;
+    min-width: 150px;
     word-break: break-all;
     --el-input-text-color: var(--el-text-color-secondary);
     --el-input-bg-color: var(--el-fill-color-lighter);
@@ -108,5 +108,43 @@ export default {
     position: absolute;
     top: 10px;
     left: -10px;
+}
+
+/* 自定义textarea滚动条样式 - WebKit浏览器 */
+:deep(.el-textarea__inner) {
+    /* 滚动条整体样式 */
+    &::-webkit-scrollbar {
+        width: 8px; /* 垂直滚动条宽度 */
+        height: 8px; /* 水平滚动条高度 */
+    }
+    
+    /* 滚动条轨道 */
+    &::-webkit-scrollbar-track {
+        background: var(--el-fill-color-lighter);
+        border-radius: 4px;
+    }
+    
+    /* 滚动条滑块 */
+    &::-webkit-scrollbar-thumb {
+        background: var(--el-border-color);
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    
+    /* 滚动条滑块悬停效果 */
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--el-border-color-light);
+    }
+    
+    /* 滚动条角落 */
+    &::-webkit-scrollbar-corner {
+        background: var(--el-fill-color-lighter);
+    }
+}
+
+/* Firefox浏览器自定义滚动条 */
+:deep(.el-textarea__inner) {
+    scrollbar-width: thin; /* 滚动条宽度类型：auto、thin、none */
+    scrollbar-color: var(--el-border-color) var(--el-fill-color-lighter); /* 滑块颜色 轨道颜色 */
 }
 </style>

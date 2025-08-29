@@ -17,6 +17,8 @@
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
                     <BoolProperty v-else-if="value.type === 'bool'" :label="key"
                         v-model="data.params.model_params[key].value"
+                        :trueLabel="value.trueLabel"
+                        :falseLabel="value.falseLabel"
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
                     <InputProperty v-else :label="key" v-model="data.params.model_params[key].value"
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
@@ -36,6 +38,8 @@
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
                     <BoolProperty v-else-if="value.type === 'bool'" :label="key"
                         v-model="data.params.infer_params[key].value"
+                        :trueLabel="value.trueLabel"
+                        :falseLabel="value.falseLabel"
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
                     <InputProperty v-else :label="key" v-model="data.params.infer_params[key].value"
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
