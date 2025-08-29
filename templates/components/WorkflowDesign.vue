@@ -260,8 +260,8 @@ export default {
 }
 </script>
 <style scoped>
-@import '/libs/vue-flow/core/style.css';
-@import '/libs/vue-flow/core/theme-default.css';
+/* @import '/libs/vue-flow/core/style.css'; */
+/* @import '/libs/vue-flow/core/theme-default.css'; */
 @import '/assets/workflow.css';
 
 .tips {
@@ -286,4 +286,9 @@ export default {
     stroke: var(--el-border-color) !important;
     stroke-width: 3 !important;
 }
+
+:deep(.vue-flow__handle) {
+    border: 2px solid rgba(0, 0, 0, 0.7) !important;
+}
+
 </style>
