@@ -7,40 +7,36 @@
             • 按住Ctrl键可以点击选择多个节点<br>
         </div>
         <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true"
-            :connect-on-click="false" @edge-update="updateConnect" class="vue-flow">
+            :connect-on-click="false" @edge-update="updateConnect" @connect="newConnect" @nodesChange="nodesChange"
+            class="vue-flow">
         </VueFlow>
     </div>
-    <!-- 添加节点按钮和面板 -->
+    <!-- 添加节点按钮和菜单 -->
     <div class="node-panel-container">
-        <el-button type="primary" icon="Plus" circle size="large" @click="toggleNodePanel" :class="{ 'active': showNodePanel }">
-        </el-button>
+        <el-popover placement="right" trigger="click">
+            <template #reference>
+                <el-button type="primary" icon="Plus" circle size="medium" >
+                </el-button>
+            </template>
+            <el-menu mode="vertical" class="node-menu">
+                <el-menu-item-group title="基础节点">
+                    <el-menu-item @click="addNode('start', '')">开始节点</el-menu-item>
+                    <el-menu-item @click="addNode('end', '')">结束节点</el-menu-item>
+                    <el-menu-item @click="addNode('load_image', '')">加载图像</el-menu-item>
+                    <el-menu-item @click="addNode('save_image', '')">保存图像</el-menu-item>
+                </el-menu-item-group>
 
-        <div class="node-panel" :class="{ 'show': showNodePanel }">
-            <div class="panel-header">
-                <h3>节点类型</h3>
-            </div>
-            <div class="panel-content">
-                <div class="node-type-group">
-                    <h4>基础节点</h4>
-                    <button class="node-type-button" @click="addNode('start')">开始节点</button>
-                    <button class="node-type-button" @click="addNode('end')">结束节点</button>
-                    <button class="node-type-button" @click="addNode('load_image')">加载图像</button>
-                    <button class="node-type-button" @click="addNode('save_image')">保存图像</button>
-                </div>
+                <el-menu-item-group title="常量节点">
+                    <el-menu-item @click="addNode('number_const', '')">数值常量</el-menu-item>
+                    <el-menu-item @click="addNode('string_const', '')">字符串常量</el-menu-item>
+                </el-menu-item-group>
 
-                <div class="node-type-group">
-                    <h4>常量节点</h4>
-                    <button class="node-type-button" @click="addNode('number_const')">数值常量</button>
-                    <button class="node-type-button" @click="addNode('string_const')">字符串常量</button>
-                </div>
-
-                <div class="node-type-group">
-                    <h4>模型节点</h4>
-                    <button class="node-type-button" @click="addNode('model', 'object_detection')">目标识别</button>
-                    <button class="node-type-button" @click="addNode('model', 'image_classification')">图像分类</button>
-                </div>
-            </div>
-        </div>
+                <el-menu-item-group title="模型节点">
+                    <el-menu-item @click="addNode('model', 'object_detection')">目标识别</el-menu-item>
+                    <el-menu-item @click="addNode('model', 'image_classification')">图像分类</el-menu-item>
+                </el-menu-item-group>
+            </el-menu>
+        </el-popover>
     </div>
 </template>
 <script>
@@ -53,7 +49,6 @@ export default {
     },
     data() {
         return {
-            showNodePanel: false,
             nodeTypes: {
                 start: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
                 end: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
@@ -63,212 +58,35 @@ export default {
                 number_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
                 string_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
             },
-            nodes: [
-                {
-                    id: 'start',
-                    type: 'start',
-                    data: {
-                        name: "开始",
-                        fixName: true,
-                        params: {
-                        },
-                        inputs: [],
-                        outputs: ["input"]
-                    },
-                    position: { x: 0, y: 0 }
-                },
-                {
-                    id: 'end',
-                    type: 'end',
-                    data: {
-                        name: "结束",
-                        fixName: true,
-                        params: {
-                        },
-                        inputs: ["output"],
-                        outputs: []
-                    },
-                    position: { x: 1000, y: 0 }
-                },
-                {
-                    id: 'load_image',
-                    type: 'load_image',
-                    data: {
-                        name: "加载图像",
-                        params: {
-                        },
-                        inputs: ["files"],
-                        outputs: ["images", "count"]
-                    },
-                    position: { x: 200, y: 0 }
-                },
-                {
-                    id: 'object_detection',
-                    type: 'model',
-                    data: {
-                        name: "目标识别",
-                        params: {
-                            module_name: "object_detection",
-                            model_name: "PP-YOLOE_plus-L",
-                            model_dir: "weights\PP-YOLOE_plus-L\inference",
-                            model_params: {
-                                threshold: {
-                                    type: "number",
-                                    value: 0.5,
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1
-                                }
-                            },
-                            infer_params: {
-                                threshold: {
-                                    type: "number",
-                                    value: 0.5,
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1
-                                },
-                                prompt: {
-                                    type: "text",
-                                    value: `识别所有物体`,
-                                },
-                                use_prompt: {
-                                    type: "bool",
-                                    value: false,
-                                    trueLabel: "使用",
-                                    falseLabel: "不使用",
-                                }
-                            }
-                        },
-                        inputs: ["images"],
-                        outputs: ["images", "boxes", "count"]
-                    },
-                    position: { x: 400, y: 0 }
-                },
-                {
-                    id: "image_classification",
-                    type: "model",
-                    data: {
-                        name: "图像分类节点",
-                        params: {
-                            module_name: "image_classification",
-                            model_name: "PP-HGNetV2-B6",
-                            model_dir: "weights\PP-HGNetV2-B6\inference",
-                            model_params: {
-                                topk: {
-                                    type: "number",
-                                    value: 5,
-                                    min: 1,
-                                    max: 10,
-                                    step: 1
-                                }
-                            },
-                            infer_params: {
-                                topk: {
-                                    type: "number",
-                                    value: 1,
-                                    min: 1,
-                                    max: 10,
-                                    step: 1
-                                }
-                            }
-                        },
-                        inputs: ["images"],
-                        outputs: ["labels"]
-                    },
-                    position: { x: 700, y: 0 }
-                },
-                {
-                    id: "image_output",
-                    type: "save_image",
-                    data: {
-                        name: "保存图像",
-                        params: {
-                            format: 'png',
-                            path: 'output/images',
-                            filename: 'image'
-                        },
-                        inputs: ["images"],
-                        outputs: ["files"]
-                    },
-                    position: { x: 700, y: 300 }
-                },
-                {
-                    id: "topk_const",
-                    type: "number_const",
-                    data: {
-                        name: "TopK",
-                        params: {
-                            value: 0
-                        },
-                        inputs: [],
-                        outputs: ["value"]
-                    },
-                    position: { x: 400, y: 400 }
-                }
-            ],
-            edges: [
-                {
-                    id: 'start_to_load_image',
-                    source: 'start',
-                    target: 'load_image',
-                    sourceHandle: 'outputs.input',
-                    targetHandle: 'inputs.files',
-                    style: ".vue-flow"
-                },
-                {
-                    id: 'load_image_to_object_detection',
-                    source: 'load_image',
-                    target: 'object_detection',
-                    sourceHandle: 'outputs.images',
-                    targetHandle: 'inputs.images',
-                },
-                {
-                    id: 'object_detection_to_image_classification',
-                    source: 'object_detection',
-                    target: 'image_classification',
-                    sourceHandle: 'outputs.images',
-                    targetHandle: 'inputs.images',
-                },
-                {
-                    id: 'topk_const_to_image_classification',
-                    source: 'topk_const',
-                    target: 'image_classification',
-                    sourceHandle: 'outputs.value',
-                    targetHandle: 'params.infer_params.topk',
-                },
-                {
-                    id: 'object_detection_to_image_output',
-                    source: 'object_detection',
-                    target: 'image_output',
-                    sourceHandle: 'outputs.images',
-                    targetHandle: 'inputs.images',
-                },
-                {
-                    id: 'image_classification_to_end',
-                    source: 'image_classification',
-                    target: 'end',
-                    sourceHandle: 'outputs.labels',
-                    targetHandle: 'inputs.output',
-                }
-            ]
+        
+            nodes: [],
+            edges: []
+        }
+    },
+    /** 组件挂载时加载工作流配置 */
+    async mounted() {
+        try {
+            // 从服务端加载工作流配置JSON文件
+            const response = await fetch('/assets/workflow_config.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const config = await response.json();
+            this.nodes = config.nodes || [];
+            this.edges = config.edges || [];
+        } catch (error) {
+            console.error('Failed to load workflow configuration:', error);
+            // 如果加载失败，使用默认配置
+            this.setDefaultWorkflow();
         }
     },
     setup() {
         /** 初始化vue flow相关函数 */
-        const { onInit, onNodeDragStop, onConnect, updateEdge, addEdges, setViewport, toObject } = useVueFlow()
+        const { updateEdge, addEdges } = useVueFlow()
         return {
-            onInit,
-            onNodeDragStop,
-            onConnect,
             updateEdge,
             addEdges,
-            setViewport,
-            toObject
         }
-    },
-    async created() {
-        this.onConnect(this.newConnect)
     },
     methods: {
         newConnect(connection) {
@@ -289,12 +107,25 @@ export default {
             }
             return false
         },
-        /** 切换节点面板显示状态 */
-        toggleNodePanel() {
-            this.showNodePanel = !this.showNodePanel;
+        nodesChange(nodeChange) {
+            nodeChange.forEach(event => {
+                if (event.type === 'position') {
+                    if (!event.dragging) {
+                        return
+                    }
+                    // 查找对应的节点并更新其位置属性
+                    const node = this.nodes.find(n => n.id === event.id);
+                    if (node && node.data) {
+                        // 使用 event.position 获取节点的新位置
+                        node.position.x = event.position.x;
+                        node.position.y = event.position.y;
+                    }
+                }
+            });
         },
-        /** 添加新节点 */
-        addNode(type, subtype = '') {
+
+        /** 创建节点数据 */
+        createNodeData(type, subtype = '') {
             // 生成唯一ID
             const id = `${type}_${Date.now()}`;
 
@@ -358,7 +189,7 @@ export default {
                         newNode.data.params = {
                             module_name: 'object_detection',
                             model_name: 'PP-YOLOE_plus-L',
-                            model_dir: 'weights\PP-YOLOE_plus-L\inference',
+                            model_dir: 'weights\\PP-YOLOE_plus-L\\inference',
                             model_params: {
                                 threshold: {
                                     type: 'number',
@@ -395,7 +226,7 @@ export default {
                         newNode.data.params = {
                             module_name: 'image_classification',
                             model_name: 'PP-HGNetV2-B6',
-                            model_dir: 'weights\PP-HGNetV2-B6\inference',
+                            model_dir: 'weights\\PP-HGNetV2-B6\\inference',
                             model_params: {
                                 topk: {
                                     type: 'number',
@@ -421,11 +252,16 @@ export default {
                     break;
             }
 
+            return newNode;
+        },
+
+        /** 添加新节点 */
+        addNode(type, subtype = '') {
+            // 创建节点数据
+            const newNode = this.createNodeData(type, subtype);
+
             // 添加新节点到节点列表
             this.nodes.push(newNode);
-
-            // 关闭节点面板
-            this.showNodePanel = false;
         }
     }
 }
@@ -471,123 +307,10 @@ export default {
     z-index: 100;
 }
 
-/* 添加节点按钮样式 */
-.add-node-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 120px;
-    background-color: var(--el-color-primary);
-    color: white;
+/* 节点菜单样式 */
+.node-menu {
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    padding: 10px 0;
+    --el-menu-item-height: 32px;
 }
 
-.add-node-button:hover {
-    background-color: var(--el-color-primary-light-3);
-}
-
-.add-node-button.active {
-    background-color: var(--el-color-primary-dark-2);
-}
-
-.add-node-button span:first-child {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-/* 节点面板样式 */
-.node-panel {
-    position: absolute;
-    left: 60px;
-    top: 0;
-    width: 200px;
-    max-height: 500px;
-    background-color: white;
-    border-radius: 4px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transform: translateX(-20px);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s;
-}
-
-.node-panel.show {
-    transform: translateX(0);
-    opacity: 1;
-    visibility: visible;
-}
-
-/* 面板头部样式 */
-.panel-header {
-    padding: 10px 15px;
-    background-color: var(--el-color-primary-light-9);
-    border-bottom: 1px solid var(--el-border-color-light);
-}
-
-.panel-header h3 {
-    margin: 0;
-    font-size: 16px;
-    color: var(--el-text-color-primary);
-}
-
-/* 面板内容样式 */
-.panel-content {
-    padding: 10px;
-    max-height: 420px;
-    overflow-y: auto;
-}
-
-/* 节点类型分组样式 */
-.node-type-group {
-    margin-bottom: 15px;
-}
-
-.node-type-group:last-child {
-    margin-bottom: 0;
-}
-
-.node-type-group h4 {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    color: var(--el-text-color-regular);
-    padding-left: 5px;
-    border-left: 3px solid var(--el-color-primary);
-}
-
-/* 节点类型按钮样式 */
-.node-type-button {
-    display: block;
-    width: 100%;
-    padding: 8px 12px;
-    margin-bottom: 5px;
-    background-color: var(--el-fill-color-blank);
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 4px;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 14px;
-    color: var(--el-text-color-primary);
-}
-
-.node-type-button:hover {
-    background-color: var(--el-color-primary-light-9);
-    border-color: var(--el-color-primary);
-    color: var(--el-color-primary);
-}
-
-.node-type-button:last-child {
-    margin-bottom: 0;
-}
 </style>
