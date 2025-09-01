@@ -40,7 +40,6 @@
     </div>
 </template>
 <script>
-const { ref } = Vue;
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
 import nodeTypes from '/components/nodes/nodes.mjs';
 
