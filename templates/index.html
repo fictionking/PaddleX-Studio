@@ -199,11 +199,6 @@
                     <el-icon class="icon">
                         <ICO_Expand />
                     </el-icon>产线</el-button>
-                <el-button type="primary" :class="{ active: $route.path.startsWith('/workflow') }"
-                    @click="() => $router.push('/workflow')">
-                    <el-icon class="icon">
-                        <ICO_Share />
-                    </el-icon>工作流</el-button>
                 <el-button type="primary" :class="{ active: $route.path.startsWith('/dataset') }"
                     @click="() => $router.push('/dataset')">
                     <el-icon class="icon">
@@ -220,6 +215,11 @@
                         <ICO_Platform />
                     </el-icon>应用
                 </el-button>
+                <el-button type="primary" :class="{ active: $route.path.startsWith('/workflow') }"
+                    @click="() => $router.push('/workflow')">
+                    <el-icon class="icon">
+                        <ICO_Share />
+                    </el-icon>工作流</el-button>
                 <div style="margin-left: auto;display: flex; gap: 50px; align-items: center;">
                     <div style="display: flex; gap: 16px; align-items: center;">
                         <div style="display: flex; flex-direction: column; align-items: center;">
