@@ -41,7 +41,7 @@
 </template>
 <script>
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
-import nodeTypes from '/components/nodes/nodes.mjs';
+import nodeTypes, { createNodeData } from '/components/nodes/nodes.mjs';
 
 export default {
     components: {
@@ -113,141 +113,10 @@ export default {
             });
         },
 
-        /** 创建节点数据 */
-        createNodeData(type, subtype = '') {
-            // 生成唯一ID
-            const id = `${type}_${Date.now()}`;
-
-            // 根据节点类型创建不同的节点数据
-            let newNode = {
-                id: id,
-                type: type,
-                position: { x: 300, y: 200 },
-                data: {
-                    name: '',
-                    params: {},
-                    inputs: [],
-                    outputs: []
-                }
-            };
-
-            // 根据节点类型设置特定属性
-            switch (type) {
-                case 'start':
-                    newNode.data.name = '开始';
-                    newNode.data.fixName = true;
-                    newNode.data.outputs = ['input'];
-                    break;
-                case 'end':
-                    newNode.data.name = '结束';
-                    newNode.data.fixName = true;
-                    newNode.data.inputs = ['output'];
-                    break;
-                case 'load_image':
-                    newNode.data.name = '加载图像';
-                    newNode.data.inputs = ['files'];
-                    newNode.data.outputs = ['images', 'count'];
-                    break;
-                case 'save_image':
-                    newNode.data.name = '保存图像';
-                    newNode.data.inputs = ['images'];
-                    newNode.data.outputs = ['files'];
-                    newNode.data.params = {
-                        format: 'png',
-                        path: 'output/images',
-                        filename: 'image'
-                    };
-                    break;
-                case 'number_const':
-                    newNode.data.name = '数值常量';
-                    newNode.data.outputs = ['value'];
-                    newNode.data.params = {
-                        value: 0
-                    };
-                    break;
-                case 'string_const':
-                    newNode.data.name = '字符串常量';
-                    newNode.data.outputs = ['value'];
-                    newNode.data.params = {
-                        value: ''
-                    };
-                    break;
-                case 'model':
-                    if (subtype === 'object_detection') {
-                        newNode.data.name = '目标识别';
-                        newNode.data.params = {
-                            module_name: 'object_detection',
-                            model_name: 'PP-YOLOE_plus-L',
-                            model_dir: 'weights\\PP-YOLOE_plus-L\\inference',
-                            model_params: {
-                                threshold: {
-                                    type: 'number',
-                                    value: 0.5,
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1
-                                }
-                            },
-                            infer_params: {
-                                threshold: {
-                                    type: 'number',
-                                    value: 0.5,
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1
-                                },
-                                prompt: {
-                                    type: 'text',
-                                    value: '识别所有物体'
-                                },
-                                use_prompt: {
-                                    type: 'bool',
-                                    value: false,
-                                    trueLabel: '使用',
-                                    falseLabel: '不使用'
-                                }
-                            }
-                        };
-                        newNode.data.inputs = ['images'];
-                        newNode.data.outputs = ['images', 'boxes', 'count'];
-                    } else if (subtype === 'image_classification') {
-                        newNode.data.name = '图像分类';
-                        newNode.data.params = {
-                            module_name: 'image_classification',
-                            model_name: 'PP-HGNetV2-B6',
-                            model_dir: 'weights\\PP-HGNetV2-B6\\inference',
-                            model_params: {
-                                topk: {
-                                    type: 'number',
-                                    value: 5,
-                                    min: 1,
-                                    max: 10,
-                                    step: 1
-                                }
-                            },
-                            infer_params: {
-                                topk: {
-                                    type: 'number',
-                                    value: 1,
-                                    min: 1,
-                                    max: 10,
-                                    step: 1
-                                }
-                            }
-                        };
-                        newNode.data.inputs = ['images'];
-                        newNode.data.outputs = ['labels'];
-                    }
-                    break;
-            }
-
-            return newNode;
-        },
-
         /** 添加新节点 */
         addNode(type, subtype = '') {
             // 创建节点数据
-            const newNode = this.createNodeData(type, subtype);
+            const newNode = createNodeData(type, subtype);
 
             // 添加新节点到节点列表
             this.nodes.push(newNode);
