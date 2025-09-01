@@ -40,8 +40,9 @@
     </div>
 </template>
 <script>
-const { defineAsyncComponent, markRaw, ref } = Vue;
+const { ref } = Vue;
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
+import nodeTypes from '/components/nodes/nodes.mjs';
 
 export default {
     components: {
@@ -49,16 +50,7 @@ export default {
     },
     data() {
         return {
-            nodeTypes: {
-                start: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
-                end: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
-                model: markRaw(defineAsyncComponent(() => import(`/components/nodes/model.vue`))),
-                save_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/save_image.vue`))),
-                load_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
-                number_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
-                string_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
-            },
-        
+            nodeTypes,
             nodes: [],
             edges: []
         }
@@ -76,8 +68,6 @@ export default {
             this.edges = config.edges || [];
         } catch (error) {
             console.error('Failed to load workflow configuration:', error);
-            // 如果加载失败，使用默认配置
-            this.setDefaultWorkflow();
         }
     },
     setup() {
