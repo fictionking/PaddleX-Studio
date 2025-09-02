@@ -15,25 +15,95 @@
     <div class="node-panel-container">
         <el-popover placement="right" trigger="click">
             <template #reference>
-                <el-button type="primary" icon="Plus" circle size="medium" >
+                <el-button type="primary" circle plain size="large">
+                    <el-icon size="24">
+                        <svg viewBox="0 0 32 32">
+                            <path fill="currentColor"
+                                d="M23.52,0a8.45,8.45,0,0,0-7.8,5.22l-.09.27H4a4,4,0,0,0-4,4v3.43H16.28l.22.4.85,1.05H0V28a4,4,0,0,0,4,4H19.86a4,4,0,0,0,4-4V17.07l1.39-.14A8.56,8.56,0,0,0,23.52,0ZM3.63,23.55a1.45,1.45,0,1,1,1.43-1.44A1.44,1.44,0,0,1,3.63,23.55Zm16.57,0a1.45,1.45,0,1,1,1.44-1.44A1.44,1.44,0,0,1,20.2,23.55ZM23.58,16A7.46,7.46,0,1,1,31,8.56,7.43,7.43,0,0,1,23.58,16Z" />
+                            <polygon fill="currentColor"
+                                points="28.66 7.58 28.66 9.96 24.8 9.96 24.8 13.86 22.43 13.86 22.43 9.96 18.57 9.96 18.57 7.58 22.43 7.58 22.43 3.68 24.8 3.68 24.8 7.58 28.66 7.58" />
+                        </svg>
+                    </el-icon>
                 </el-button>
             </template>
-            <el-menu mode="vertical" class="node-menu">
-                <el-menu-item-group title="基础节点">
-                    <el-menu-item @click="addNode('start', '')">开始节点</el-menu-item>
-                    <el-menu-item @click="addNode('end', '')">结束节点</el-menu-item>
+            <el-menu mode="vertical" collapse class="node-menu">
+                <el-menu-item-group>
+                    <template #title>
+                        <el-icon>
+                            <Files />
+                        </el-icon>
+                        <span> 输入输出</span>
+                    </template>
+                    <el-menu-item @click="addNode('start', '')">请求输入</el-menu-item>
+                    <el-menu-item @click="addNode('end', '')">请求输出</el-menu-item>
                     <el-menu-item @click="addNode('load_image', '')">加载图像</el-menu-item>
                     <el-menu-item @click="addNode('save_image', '')">保存图像</el-menu-item>
                 </el-menu-item-group>
 
-                <el-menu-item-group title="常量节点">
+                <el-menu-item-group>
+                    <template #title>
+                        <el-icon>
+                            <Operation />
+                        </el-icon>
+                        <span> 常量节点</span>
+                    </template>
                     <el-menu-item @click="addNode('number_const', '')">数值常量</el-menu-item>
                     <el-menu-item @click="addNode('string_const', '')">字符串常量</el-menu-item>
                 </el-menu-item-group>
 
-                <el-menu-item-group title="模型节点">
-                    <el-menu-item @click="addNode('model', 'object_detection')">目标识别</el-menu-item>
-                    <el-menu-item @click="addNode('model', 'image_classification')">图像分类</el-menu-item>
+                <el-menu-item-group>
+                    <template #title>
+                        <el-icon>
+                            <HelpFilled />
+                        </el-icon>
+                        <span> 模型节点</span>
+                    </template>
+                    <el-sub-menu v-for="category in models" :index="category.category.id" class="node-menu">
+                        <template #title>{{ category.category.name }}</template>
+                        <el-sub-menu v-for="module in category.modules" :index="module.id" class="node-menu"
+                            collapse-close-icon="ArrowRight" collapse-open-icon="CaretRight">
+                            <template #title>{{ module.name }}</template>
+                            <div class="menu-scroll-container">
+                                <el-tooltip v-for="value, key in module.models" effect="light" placement="right">
+                                    <el-menu-item :index="key" @click="addNode('model', module.id, {
+                                        module_name: module.id,
+                                        model_name: key,
+                                        model_dir: 'weights\\' + key + '\\inference',
+                                        model_params: module.infer_params.model_params,
+                                        infer_params: module.infer_params.predict_params,
+                                    })" class="node-menu">
+                                        {{ value.name }}
+                                    </el-menu-item>
+                                    <template #content>
+                                        <span style="display: inline-block; max-width: 300px; word-wrap: break-word;">{{
+                                            value?.description }}</span>
+                                    </template>
+                                </el-tooltip>
+                            </div>
+                        </el-sub-menu>
+                    </el-sub-menu>
+                    <el-sub-menu class="trainModels">
+                        <template #title>
+                            <div>
+                                <el-icon style="color:#409efc">
+                                    <TrendCharts />
+                                </el-icon>
+                                <span>本地训练模型</span>
+                            </div>
+                        </template>
+                        <div class="menu-scroll-container">
+                            <el-tooltip v-for="item in trains" effect="light" placement="right">
+                                <el-menu-item :index="'train_' + item.id" @click="addNode('model', item.id)"
+                                    class="node-menu">
+                                    {{ item.name }}
+                                </el-menu-item>
+                                <template #content>
+                                    <span style="display: inline-block; max-width: 300px; word-wrap: break-word;">{{
+                                        item?.description }}</span>
+                                </template>
+                            </el-tooltip>
+                        </div>
+                    </el-sub-menu>
                 </el-menu-item-group>
             </el-menu>
         </el-popover>
@@ -51,7 +121,9 @@ export default {
         return {
             nodeTypes,
             nodes: [],
-            edges: []
+            edges: [],
+            models: [],
+            trains: []
         }
     },
     /** 组件挂载时加载工作流配置 */
@@ -65,6 +137,16 @@ export default {
             const config = await response.json();
             this.nodes = config.nodes || [];
             this.edges = config.edges || [];
+            const modelResponse = await fetch('/define/modules');
+            if (!modelResponse.ok) {
+                throw new Error(`HTTP error! status: ${modelResponse.status}`);
+            }
+            this.models = await modelResponse.json();
+            const trainResponse = await fetch('/models');
+            if (!trainResponse.ok) {
+                throw new Error(`HTTP error! status: ${trainResponse.status}`);
+            }
+            this.trains = await trainResponse.json();
         } catch (error) {
             console.error('Failed to load workflow configuration:', error);
         }
@@ -114,13 +196,12 @@ export default {
         },
 
         /** 添加新节点 */
-        addNode(type, subtype = '') {
+        addNode(type, subtype = '', params = {}) {
             // 创建节点数据
-            const newNode = createNodeData(type, subtype);
-
+            const newNode = createNodeData(type, subtype, params);
             // 添加新节点到节点列表
             this.nodes.push(newNode);
-        }
+        },
     }
 }
 </script>
@@ -159,7 +240,7 @@ export default {
 /* 节点面板容器样式 */
 .node-panel-container {
     position: absolute;
-    left: 0px;
+    left: 5px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 100;
@@ -168,7 +249,82 @@ export default {
 /* 节点菜单样式 */
 .node-menu {
     border: none;
+    width: auto;
     --el-menu-item-height: 32px;
+    --el-menu-sub-item-height: 32px;
 }
 
+/* 滚动菜单容器样式 */
+.menu-scroll-container {
+    max-height: 400px;
+    /* 设置最大高度，超出部分显示滚动条 */
+    overflow-y: auto;
+    /* 垂直方向滚动 */
+    padding: 0px;
+    min-width: 250px;
+}
+
+/* 自定义滚动条样式 */
+.menu-scroll-container::-webkit-scrollbar {
+    width: 8px;
+    /* 滚动条宽度 */
+    height: 8px;
+    /* 滚动条高度 */
+}
+
+.menu-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+    /* 滚动条轨道背景 */
+}
+
+.menu-scroll-container::-webkit-scrollbar-thumb {
+    background: #a8a8a8;
+    /* 滚动条滑块颜色 */
+    border-radius: 4px;
+    /* 滚动条滑块圆角 */
+}
+
+.menu-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #888;
+    /* 滚动条滑块悬停颜色 */
+}
+
+:deep(.el-menu-item-group__title) {
+    white-space: nowrap;
+    width: auto;
+    padding-left: 0px;
+}
+
+:deep(.trainModels .el-sub-menu__title) {
+    padding-left: 0px;
+}
+
+/* 节点标题颜色 */
+.node-title {
+    color: #303133;
+}
+
+/* 输入输出类型端口样式 */
+.input-port,
+.output-port {
+    cursor: pointer;
+    background-color: #909399;
+    border: 2px solid #909399;
+}
+
+/* 参数端口样式 */
+.param-port {
+    background-color: #409EFF;
+    border: 2px solid #409EFF;
+}
+
+/* 确保连接线不会穿过节点 */
+:deep(.vue-flow__connection-path) {
+    z-index: 1;
+}
+
+/* 节点可拖拽区域样式 */
+:deep(.vue-flow__handle) {
+    z-index: 2;
+}
 </style>

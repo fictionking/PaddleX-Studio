@@ -33,7 +33,7 @@
         "model_params": {
             "limit_side_len": {
                 "config_able": true,
-                "type": "int",
+                "type": "number",
                 "min": 0,
                 "max": null,
                 "value": null,
@@ -52,7 +52,7 @@
             },
             "thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": null,
                 "value": null,
@@ -60,7 +60,7 @@
             },
             "box_thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": null,
                 "value": null,
@@ -68,7 +68,7 @@
             },
             "unclip_ratio": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": null,
                 "value": null,
@@ -78,7 +78,7 @@
         "predict_params": {
             "limit_side_len": {
                 "config_able": true,
-                "type": "int",
+                "type": "number",
                 "min": 0,
                 "max": null,
                 "value": null,
@@ -97,7 +97,7 @@
             },
             "thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": null,
                 "value": null,
@@ -105,7 +105,7 @@
             },
             "box_thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": null,
                 "value": null,
@@ -113,7 +113,7 @@
             },
             "unclip_ratio": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": null,
                 "value": null,

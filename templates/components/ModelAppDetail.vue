@@ -19,11 +19,11 @@
           <el-form :model="modelFormData" label-width="auto" @submit.prevent="saveConfig">
             <el-form-item v-for="(param, key) in modelParams" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
-                <el-slider v-if="['int', 'float'].includes(param.type) && param.min !== null && param.max !== null"
+                <el-slider v-if="param.type==='number' && param.min !== null && param.max !== null"
                   v-model="modelFormData[key]" :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
                   :min="param.min" :max="param.max" :disabled="!param.config_able" show-tooltip show-input size="small"
                   class="slider-input"></el-slider>
-                <el-input-number v-else-if="['int', 'float'].includes(param.type)" v-model="modelFormData[key]"
+                <el-input-number v-else-if="param.type==='number'" v-model="modelFormData[key]"
                   :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
                   :min="param.min !== null ? param.min : undefined" :max="param.max !== null ? param.max : undefined"
                   controls-position="right" :readonly="!param.config_able"></el-input-number>
@@ -54,11 +54,11 @@
           <el-form :model="predictFormData" label-width="auto">
             <el-form-item v-for="(param, key) in predict_params" :key="key" :label="key">
               <el-tooltip :disabled="!param.desc" :content="param.desc" raw-content>
-                <el-slider v-if="['int', 'float'].includes(param.type) && param.min !== null && param.max !== null"
+                <el-slider v-if="param.type==='number' && param.min !== null && param.max !== null"
                   v-model="predictFormData[key]" :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
                   :min="param.min" :max="param.max" :disabled="!param.config_able" show-tooltip show-input size="small"
                   class="slider-input"></el-slider>
-                <el-input-number v-else-if="['int', 'float'].includes(param.type)" v-model="predictFormData[key]"
+                <el-input-number v-else-if="param.type==='number'" v-model="predictFormData[key]"
                   :step="param.step ? param.step : param.type === 'float' ? 0.01 : 1"
                   :min="param.min !== null ? param.min : undefined" :max="param.max !== null ? param.max : undefined"
                   controls-position="right" :readonly="!param.config_able"></el-input-number>

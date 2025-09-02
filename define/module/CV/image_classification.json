@@ -338,7 +338,7 @@
         "model_params": {
             "topk": {
                 "config_able": true,
-                "type": "int",
+                "type": "number",
                 "min": 1,
                 "max": null,
                 "value": 5
@@ -347,7 +347,7 @@
         "predict_params": {
             "topk": {
                 "config_able": true,
-                "type": "int",
+                "type": "number",
                 "min": 1,
                 "max": null,
                 "value": 5

@@ -13,7 +13,7 @@
         "model_params": {
             "nms_thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.1,
                 "max": null,
                 "value": null,
@@ -21,7 +21,7 @@
             },
             "score_thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.1,
                 "max": null,
                 "value": null,
@@ -31,7 +31,7 @@
         "predict_params": {
             "nms_thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.1,
                 "max": null,
                 "value": null,
@@ -39,7 +39,7 @@
             },
             "score_thresh": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.1,
                 "max": null,
                 "value": null,

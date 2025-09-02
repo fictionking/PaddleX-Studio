@@ -20,7 +20,7 @@ export const nodeTypes = {
  * @param {string} subtype - 节点子类型（可选）
  * @returns {object} 节点数据对象
  */
-export function createNodeData(type, subtype = '') {
+export function createNodeData(type, subtype = '',params = {}) {
     // 生成唯一ID
     const id = `${type}_${Date.now()}`;
 
@@ -81,66 +81,12 @@ export function createNodeData(type, subtype = '') {
         case 'model':
             if (subtype === 'object_detection') {
                 newNode.data.name = '目标识别';
-                newNode.data.params = {
-                    module_name: 'object_detection',
-                    model_name: 'PP-YOLOE_plus-L',
-                    model_dir: 'weights\\PP-YOLOE_plus-L\\inference',
-                    model_params: {
-                        threshold: {
-                            type: 'number',
-                            value: 0.5,
-                            min: 0,
-                            max: 1,
-                            step: 0.1
-                        }
-                    },
-                    infer_params: {
-                        threshold: {
-                            type: 'number',
-                            value: 0.5,
-                            min: 0,
-                            max: 1,
-                            step: 0.1
-                        },
-                        prompt: {
-                            type: 'text',
-                            value: '识别所有物体'
-                        },
-                        use_prompt: {
-                            type: 'bool',
-                            value: false,
-                            trueLabel: '使用',
-                            falseLabel: '不使用'
-                        }
-                    }
-                };
+                newNode.data.params = {...params};
                 newNode.data.inputs = ['images'];
                 newNode.data.outputs = ['images', 'boxes', 'count'];
             } else if (subtype === 'image_classification') {
                 newNode.data.name = '图像分类';
-                newNode.data.params = {
-                    module_name: 'image_classification',
-                    model_name: 'PP-HGNetV2-B6',
-                    model_dir: 'weights\\PP-HGNetV2-B6\\inference',
-                    model_params: {
-                        topk: {
-                            type: 'number',
-                            value: 5,
-                            min: 1,
-                            max: 10,
-                            step: 1
-                        }
-                    },
-                    infer_params: {
-                        topk: {
-                            type: 'number',
-                            value: 1,
-                            min: 1,
-                            max: 10,
-                            step: 1
-                        }
-                    }
-                };
+                newNode.data.params = {...params};
                 newNode.data.inputs = ['images'];
                 newNode.data.outputs = ['labels'];
             }
@@ -152,3 +98,4 @@ export function createNodeData(type, subtype = '') {
 
 // 默认导出
 export default nodeTypes;
+                        

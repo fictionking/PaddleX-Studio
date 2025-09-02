@@ -25,7 +25,7 @@
         "model_params": {
             "threshold": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": 1.0,
                 "step": 0.01,
@@ -35,7 +35,7 @@
         "predict_params": {
             "threshold": {
                 "config_able": true,
-                "type": "float",
+                "type": "number",
                 "min": 0.0,
                 "max": 1.0,
                 "step": 0.01,
