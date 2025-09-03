@@ -103,7 +103,7 @@
                         </template>
                         <div class="menu-scroll-container">
                             <el-tooltip v-for="item in trains" effect="light" placement="right">
-                                <el-menu-item :index="'train_' + item.id" @click="addNode('model', item.id)"
+                                <el-menu-item :index="'train_' + item.id" @click="addLocalTrainNode(item)"
                                     class="node-menu">
                                     {{ item.name }}
                                 </el-menu-item>
@@ -201,6 +201,29 @@ export default {
             // 添加新节点到节点列表
             this.addNodes(newNode)
         },
+        addLocalTrainNode(model){
+            const category = this.models.find(item => item.category.id == model.category);
+            const module = category?.modules?.find(item => item.id == model.module_id);
+            
+            if (module) {
+                if (!module.infer_params.ports || !module.infer_params.ports.inputs || !module.infer_params.ports.outputs) {
+                    this.$message.error('模型不支持工作流，缺少输入输出端口定义')
+                    return
+                }
+                this.addNode('model', {
+                    name: model.name,
+                    params: {
+                        module_name: module.id,
+                        model_name: model.pretrained,
+                        model_dir: 'models\\' + model.id + '\\best_model\\inference',
+                        model_params: module.infer_params?.model_params || {},
+                        infer_params: module.infer_params?.predict_params || {},
+                    },
+                    inputs: module.infer_params?.ports?.inputs || [],
+                    outputs: module.infer_params?.ports?.outputs || [],
+                })
+            }
+        }
     }
 }
 </script>
