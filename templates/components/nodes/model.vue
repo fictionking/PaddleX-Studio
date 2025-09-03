@@ -7,8 +7,13 @@
             <GroupProperty label="模型参数" v-if="data.params?.model_params">
                 <template v-for="(value, key) in data.params.model_params">
                     <InputNumberProperty v-if="value.type === 'number'" :label="key"
-                        v-model="data.params.model_params[key].value" :min="value.min" :max="value.max"
-                        :step="value.step" :handleId="`params.model_params.${key}`"
+                        v-model="data.params.model_params[key].value"
+                        v-bind="{
+                          ...(value.min !== undefined && value.min !== null ? { min: value.min } : {}),
+                          ...(value.max !== undefined && value.max !== null ? { max: value.max } : {}),
+                          ...(value.step !== undefined && value.step !== null ? { step: value.step } : {})
+                        }"
+                        :handleId="`params.model_params.${key}`"
                         :handleClass="`model_params_${key}`" />
                     <SelectProperty v-else-if="value.type === 'enum' && value.enum" :label="key"
                         v-model="data.params.model_params[key].value" :options="value.enum"
@@ -18,8 +23,10 @@
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
                     <BoolProperty v-else-if="value.type === 'bool'" :label="key"
                         v-model="data.params.model_params[key].value"
-                        :trueLabel="value.trueLabel"
-                        :falseLabel="value.falseLabel"
+                        v-bind="{
+                          ...(value.trueLabel !== undefined && value.trueLabel !== null ? { trueLabel: value.trueLabel } : {}),
+                          ...(value.falseLabel !== undefined && value.falseLabel !== null ? { falseLabel: value.falseLabel } : {})
+                        }"
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
                     <InputProperty v-else :label="key" v-model="data.params.model_params[key].value"
                         :handleId="`params.model_params.${key}`" :handleClass="`model_params_${key}`" />
@@ -28,8 +35,13 @@
             <GroupProperty label="推理参数" v-if="data.params?.infer_params">
                 <template v-for="(value, key) in data.params.infer_params">
                     <InputNumberProperty v-if="value.type === 'number'" :label="key"
-                        v-model="data.params.infer_params[key].value" :min="value.min" :max="value.max"
-                        :step="value.step" :handleId="`params.infer_params.${key}`"
+                        v-model="data.params.infer_params[key].value"
+                        v-bind="{
+                          ...(value.min !== undefined && value.min !== null ? { min: value.min } : {}),
+                          ...(value.max !== undefined && value.max !== null ? { max: value.max } : {}),
+                          ...(value.step !== undefined && value.step !== null ? { step: value.step } : {})
+                        }"
+                        :handleId="`params.infer_params.${key}`"
                         :handleClass="`infer_params_${key}`" />
                     <SelectProperty v-else-if="value.type === 'enum' && value.enum" :label="key"
                         v-model="data.params.infer_params[key].value" :options="value.enum"
@@ -39,8 +51,10 @@
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
                     <BoolProperty v-else-if="value.type === 'bool'" :label="key"
                         v-model="data.params.infer_params[key].value"
-                        :trueLabel="value.trueLabel"
-                        :falseLabel="value.falseLabel"
+                        v-bind="{
+                          ...(value.trueLabel !== undefined && value.trueLabel !== null ? { trueLabel: value.trueLabel } : {}),
+                          ...(value.falseLabel !== undefined && value.falseLabel !== null ? { falseLabel: value.falseLabel } : {})
+                        }"
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />
                     <InputProperty v-else :label="key" v-model="data.params.infer_params[key].value"
                         :handleId="`params.infer_params.${key}`" :handleClass="`infer_params_${key}`" />

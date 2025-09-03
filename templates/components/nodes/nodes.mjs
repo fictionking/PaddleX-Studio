@@ -1,4 +1,24 @@
 const { defineAsyncComponent, markRaw } = Vue;
+/**
+ * 深拷贝
+ * @param {any} value - 要拷贝的值
+ * @returns {any} 拷贝后的值
+ */
+const deepClone = function(value) {
+    if (value === null || typeof value !== 'object') return value;
+
+    if (Array.isArray(value)) {
+        return value.map(item => deepClone(item));
+    } else {
+        const cloned = {};
+        for (const key in value) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                cloned[key] = deepClone(value[key]);
+            }
+        }
+        return cloned;
+    }
+}
 
 /**
  * 工作流节点类型定义
@@ -20,7 +40,7 @@ export const nodeTypes = {
  * @param {string} subtype - 节点子类型（可选）
  * @returns {object} 节点数据对象
  */
-export function createNodeData(type, subtype = '',params = {}) {
+export function createNodeData(type, data = {}) {
     // 生成唯一ID
     const id = `${type}_${Date.now()}`;
 
@@ -79,17 +99,19 @@ export function createNodeData(type, subtype = '',params = {}) {
             };
             break;
         case 'model':
-            if (subtype === 'object_detection') {
-                newNode.data.name = '目标识别';
-                newNode.data.params = {...params};
-                newNode.data.inputs = ['images'];
-                newNode.data.outputs = ['images', 'boxes', 'count'];
-            } else if (subtype === 'image_classification') {
-                newNode.data.name = '图像分类';
-                newNode.data.params = {...params};
-                newNode.data.inputs = ['images'];
-                newNode.data.outputs = ['labels'];
-            }
+            // 添加防御性检查，确保必要的属性存在
+            newNode.data = {
+                name: data.name,
+                params: {
+                    module_name: data.params.module_name,
+                    model_name: data.params.model_name,
+                    model_dir: data.params.model_dir,
+                    model_params: data.params.model_params ? deepClone(data.params.model_params) : {},
+                    infer_params: data.params.infer_params ? deepClone(data.params.infer_params) : {},
+                },
+                inputs: data.inputs,
+                outputs: data.outputs
+            };
             break;
     }
 
@@ -98,4 +120,3 @@ export function createNodeData(type, subtype = '',params = {}) {
 
 // 默认导出
 export default nodeTypes;
-                        

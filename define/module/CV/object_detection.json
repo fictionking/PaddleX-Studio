@@ -200,7 +200,17 @@
         "result_types": [
             "img",
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "images",
+                "boxes",
+                "count"
+            ]
+        }
     },
     "dataset": {
         "types": [
@@ -225,6 +235,6 @@
             "annotations/instance_val.json",
             "images"
         ],
-        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
+        "doc": "paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }

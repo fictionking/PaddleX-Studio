@@ -7,7 +7,7 @@
             • 按住Ctrl键可以点击选择多个节点<br>
         </div>
         <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true"
-            :connect-on-click="false" @edge-update="updateConnect" @connect="newConnect" @nodesChange="nodesChange"
+            :connect-on-click="false" @edge-update="updateConnect" @connect="newConnect" @nodesChange="applyNodeChanges"
             class="vue-flow">
         </VueFlow>
     </div>
@@ -27,6 +27,7 @@
                 </el-button>
             </template>
             <el-menu mode="vertical" collapse class="node-menu">
+                <el-menu-item index="save" @click="console.log(toObject())">保存</el-menu-item>
                 <el-menu-item-group>
                     <template #title>
                         <el-icon>
@@ -34,10 +35,10 @@
                         </el-icon>
                         <span> 输入输出</span>
                     </template>
-                    <el-menu-item @click="addNode('start', '')">请求输入</el-menu-item>
-                    <el-menu-item @click="addNode('end', '')">请求输出</el-menu-item>
-                    <el-menu-item @click="addNode('load_image', '')">加载图像</el-menu-item>
-                    <el-menu-item @click="addNode('save_image', '')">保存图像</el-menu-item>
+                    <el-menu-item index="start" @click="addNode('start')">请求输入</el-menu-item>
+                    <el-menu-item index="end" @click="addNode('end')">请求输出</el-menu-item>
+                    <el-menu-item index="load_image" @click="addNode('load_image')">加载图像</el-menu-item>
+                    <el-menu-item index="save_image" @click="addNode('save_image')">保存图像</el-menu-item>
                 </el-menu-item-group>
 
                 <el-menu-item-group>
@@ -47,8 +48,8 @@
                         </el-icon>
                         <span> 常量节点</span>
                     </template>
-                    <el-menu-item @click="addNode('number_const', '')">数值常量</el-menu-item>
-                    <el-menu-item @click="addNode('string_const', '')">字符串常量</el-menu-item>
+                    <el-menu-item index="number_const" @click="addNode('number_const')">数值常量</el-menu-item>
+                    <el-menu-item index="string_const" @click="addNode('string_const')">字符串常量</el-menu-item>
                 </el-menu-item-group>
 
                 <el-menu-item-group>
@@ -60,29 +61,38 @@
                     </template>
                     <el-sub-menu v-for="category in models" :index="category.category.id" class="node-menu">
                         <template #title>{{ category.category.name }}</template>
-                        <el-sub-menu v-for="module in category.modules" :index="module.id" class="node-menu"
-                            collapse-close-icon="ArrowRight" collapse-open-icon="CaretRight">
-                            <template #title>{{ module.name }}</template>
-                            <div class="menu-scroll-container">
-                                <el-tooltip v-for="value, key in module.models" effect="light" placement="right">
-                                    <el-menu-item :index="key" @click="addNode('model', module.id, {
-                                        module_name: module.id,
-                                        model_name: key,
-                                        model_dir: 'weights\\' + key + '\\inference',
-                                        model_params: module.infer_params.model_params,
-                                        infer_params: module.infer_params.predict_params,
-                                    })" class="node-menu">
-                                        {{ value.name }}
-                                    </el-menu-item>
-                                    <template #content>
-                                        <span style="display: inline-block; max-width: 300px; word-wrap: break-word;">{{
-                                            value?.description }}</span>
-                                    </template>
-                                </el-tooltip>
-                            </div>
-                        </el-sub-menu>
+                        <template v-for="module in category.modules">
+                            <el-sub-menu v-if="module.infer_params && module.infer_params.ports" :index="module.id"
+                                class="node-menu" collapse-close-icon="ArrowRight" collapse-open-icon="CaretRight">
+                                <template #title>{{ module.name }}</template>
+                                <div class="menu-scroll-container">
+                                    <el-tooltip v-for="value, key in module.models" effect="light" placement="right">
+                                        <el-menu-item :index="key" @click="addNode('model', {
+                                            name: module.name,
+                                            params: {
+                                                module_name: module.id,
+                                                model_name: key,
+                                                model_dir: 'weights\\' + key + '\\inference',
+                                                model_params: module.infer_params?.model_params || {},
+                                                infer_params: module.infer_params?.predict_params || {},
+                                            },
+                                            inputs: module.infer_params?.ports?.inputs || [],
+                                            outputs: module.infer_params?.ports?.outputs || [],
+                                        })" class="node-menu">
+                                            {{ value.name }}
+                                        </el-menu-item>
+                                        <template #content>
+                                            <span
+                                                style="display: inline-block; max-width: 300px; word-wrap: break-word;">{{
+                                                    value?.description }}</span>
+                                        </template>
+                                    </el-tooltip>
+                                </div>
+                            </el-sub-menu>
+                        </template>
+
                     </el-sub-menu>
-                    <el-sub-menu class="trainModels">
+                    <el-sub-menu index="trainModels" class="trainModels">
                         <template #title>
                             <div>
                                 <el-icon style="color:#409efc">
@@ -135,8 +145,9 @@ export default {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const config = await response.json();
-            this.nodes = config.nodes || [];
-            this.edges = config.edges || [];
+            this.fromObject(config)
+            // this.nodes = config.nodes || [];
+            // this.edges = config.edges || [];
             const modelResponse = await fetch('/define/modules');
             if (!modelResponse.ok) {
                 throw new Error(`HTTP error! status: ${modelResponse.status}`);
@@ -153,10 +164,14 @@ export default {
     },
     setup() {
         /** 初始化vue flow相关函数 */
-        const { updateEdge, addEdges } = useVueFlow()
+        const { updateEdge, addEdges,addNodes,applyNodeChanges,toObject, fromObject } = useVueFlow()
         return {
             updateEdge,
             addEdges,
+            addNodes,
+            applyNodeChanges,
+            toObject,
+            fromObject,
         }
     },
     methods: {
@@ -178,29 +193,13 @@ export default {
             }
             return false
         },
-        nodesChange(nodeChange) {
-            nodeChange.forEach(event => {
-                if (event.type === 'position') {
-                    if (!event.dragging) {
-                        return
-                    }
-                    // 查找对应的节点并更新其位置属性
-                    const node = this.nodes.find(n => n.id === event.id);
-                    if (node && node.data) {
-                        // 使用 event.position 获取节点的新位置
-                        node.position.x = event.position.x;
-                        node.position.y = event.position.y;
-                    }
-                }
-            });
-        },
 
         /** 添加新节点 */
-        addNode(type, subtype = '', params = {}) {
+        addNode(type, data = {}) {
             // 创建节点数据
-            const newNode = createNodeData(type, subtype, params);
+            const newNode = createNodeData(type, data);
             // 添加新节点到节点列表
-            this.nodes.push(newNode);
+            this.addNodes(newNode)
         },
     }
 }
