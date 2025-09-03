@@ -6,6 +6,7 @@ import SelectProperty from "./SelectProperty.vue";
 import GroupProperty from "./GroupProperty.vue";
 import TextProperty from "./TextProperty.vue";
 import BoolProperty from "./BoolProperty.vue";
+import PropertyList from "./PropertyList.vue";
 
 export {
     ValueProperty,
@@ -16,4 +17,5 @@ export {
     WorkflowNode,
     TextProperty,
     BoolProperty,
+    PropertyList,
 };

@@ -4,7 +4,12 @@
             :class="['left-handle-pos', 'params-port', handleClass]" />
         <span class="property-label">{{ label }}:</span>
         <el-input-number v-model="internalValue" class="property-value input-number nodrag" size="small" @change="updateValue"
-            :min="min" :max="max" :step="step">
+            v-bind="{ 
+                ...(min !== undefined && min !== null ? { min: min } : {}),
+                ...(max !== undefined && max !== null ? { max: max } : {}),
+                ...(step !== undefined && step !== null ? { step: step } : {}),
+                ...(precision !== undefined && precision !== null ? { precision: precision } : {})
+            }">
             <template #decrease-icon>
                 <el-icon>
                     <CaretLeft />
@@ -44,17 +49,18 @@ export default {
         },
         min: {
             type: Number,
-            default: 0,
             description: '数值类型的最小值'
         },
         max: {
             type: Number,
-            default: 100,
             description: '数值类型的最大值'
+        },
+        precision: {
+            type: Number,
+            description: '数值类型的精度'
         },
         step: {
             type: Number,
-            default: 1,
             description: '数值类型的步长'
         },
         handleId: {
