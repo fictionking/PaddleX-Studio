@@ -1,0 +1,371 @@
+{
+    "nodes": [
+        {
+            "id": "model_1756950430525",
+            "type": "model",
+            "initialized": false,
+            "position": {
+                "x": 510,
+                "y": 165
+            },
+            "data": {
+                "color": "#003366",
+                "inputs": [
+                    "images"
+                ],
+                "name": "图像分类",
+                "outputs": [
+                    "labels"
+                ],
+                "params": {
+                    "infer_params": {
+                        "topk": {
+                            "config_able": true,
+                            "max": null,
+                            "min": 1,
+                            "step": 1,
+                            "type": "number",
+                            "value": 5
+                        }
+                    },
+                    "model_dir": "weights\\CLIP_vit_base_patch16_224\\inference",
+                    "model_name": "CLIP_vit_base_patch16_224",
+                    "model_params": {
+                        "topk": {
+                            "config_able": true,
+                            "max": null,
+                            "min": 1,
+                            "step": 1,
+                            "type": "number",
+                            "value": 5
+                        }
+                    },
+                    "module_name": "image_classification"
+                }
+            }
+        },
+        {
+            "id": "load_image_1756963641635",
+            "type": "load_image",
+            "initialized": false,
+            "position": {
+                "x": -15,
+                "y": 165
+            },
+            "data": {
+                "color": "#4d281a",
+                "inputs": [
+                    "files"
+                ],
+                "name": "加载图像",
+                "outputs": [
+                    "images",
+                    "count"
+                ],
+                "params": {}
+            }
+        },
+        {
+            "id": "save_image_1756963646628",
+            "type": "save_image",
+            "initialized": false,
+            "position": {
+                "x": 510,
+                "y": 495
+            },
+            "data": {
+                "color": "#2b0066",
+                "inputs": [
+                    "images"
+                ],
+                "name": "保存图像",
+                "outputs": [
+                    "files"
+                ],
+                "params": {
+                    "filename": "image",
+                    "format": "png",
+                    "path": "output/images"
+                }
+            }
+        },
+        {
+            "id": "number_const_1756963647678",
+            "type": "number_const",
+            "initialized": false,
+            "position": {
+                "x": -75,
+                "y": 330
+            },
+            "data": {
+                "color": "#664100",
+                "inputs": [],
+                "name": "数值常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "number",
+                    "value": 0.4
+                }
+            }
+        },
+        {
+            "id": "string_const_1756963648234",
+            "type": "string_const",
+            "initialized": false,
+            "position": {
+                "x": 195,
+                "y": 495
+            },
+            "data": {
+                "color": "#004d4d",
+                "inputs": [],
+                "name": "字符串常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "string",
+                    "value": "det_obj_"
+                }
+            }
+        },
+        {
+            "id": "text_const_1756963648755",
+            "type": "text_const",
+            "initialized": false,
+            "position": {
+                "x": -75,
+                "y": 615
+            },
+            "data": {
+                "color": "#424d00",
+                "inputs": [],
+                "name": "文本常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": "bool_const_1756963649316",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": -75,
+                "y": 480
+            },
+            "data": {
+                "color": "#4d4100",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "model_1756963653405",
+            "type": "model",
+            "initialized": false,
+            "position": {
+                "x": 195,
+                "y": 165
+            },
+            "data": {
+                "color": "#133913",
+                "inputs": [
+                    "images"
+                ],
+                "name": "目标检测",
+                "outputs": [
+                    "images",
+                    "boxes",
+                    "count"
+                ],
+                "params": {
+                    "infer_params": {
+                        "threshold": {
+                            "config_able": true,
+                            "max": 1,
+                            "min": 0,
+                            "step": 0.01,
+                            "type": "number",
+                            "value": 0.5
+                        }
+                    },
+                    "model_dir": "weights\\CenterNet-DLA-34\\inference",
+                    "model_name": "CenterNet-DLA-34",
+                    "model_params": {
+                        "threshold": {
+                            "config_able": true,
+                            "max": 1,
+                            "min": 0,
+                            "step": 0.01,
+                            "type": "number",
+                            "value": 0.5
+                        }
+                    },
+                    "module_name": "object_detection"
+                }
+            }
+        },
+        {
+            "id": "request_1756965894232",
+            "type": "request",
+            "initialized": false,
+            "position": {
+                "x": -225,
+                "y": 165
+            },
+            "data": {
+                "color": "#660000",
+                "fixName": true,
+                "inputs": [],
+                "name": "请求输入",
+                "outputs": [
+                    "input"
+                ],
+                "params": {}
+            }
+        },
+        {
+            "id": "response_1756965898910",
+            "type": "response",
+            "initialized": false,
+            "position": {
+                "x": 810,
+                "y": 165
+            },
+            "data": {
+                "color": "#660038",
+                "fixName": true,
+                "inputs": [
+                    "output"
+                ],
+                "name": "请求输出",
+                "outputs": [],
+                "params": {}
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "vueflow__edge-model_1756963653405outputs.images-save_image_1756963646628inputs.images",
+            "type": "default",
+            "source": "model_1756963653405",
+            "target": "save_image_1756963646628",
+            "sourceHandle": "outputs.images",
+            "targetHandle": "inputs.images",
+            "data": {},
+            "label": "",
+            "sourceX": 396.3482666015625,
+            "sourceY": 212.35714721679688,
+            "targetX": 517,
+            "targetY": 542.3571166992188
+        },
+        {
+            "id": "vueflow__edge-model_1756963653405outputs.images-model_1756950430525inputs.images",
+            "type": "default",
+            "source": "model_1756963653405",
+            "target": "model_1756950430525",
+            "sourceHandle": "outputs.images",
+            "targetHandle": "inputs.images",
+            "data": {},
+            "label": "",
+            "sourceX": 396.3482666015625,
+            "sourceY": 212.35714721679688,
+            "targetX": 517,
+            "targetY": 212.35714721679688
+        },
+        {
+            "id": "vueflow__edge-load_image_1756963641635outputs.images-model_1756963653405inputs.images",
+            "type": "default",
+            "source": "load_image_1756963641635",
+            "target": "model_1756963653405",
+            "sourceHandle": "outputs.images",
+            "targetHandle": "inputs.images",
+            "data": {},
+            "label": "",
+            "sourceX": 101,
+            "sourceY": 212.35714721679688,
+            "targetX": 202,
+            "targetY": 212.35714721679688
+        },
+        {
+            "id": "vueflow__edge-string_const_1756963648234outputs.value-save_image_1756963646628params.filename",
+            "type": "default",
+            "source": "string_const_1756963648234",
+            "target": "save_image_1756963646628",
+            "sourceHandle": "outputs.value",
+            "targetHandle": "params.filename",
+            "data": {},
+            "label": "",
+            "sourceX": 389.00006103515625,
+            "sourceY": 542.3571166992188,
+            "targetX": 517,
+            "targetY": 628.3571166992188
+        },
+        {
+            "id": "vueflow__edge-number_const_1756963647678outputs.value-model_1756963653405params.infer_params.threshold",
+            "type": "default",
+            "source": "number_const_1756963647678",
+            "target": "model_1756963653405",
+            "sourceHandle": "outputs.value",
+            "targetHandle": "params.infer_params.threshold",
+            "data": {},
+            "label": "",
+            "sourceX": 119.00003051757812,
+            "sourceY": 377.3571472167969,
+            "targetX": 202,
+            "targetY": 419.7857208251953
+        },
+        {
+            "id": "vueflow__edge-request_1756965894232outputs.input-load_image_1756963641635inputs.files",
+            "type": "default",
+            "source": "request_1756965894232",
+            "target": "load_image_1756963641635",
+            "sourceHandle": "outputs.input",
+            "targetHandle": "inputs.files",
+            "data": {},
+            "label": "",
+            "sourceX": -109,
+            "sourceY": 212.35714721679688,
+            "targetX": -8,
+            "targetY": 212.35714721679688
+        },
+        {
+            "id": "vueflow__edge-model_1756950430525outputs.labels-response_1756965898910inputs.output",
+            "type": "default",
+            "source": "model_1756950430525",
+            "target": "response_1756965898910",
+            "sourceHandle": "outputs.labels",
+            "targetHandle": "inputs.output",
+            "data": {},
+            "label": "",
+            "sourceX": 705.3392333984375,
+            "sourceY": 212.35714721679688,
+            "targetX": 817,
+            "targetY": 212.35714721679688
+        }
+    ],
+    "position": [
+        556.8353586604854,
+        -90.41598403827606
+    ],
+    "zoom": 1.0000000000000002,
+    "viewport": {
+        "x": 556.8353586604854,
+        "y": -90.41598403827606,
+        "zoom": 1.0000000000000002
+    }
+}

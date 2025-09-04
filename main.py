@@ -29,6 +29,9 @@ mainapp.register_blueprint(doc_bp)
 from pxs.appMgr import app_mgr,get_apps_status,init as appMgr_init
 mainapp.register_blueprint(app_mgr)
 
+from pxs.workflowMgr import workflow_mgr,init as workflowMgr_init
+mainapp.register_blueprint(workflow_mgr)
+
 @mainapp.route('/')
 def index():
     """首页路由，返回平台介绍信息"""
@@ -134,4 +137,5 @@ if __name__ == '__main__':
     datasetMgr_init()
     appMgr_init()
     doc_init()
+    workflowMgr_init()
     mainapp.run(host='0.0.0.0', port=5000,debug=True)

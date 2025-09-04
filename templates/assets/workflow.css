@@ -1,17 +1,17 @@
 
 /*节点标题颜色*/
-.node-header.start,
-.node-header.end {
+/* .node-header.request,
+.node-header.response {
     justify-content: center;
 }
-.node-color.start,
-.node-color.end {
+.node-color.request,
+.node-color.response {
     background-color: hsl(0, 60%, 30%) !important;
 }
-.io-label.start,
-.io-label.end {
+.io-label.request,
+.io-label.response {
     color: #fff !important;
-}
+} */
 /* 输入输出类型端口样式 */
 .io-port {
     background-color: #fff !important;

@@ -86,6 +86,7 @@ export default {
 .property-label {
     min-width: 50px;
     margin-bottom: 5px;
+    line-height: 1;
 }
 
 .property-value {

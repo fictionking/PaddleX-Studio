@@ -25,13 +25,15 @@ const deepClone = function(value) {
  * 定义了各种节点组件的映射关系
  */
 export const nodeTypes = {
-    start: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
-    end: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
+    request: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
+    response: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
     model: markRaw(defineAsyncComponent(() => import(`/components/nodes/model.vue`))),
     save_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/save_image.vue`))),
     load_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/simple.vue`))),
     number_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     string_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
+    text_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
+    bool_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
 };
 
 /**
@@ -59,13 +61,13 @@ export function createNodeData(type, data = {}) {
 
     // 根据节点类型设置特定属性
     switch (type) {
-        case 'start':
-            newNode.data.name = '开始';
+        case 'request':
+            newNode.data.name = '请求输入';
             newNode.data.fixName = true;
             newNode.data.outputs = ['input'];
             break;
-        case 'end':
-            newNode.data.name = '结束';
+        case 'response':
+            newNode.data.name = '请求输出';
             newNode.data.fixName = true;
             newNode.data.inputs = ['output'];
             break;
@@ -88,6 +90,7 @@ export function createNodeData(type, data = {}) {
             newNode.data.name = '数值常量';
             newNode.data.outputs = ['value'];
             newNode.data.params = {
+                type: 'number',
                 value: 0
             };
             break;
@@ -95,7 +98,24 @@ export function createNodeData(type, data = {}) {
             newNode.data.name = '字符串常量';
             newNode.data.outputs = ['value'];
             newNode.data.params = {
+                type: 'string',
                 value: ''
+            };
+            break;
+        case 'text_const':
+            newNode.data.name = '文本常量';
+            newNode.data.outputs = ['value'];
+            newNode.data.params = {
+                type: 'text',
+                value: ''
+            };
+            break;
+        case 'bool_const':
+            newNode.data.name = '布尔常量';
+            newNode.data.outputs = ['value'];
+            newNode.data.params = {
+                type: 'bool',
+                value: false
             };
             break;
         case 'model':
