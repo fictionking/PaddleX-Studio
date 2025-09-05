@@ -48,41 +48,19 @@
                     <template #reference>
                         <el-button type="primary" circle plain size="large">
                             <el-icon size="24">
-                                <svg viewBox="0 0 32 32">
-                                    <path fill="currentColor"
-                                        d="M23.52,0a8.45,8.45,0,0,0-7.8,5.22l-.09.27H4a4,4,0,0,0-4,4v3.43H16.28l.22.4.85,1.05H0V28a4,4,0,0,0,4,4H19.86a4,4,0,0,0,4-4V17.07l1.39-.14A8.56,8.56,0,0,0,23.52,0ZM3.63,23.55a1.45,1.45,0,1,1,1.43-1.44A1.44,1.44,0,0,1,3.63,23.55Zm16.57,0a1.45,1.45,0,1,1,1.44-1.44A1.44,1.44,0,0,1,20.2,23.55ZM23.58,16A7.46,7.46,0,1,1,31,8.56,7.43,7.43,0,0,1,23.58,16Z" />
-                                    <polygon fill="currentColor"
-                                        points="28.66 7.58 28.66 9.96 24.8 9.96 24.8 13.86 22.43 13.86 22.43 9.96 18.57 9.96 18.57 7.58 22.43 7.58 22.43 3.68 24.8 3.68 24.8 7.58 28.66 7.58" />
-                                </svg>
+                                <AddNodeIcon />
                             </el-icon>
                         </el-button>
                     </template>
                     <el-menu mode="vertical" collapse class="node-menu">
-                        <el-menu-item index="save" @click="saveWorkflow()">保存</el-menu-item>
-                        <el-menu-item-group>
+                        <el-menu-item-group v-for="item in menuItems" :title="item.label">
                             <template #title>
-                                <el-icon>
-                                    <Files />
-                                </el-icon>
-                                <span> 输入输出</span>
+                                <el-icon><Grid /></el-icon>
+                                <span>{{item.label}}</span>
                             </template>
-                            <el-menu-item index="start" @click="addNode('request')">请求输入</el-menu-item>
-                            <el-menu-item index="end" @click="addNode('response')">请求输出</el-menu-item>
-                            <el-menu-item index="load_image" @click="addNode('load_image')">加载图像</el-menu-item>
-                            <el-menu-item index="save_image" @click="addNode('save_image')">保存图像</el-menu-item>
-                        </el-menu-item-group>
-
-                        <el-menu-item-group>
-                            <template #title>
-                                <el-icon>
-                                    <Operation />
-                                </el-icon>
-                                <span> 常量节点</span>
-                            </template>
-                            <el-menu-item index="number_const" @click="addNode('number_const')">数值常量</el-menu-item>
-                            <el-menu-item index="string_const" @click="addNode('string_const')">字符串常量</el-menu-item>
-                            <el-menu-item index="text_const" @click="addNode('text_const')">文本常量</el-menu-item>
-                            <el-menu-item index="bool_const" @click="addNode('bool_const')">布尔常量</el-menu-item>
+                            <el-menu-item v-for="child in item.children" :index="child.type" @click="addNode(child.type)">
+                                {{ child.label }}
+                            </el-menu-item>
                         </el-menu-item-group>
 
                         <el-menu-item-group>
@@ -90,7 +68,7 @@
                                 <el-icon>
                                     <HelpFilled />
                                 </el-icon>
-                                <span> 模型节点</span>
+                                <span>模型节点</span>
                             </template>
                             <el-sub-menu v-for="category in models" :index="category.category.id" class="node-menu">
                                 <template #title>{{ category.category.name }}</template>
@@ -160,7 +138,7 @@
 <script>
 const { markRaw, defineComponent } = Vue
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
-import nodeTypes, { createNodeData } from '/components/nodes/nodes.mjs';
+import nodeTypes, { createNodeData,menuItems } from '/components/nodes/nodes.mjs';
 
 export default {
     props: ['workflowId'],
@@ -170,21 +148,13 @@ export default {
     data() {
         return {
             nodeTypes,
+            menuItems,
             nodes: [],
             edges: [],
             models: [],
             trains: [],
             workflow: {},
-            SaveIcon: markRaw(defineComponent({
-                template: `<svg viewBox="0 0 256 256" >
-                            <path fill="currentColor"
-                                d="M127.86,255.88h-101c-4.72,0-9.23-.33-13.59-2.51A22.3,22.3,0,0,1,.64,236.69,51.31,51.31,0,0,1,0,227.43Q0,127.59,0,27.72c0-3.89.07-7.78,1.32-11.54A22.6,22.6,0,0,1,22.4.55C28.1.29,33.81.25,39.48.32c6.13,0,7.91,1.78,8,7.81.06,6.73,0,13.49-.07,20.21q0,27.19,0,54.4c0,9.79.36,10.05,10,10.05q66.06,0,132.1-.06c4.41,0,8.8.19,13.18-.07,3.73-.2,5-1.68,5.31-5.37.13-1.55.07-3.1.07-4.65q0-36.15,0-72.27c0-3.36-.56-7.21,2.9-9.09,3.92-2.11,8.18-1.19,11.87,1.05a54.56,54.56,0,0,1,8.67,6.56c5.27,5,10.28,10.22,15.39,15.36,1.09,1.12,1.95,2.41,3,3.6,4.45,5.07,6.13,10.81,6.1,17.77-.23,59.83-.1,119.67-.07,179.5v6.23c0,10.85-6.19,17.67-14.9,22.81-2.73,1.62-6,1.62-9.1,1.62-10.88.06-21.75.13-32.63.13Q163.59,255.91,127.86,255.88Zm-.6-18.56v.06h83.08a31.53,31.53,0,0,0,4.65-.26,4.48,4.48,0,0,0,4.09-4,37.49,37.49,0,0,0,.26-5.41q.19-44.66.4-89.27a23,23,0,0,0-.14-3.1c-.59-5.28-2.17-6.79-7.38-6.89-3.1,0-6.2.13-9.33.13q-78.42,0-156.85-.07c-9.63,0-10.22.56-10.22,10q-.06,44.66,0,89.31a36.2,36.2,0,0,0,.3,5.41c.33,2.4,1.61,3.62,4.12,3.89,2.3.23,4.65.23,7,.23Z">
-                            </path>
-                            <path fill="currentColor"
-                                d="M128.22.52H177.9c3.1,0,6.2-.13,9.3-.23,9.2-.3,10.55.89,10.62,9.82.06,6-.14,11.9-.14,17.87q0,20.57.07,41.14c0,1.55,0,3.1,0,4.65-.2,7.38-1.75,8.93-9.36,8.93-18.37,0-36.76-.16-55.12-.13-22,0-44,.2-66,.26a20.83,20.83,0,0,1-5.34-.65,4.76,4.76,0,0,1-3.73-4.46c-.13-2-.2-4.12-.2-6.19q0-31.45,0-62.9c0-6.89,1.41-8.34,8-8.34,2.61,0,5.18.13,7.75.16h54.36A.11.11,0,0,1,128.22.52Zm45.2,41.21c0-7.26.1-14.51,0-21.76,0-4.91-1.55-6.56-6.43-6.83S157.17,13,152.26,13c-4.39.1-5.94,1.65-6.5,6.07a18.32,18.32,0,0,0-.1,2.34c0,14-.06,27.95,0,41.93,0,4.58,1.51,6.13,6,6.3,4.91.2,9.82.26,14.73.13,5.24-.13,6.89-1.81,7-7.12C173.52,55.7,173.42,48.71,173.42,41.73Z">
-                            </path>
-                        </svg>`
-            })),
+            SaveIcon: SvgIcons.DiskIcon,
         }
     },
     /** 组件挂载时加载工作流配置 */
@@ -415,6 +385,10 @@ export default {
     white-space: nowrap;
     width: auto;
     padding-left: 0px;
+    display: flex;
+    gap: 6px;
+    line-height: 1;
+    border-bottom: 1px dashed var(--el-text-color-secondary);
 }
 
 :deep(.trainModels .el-sub-menu__title) {

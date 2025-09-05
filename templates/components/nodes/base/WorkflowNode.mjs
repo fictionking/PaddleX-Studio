@@ -7,6 +7,7 @@ import GroupProperty from "./GroupProperty.vue";
 import TextProperty from "./TextProperty.vue";
 import BoolProperty from "./BoolProperty.vue";
 import PropertyList from "./PropertyList.vue";
+import NoteNode from "./NoteNode.vue";
 
 export {
     ValueProperty,
@@ -18,4 +19,5 @@ export {
     TextProperty,
     BoolProperty,
     PropertyList,
+    NoteNode,
 };

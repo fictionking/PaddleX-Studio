@@ -4,7 +4,7 @@ const { defineAsyncComponent, markRaw } = Vue;
  * @param {any} value - 要拷贝的值
  * @returns {any} 拷贝后的值
  */
-const deepClone = function(value) {
+const deepClone = function (value) {
     if (value === null || typeof value !== 'object') return value;
 
     if (Array.isArray(value)) {
@@ -34,8 +34,56 @@ export const nodeTypes = {
     string_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     text_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     bool_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
+    note: markRaw(defineAsyncComponent(() => import(`/components/nodes/base/NoteNode.vue`))),
 };
-
+export const menuItems = [
+    {
+        label: '输入输出',
+        children: [
+            {
+                label: '请求输入',
+                type: 'request'
+            },
+            {
+                label: '请求输出',
+                type: 'response'
+            },
+            {
+                label: '加载图像',
+                type: 'load_image'
+            },
+            {
+                label: '保存图像',
+                type: 'save_image'
+            },
+        ]
+    },
+    {
+        label: '常量',
+        children: [
+            {
+                label: '数值常量',
+                type: 'number_const'
+            },
+            {
+                label: '字符串常量',
+                type: 'string_const'
+            },
+            {
+                label: '文本常量',
+                type: 'text_const'
+            },
+            {
+                label: '布尔常量',
+                type: 'bool_const'
+            },
+            {
+                label: '备注',
+                type: 'note'
+            }
+        ]
+    },
+]
 /**
  * 创建节点数据
  * @param {string} type - 节点类型
@@ -61,6 +109,10 @@ export function createNodeData(type, data = {}) {
 
     // 根据节点类型设置特定属性
     switch (type) {
+        case 'note':
+            newNode.data.name = '备注';
+            newNode.data.content = '';
+            break;
         case 'request':
             newNode.data.name = '请求输入';
             newNode.data.fixName = true;

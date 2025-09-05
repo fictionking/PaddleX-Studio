@@ -1,6 +1,6 @@
 <template>
     <div :class="['custom-node', 'node-color', type, { 'selected': selected }]"
-        :style="{ 'background-color': data.color }">
+        :style="{ 'background-color': data.color, width: nodeWidth + 'px' }">
         <div :class="['node-header', type]">
             <div v-if="!nameEditing || fixName" class="name-bar">
                 <span @click="!fixName && startEditName()" :style="!fixName && { cursor: 'text' }" class="node-name">
@@ -20,31 +20,14 @@
                 class="name-input nodrag" ref="nameInput" />
         </div>
         <div :class="['node-content', type]">
-            <div :class="['io-container', type]">
-                <!-- 左侧输入连接点 -->
-                <div :class="['node-inputs', type]">
-                    <div v-for="input in data.inputs" :key="input" :class="['io-connection', type]">
-                        <Handle :type="'target'" :position="Position.Left" :id="`inputs.${input}`"
-                            :class="['left-handle-pos', 'io-port', input.toLowerCase(), type]" />
-                        <span :class="['io-label', type]"> {{ input }} </span>
-                    </div>
-                </div>
-
-                <!-- 右侧输出连接点 -->
-                <div :class="['node-outputs', type]">
-                    <div v-for="output in data.outputs" :key="output" :class="['io-connection', type]">
-                        <Handle :type="'source'" :position="Position.Right" :id="`outputs.${output}`"
-                            :class="['right-handle-pos', 'io-port', output.toLowerCase(), type]" />
-                        <span :class="['io-label', type]"> {{ output }} </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 节点中间内容 -->
-            <div :class="['node-properties', type]">
-                <slot name="properties"></slot>
-            </div>
-
+            <el-input v-model="data.content" type="textarea" :autosize="{ minRows: 2, maxRows: 10 }" resize="none" class="content-input nodrag"/>
+        </div>
+        <div class="node-footer">
+            <div 
+                class="resize-handle nodrag"
+                @mousedown="startResize"
+                @touchstart="startResize"
+            ></div>
         </div>
     </div>
 </template>
@@ -79,6 +62,10 @@ export default {
             nameEditing: false,
             editingName: '',
             fixName: this.data.fixName || false,
+            nodeWidth: 220, // 初始宽度
+            isResizing: false,
+            minWidth: 220,  // 最小宽度
+            maxWidth: 500,  // 最大宽度
             predefineColors: [
                 'hsl(0, 70%, 20%)',
                 'hsl(36, 70%, 20%)',
@@ -108,6 +95,14 @@ export default {
             Position
         };
     },
+    mounted() {
+        // 组件载入时，如果data中有保存的width，则使用该值
+        if (this.data.width && typeof this.data.width === 'number') {
+            // 确保宽度在允许的范围内
+            this.nodeWidth = Math.max(this.minWidth, Math.min(this.maxWidth, this.data.width));
+        }
+    },
+    
     methods: {
         /** 开始编辑节点名称 */
         startEditName() {
@@ -134,6 +129,48 @@ export default {
             }
             this.nameEditing = false;
             this.editingName = '';
+        },
+        
+        /** 开始调整节点宽度 */
+        startResize(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            this.isResizing = true;
+            const startX = e.clientX || e.touches[0].clientX;
+            const startWidth = this.nodeWidth;
+            
+            // 添加鼠标/触摸移动和释放事件监听
+            const handleMouseMove = (moveEvent) => {
+                if (!this.isResizing) return;
+                
+                const currentX = moveEvent.clientX || moveEvent.touches[0].clientX;
+                const widthDelta = currentX - startX;
+                let newWidth = startWidth + widthDelta;
+                
+                // 限制宽度在最小和最大值之间
+                newWidth = Math.max(this.minWidth, Math.min(this.maxWidth, newWidth));
+                this.nodeWidth = newWidth;
+                
+                // 通知父组件宽度变化并保存到data中
+                this.$emit('update:width', newWidth);
+                // 保存宽度到data对象中
+                this.data.width = newWidth;
+            };
+            
+            const handleMouseUp = () => {
+                this.isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.removeEventListener('touchmove', handleMouseMove);
+                document.removeEventListener('touchend', handleMouseUp);
+            };
+            
+            // 添加事件监听器
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('touchmove', handleMouseMove);
+            document.addEventListener('touchend', handleMouseUp);
         }
     }
 };
@@ -142,14 +179,11 @@ export default {
 
 <style scoped>
 .custom-node {
-    min-width: 120px;
-    max-width: 500px;
-    width: fit-content;
-    border: 2px solid rgba(0, 0, 0, 0.0);
+    border: 0px solid rgba(0, 0, 0, 0.0);
     border-radius: 6px;
     overflow: hidden;
     box-shadow: var(--el-box-shadow);
-    background-color: var(--el-fill-color-dark);
+    background-color: #ffd500;
 }
 
 .custom-node.selected {
@@ -175,8 +209,9 @@ export default {
 
 .node-content {
     font-size: var(--el-font-size-extra-small);
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 20px;
 }
 
 .node-inputs {
@@ -249,5 +284,74 @@ export default {
     font-size: var(--el-font-size-small);
     width: 100%;
     outline: none;
+}
+.content-input{
+    --el-input-text-color: #000;
+    --el-input-border: none;
+    --el-input-hover-border: none;
+    --el-input-focus-border: none;
+    --el-input-transparent-border: 0 0 0 1px transparent inset;
+    --el-input-border-color: transparent;
+    --el-input-border-radius: var(--el-border-radius-base);
+    --el-input-bg-color: transparent;
+    --el-input-placeholder-color: transparent;
+    --el-input-hover-border-color: transparent;
+    --el-input-clear-hover-color: transparent;
+    --el-input-focus-border-color: transparent;
+}
+
+/* 简化滚动条样式，移除上下箭头 */
+.content-input::-webkit-scrollbar {
+    width: 6px; /* 滚动条宽度 */
+}
+
+.content-input::-webkit-scrollbar-track {
+    background: transparent; /* 滚动条轨道背景透明 */
+}
+
+.content-input::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2); /* 滚动条滑块半透明黑色 */
+    border-radius: 3px; /* 滑块圆角 */
+}
+
+.content-input::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3); /* 鼠标悬停时滑块颜色变深 */
+}
+
+/* Firefox 滚动条样式 */
+.content-input {
+    scrollbar-width: thin; /* 细滚动条 */
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* 滑块颜色和轨道颜色 */
+}
+
+.node-footer {
+    position: relative;
+    height: 20px;
+}
+
+.node-footer::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 20px 20px 0 0;
+    border-color: rgba(0, 0, 0, 0.3) transparent transparent transparent;
+    border-top-left-radius: 6px;
+    z-index: 1;
+}
+
+/* 调整大小的句柄样式 */
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: ew-resize;
+    z-index: 2;
+    /* 让拖拽区域覆盖整个折角 */
 }
 </style>

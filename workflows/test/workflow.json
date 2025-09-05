@@ -71,7 +71,7 @@
             "initialized": false,
             "position": {
                 "x": 510,
-                "y": 495
+                "y": 465
             },
             "data": {
                 "color": "#2b0066",
@@ -90,90 +90,6 @@
             }
         },
         {
-            "id": "number_const_1756963647678",
-            "type": "number_const",
-            "initialized": false,
-            "position": {
-                "x": -75,
-                "y": 330
-            },
-            "data": {
-                "color": "#664100",
-                "inputs": [],
-                "name": "数值常量",
-                "outputs": [
-                    "value"
-                ],
-                "params": {
-                    "type": "number",
-                    "value": 0.4
-                }
-            }
-        },
-        {
-            "id": "string_const_1756963648234",
-            "type": "string_const",
-            "initialized": false,
-            "position": {
-                "x": 195,
-                "y": 495
-            },
-            "data": {
-                "color": "#004d4d",
-                "inputs": [],
-                "name": "字符串常量",
-                "outputs": [
-                    "value"
-                ],
-                "params": {
-                    "type": "string",
-                    "value": "det_obj_"
-                }
-            }
-        },
-        {
-            "id": "text_const_1756963648755",
-            "type": "text_const",
-            "initialized": false,
-            "position": {
-                "x": -75,
-                "y": 615
-            },
-            "data": {
-                "color": "#424d00",
-                "inputs": [],
-                "name": "文本常量",
-                "outputs": [
-                    "value"
-                ],
-                "params": {
-                    "type": "text",
-                    "value": ""
-                }
-            }
-        },
-        {
-            "id": "bool_const_1756963649316",
-            "type": "bool_const",
-            "initialized": false,
-            "position": {
-                "x": -75,
-                "y": 480
-            },
-            "data": {
-                "color": "#4d4100",
-                "inputs": [],
-                "name": "布尔常量",
-                "outputs": [
-                    "value"
-                ],
-                "params": {
-                    "type": "bool",
-                    "value": false
-                }
-            }
-        },
-        {
             "id": "model_1756963653405",
             "type": "model",
             "initialized": false,
@@ -182,7 +98,7 @@
                 "y": 165
             },
             "data": {
-                "color": "#133913",
+                "color": "#570f3a",
                 "inputs": [
                     "images"
                 ],
@@ -256,6 +172,444 @@
                 "outputs": [],
                 "params": {}
             }
+        },
+        {
+            "id": "bool_const_1757033258852",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 720,
+                "y": 810
+            },
+            "data": {
+                "color": "#570f3a",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033262255",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 495,
+                "y": 810
+            },
+            "data": {
+                "color": "#480f57",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033262558",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 270,
+                "y": 810
+            },
+            "data": {
+                "color": "#1e0f57",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033262824",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 45,
+                "y": 810
+            },
+            "data": {
+                "color": "#0f2c57",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033263254",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": -180,
+                "y": 810
+            },
+            "data": {
+                "color": "#0f5757",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033263474",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": -180,
+                "y": 690
+            },
+            "data": {
+                "color": "#570f0f",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033263705",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 45,
+                "y": 930
+            },
+            "data": {
+                "color": "#423624",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033263970",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": -180,
+                "y": 930
+            },
+            "data": {
+                "color": "#422424",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033264825",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 720,
+                "y": 690
+            },
+            "data": {
+                "color": "#0f572c",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033265266",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 45,
+                "y": 690
+            },
+            "data": {
+                "color": "#573a0f",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033265662",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 495,
+                "y": 690
+            },
+            "data": {
+                "color": "#1e570f",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033265985",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 270,
+                "y": 690
+            },
+            "data": {
+                "color": "#48570f",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033329915",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": -180,
+                "y": 1050
+            },
+            "data": {
+                "color": "#244242",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033330632",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 720,
+                "y": 930
+            },
+            "data": {
+                "color": "#244230",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033331939",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 495,
+                "y": 930
+            },
+            "data": {
+                "color": "#2a4224",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033332514",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 270,
+                "y": 930
+            },
+            "data": {
+                "color": "#3c4224",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033388199",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 720,
+                "y": 1050
+            },
+            "data": {
+                "color": "#422436",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033388717",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 495,
+                "y": 1050
+            },
+            "data": {
+                "color": "#3c2442",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033389234",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 270,
+                "y": 1050
+            },
+            "data": {
+                "color": "#2a2442",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "bool_const_1757033389772",
+            "type": "bool_const",
+            "initialized": false,
+            "position": {
+                "x": 45,
+                "y": 1050
+            },
+            "data": {
+                "color": "#243042",
+                "inputs": [],
+                "name": "布尔常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "bool",
+                    "value": false
+                }
+            }
+        },
+        {
+            "id": "note_1757056819628",
+            "type": "note",
+            "initialized": false,
+            "position": {
+                "x": -600,
+                "y": 480
+            },
+            "data": {
+                "color": "#ffcc00",
+                "content": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+                "inputs": [],
+                "name": "备注",
+                "outputs": [],
+                "params": {},
+                "width": 374
+            }
         }
     ],
     "edges": [
@@ -268,10 +622,10 @@
             "targetHandle": "inputs.images",
             "data": {},
             "label": "",
-            "sourceX": 396.3482666015625,
-            "sourceY": 212.35714721679688,
-            "targetX": 517,
-            "targetY": 542.3571166992188
+            "sourceX": 396.3481249680518,
+            "sourceY": 212.3571225730439,
+            "targetX": 517.0000173112345,
+            "targetY": 512.357140100781
         },
         {
             "id": "vueflow__edge-model_1756963653405outputs.images-model_1756950430525inputs.images",
@@ -282,10 +636,10 @@
             "targetHandle": "inputs.images",
             "data": {},
             "label": "",
-            "sourceX": 396.3482666015625,
-            "sourceY": 212.35714721679688,
-            "targetX": 517,
-            "targetY": 212.35714721679688
+            "sourceX": 396.3481249680518,
+            "sourceY": 212.3571225730439,
+            "targetX": 517.0000173112345,
+            "targetY": 212.3571225730439
         },
         {
             "id": "vueflow__edge-load_image_1756963641635outputs.images-model_1756963653405inputs.images",
@@ -296,38 +650,10 @@
             "targetHandle": "inputs.images",
             "data": {},
             "label": "",
-            "sourceX": 101,
-            "sourceY": 212.35714721679688,
-            "targetX": 202,
-            "targetY": 212.35714721679688
-        },
-        {
-            "id": "vueflow__edge-string_const_1756963648234outputs.value-save_image_1756963646628params.filename",
-            "type": "default",
-            "source": "string_const_1756963648234",
-            "target": "save_image_1756963646628",
-            "sourceHandle": "outputs.value",
-            "targetHandle": "params.filename",
-            "data": {},
-            "label": "",
-            "sourceX": 389.00006103515625,
-            "sourceY": 542.3571166992188,
-            "targetX": 517,
-            "targetY": 628.3571166992188
-        },
-        {
-            "id": "vueflow__edge-number_const_1756963647678outputs.value-model_1756963653405params.infer_params.threshold",
-            "type": "default",
-            "source": "number_const_1756963647678",
-            "target": "model_1756963653405",
-            "sourceHandle": "outputs.value",
-            "targetHandle": "params.infer_params.threshold",
-            "data": {},
-            "label": "",
-            "sourceX": 119.00003051757812,
-            "sourceY": 377.3571472167969,
-            "targetX": 202,
-            "targetY": 419.7857208251953
+            "sourceX": 101.00003425003963,
+            "sourceY": 212.3571225730439,
+            "targetX": 201.99994720028607,
+            "targetY": 212.3571225730439
         },
         {
             "id": "vueflow__edge-request_1756965894232outputs.input-load_image_1756963641635inputs.files",
@@ -338,10 +664,10 @@
             "targetHandle": "inputs.files",
             "data": {},
             "label": "",
-            "sourceX": -109,
-            "sourceY": 212.35714721679688,
-            "targetX": -8,
-            "targetY": 212.35714721679688
+            "sourceX": -109.00003586090878,
+            "sourceY": 212.3571225730439,
+            "targetX": -7.999982688765506,
+            "targetY": 212.3571225730439
         },
         {
             "id": "vueflow__edge-model_1756950430525outputs.labels-response_1756965898910inputs.output",
@@ -352,20 +678,20 @@
             "targetHandle": "inputs.output",
             "data": {},
             "label": "",
-            "sourceX": 705.3392333984375,
-            "sourceY": 212.35714721679688,
-            "targetX": 817,
-            "targetY": 212.35714721679688
+            "sourceX": 705.3391960235529,
+            "sourceY": 212.3571225730439,
+            "targetX": 816.9998770893377,
+            "targetY": 212.3571225730439
         }
     ],
     "position": [
-        556.8353586604854,
-        -90.41598403827606
+        662.4122442365281,
+        -95.10134233788074
     ],
-    "zoom": 1.0000000000000002,
+    "zoom": 0.8705505632961248,
     "viewport": {
-        "x": 556.8353586604854,
-        "y": -90.41598403827606,
-        "zoom": 1.0000000000000002
+        "x": 662.4122442365281,
+        "y": -95.10134233788074,
+        "zoom": 0.8705505632961248
     }
 }
