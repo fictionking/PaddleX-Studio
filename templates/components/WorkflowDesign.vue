@@ -52,13 +52,24 @@
                             </el-icon>
                         </el-button>
                     </template>
+                    <el-button-group size="small" class="tools-row">
+                        <el-tooltip content="备注" placement="top">
+                            <el-button icon="Tickets" @click="addNode('note')" round />
+                        </el-tooltip>
+                        <el-tooltip content="分组框" placement="top">
+                            <el-button icon="Files"  round />
+                        </el-tooltip>
+                    </el-button-group>
                     <el-menu mode="vertical" collapse class="node-menu">
                         <el-menu-item-group v-for="item in menuItems" :title="item.label">
                             <template #title>
-                                <el-icon><Grid /></el-icon>
-                                <span>{{item.label}}</span>
+                                <el-icon>
+                                    <Grid />
+                                </el-icon>
+                                <span>{{ item.label }}</span>
                             </template>
-                            <el-menu-item v-for="child in item.children" :index="child.type" @click="addNode(child.type)">
+                            <el-menu-item v-for="child in item.children" :index="child.type"
+                                @click="addNode(child.type)">
                                 {{ child.label }}
                             </el-menu-item>
                         </el-menu-item-group>
@@ -68,7 +79,7 @@
                                 <el-icon>
                                     <HelpFilled />
                                 </el-icon>
-                                <span>模型节点</span>
+                                <span>模型</span>
                             </template>
                             <el-sub-menu v-for="category in models" :index="category.category.id" class="node-menu">
                                 <template #title>{{ category.category.name }}</template>
@@ -138,7 +149,7 @@
 <script>
 const { markRaw, defineComponent } = Vue
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
-import nodeTypes, { createNodeData,menuItems } from '/components/nodes/nodes.mjs';
+import nodeTypes, { createNodeData, menuItems } from '/components/nodes/nodes.mjs';
 
 export default {
     props: ['workflowId'],
@@ -466,5 +477,12 @@ export default {
 
 .workflow-edit-popover .el-form {
     margin: 0;
+}
+
+.tools-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 5px 0;
 }
 </style>

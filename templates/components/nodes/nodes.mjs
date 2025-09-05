@@ -76,10 +76,6 @@ export const menuItems = [
             {
                 label: '布尔常量',
                 type: 'bool_const'
-            },
-            {
-                label: '备注',
-                type: 'note'
             }
         ]
     },
