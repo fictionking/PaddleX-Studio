@@ -51,22 +51,7 @@
                     #00ffff, #0000ff, #ff00ff, #ff0000
                 );
             }
-            /* 饱和度渐变 */
-            .saturation-gradient {
-                background: linear-gradient(to bottom, currentColor, #808080);
-            }
-            /* 亮度渐变 */
-            .lightness-gradient {
-                background: linear-gradient(to bottom, #ffffff, currentColor, #000000);
-            }
-            /* 垂直滑块样式 */
-            input[type=range][orient=vertical] {
-                writing-mode: bt-lr; /* IE */
-                -webkit-appearance: slider-vertical; /* Chromium */
-                width: 8px;
-                height: 100%;
-                padding: 0 5px;
-            }
+
             /* 亮度环样式 */
             .lightness-ring {
                 position: absolute;
@@ -98,17 +83,7 @@
                 pointer-events: none;
                 z-index: 1;
             }
-            /* 滑块长条标记 */
-            .slider-bar-marker {
-                width: 100%;
-                height: 4px;
-                left: 0;
-                border-radius: 2px;
-                border: 1px solid rgba(0,0,0,0.2);
-                background-color: white;
-                transform: translateY(-50%);
-                pointer-events: none;
-            }
+
         }
     </style>
 </head>
@@ -125,9 +100,9 @@
         </div>
 
         <!-- 主要颜色选择区域 -->
-        <div class="px-4 py-3 flex flex-col md:flex-row gap-4">
+        <!-- <div class="px-4 py-3 flex flex-col md:flex-row gap-4"> -->
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
-            <div class="flex-1 flex  items-center justify-center">
+            <div class="flex-1 flex w-[300px] h-[300px] items-center justify-center">
                 <!-- 分段环弧容器 - 位于底层 -->
                 <div id="lightness-ring-container"
                     class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
@@ -149,34 +124,8 @@
 
             </div>
 
-            <!-- 两个垂直滑块（移除了色相滑块） -->
-            <div class="flex gap-2">
-
-                <!-- 饱和度滑块 -->
-                <div class="flex flex-col items-center w-6">
-                    <label class="text-xs text-gray-300 mb-1.5 block text-center">Saturation</label>
-                    <div class="relative h-[200px] rounded-lg overflow-hidden w-full">
-                        <div class="absolute inset-0 saturation-gradient" id="saturation-gradient"></div>
-                        <input type="range" id="saturation-slider" min="0" max="100" value="100" orient="vertical"
-                            class="absolute inset-0 opacity-0 cursor-pointer">
-                        <div id="saturation-marker" class="slider-bar-marker absolute" style="top: 0%"></div>
-                    </div>
-                    <span class="text-xs text-gray-300 mt-1" id="saturation-value">100%</span>
-                </div>
-
-                <!-- 亮度滑块 -->
-                <div class="flex flex-col items-center w-6">
-                    <label class="text-xs text-gray-300 mb-1.5 block text-center">Lightness</label>
-                    <div class="relative h-[200px] rounded-lg overflow-hidden w-full">
-                        <div class="absolute inset-0 lightness-gradient" id="lightness-gradient"></div>
-                        <input type="range" id="lightness-slider" min="0" max="100" value="50" orient="vertical"
-                            class="absolute inset-0 opacity-0 cursor-pointer">
-                        <div id="lightness-marker" class="slider-bar-marker absolute" style="top: 50%"></div>
-                    </div>
-                    <span class="text-xs text-gray-300 mt-1" id="lightness-value">50%</span>
-                </div>
-            </div>
-        </div>
+        
+        <!-- </div> -->
 
         <!-- 颜色预览和输入区 -->
         <div class="px-4 pb-3">
@@ -224,25 +173,6 @@
                 </div>
             </div>
 
-            <!-- Alpha (透明度) 控制 -->
-            <div>
-                <div class="flex justify-between mb-1.5">
-                    <label class="text-xs text-gray-300">Alpha</label>
-                    <span class="text-xs text-gray-300" id="alpha-value">100%</span>
-                </div>
-                <div class="relative h-5 rounded-lg overflow-hidden">
-                    <div id="alpha-slider-bg"
-                        class="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-primary"></div>
-                    <input type="range" id="alpha-slider" min="0" max="100" value="100"
-                        class="w-full h-full opacity-0 cursor-pointer">
-                    <div id="alpha-marker" class="slider-bar-marker absolute h-5" style="top: 50%; left: 100%"></div>
-                </div>
-                <div class="flex justify-between text-xs text-gray-300">
-                    <span>0%</span>
-                    <span>50%</span>
-                    <span>100%</span>
-                </div>
-            </div>
         </div>
 
         <!-- 最近使用的颜色 -->
@@ -580,19 +510,9 @@
             // DOM 元素
             const hueValue = document.getElementById('hue-value');
 
-            const saturationSlider = document.getElementById('saturation-slider');
             const saturationMarker = document.getElementById('saturation-marker');
-            const saturationValue = document.getElementById('saturation-value');
-            const saturationGradient = document.getElementById('saturation-gradient');
-
-            const lightnessSlider = document.getElementById('lightness-slider');
             const lightnessMarker = document.getElementById('lightness-marker');
-            const lightnessValue = document.getElementById('lightness-value');
-            const lightnessGradient = document.getElementById('lightness-gradient');
-
-            const alphaSlider = document.getElementById('alpha-slider');
             const alphaMarker = document.getElementById('alpha-marker');
-            const alphaValue = document.getElementById('alpha-value');
 
             const colorPreview = document.getElementById('color-preview');
             const hexInput = document.getElementById('hex-input');
@@ -638,16 +558,6 @@
                 rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
                 hslInput.value = `hsl(${h}, ${s}%, ${l}%)`;
 
-                saturationValue.textContent = `${s}%`;
-                lightnessValue.textContent = `${l}%`;
-                alphaValue.textContent = `${a}%`;
-
-                const hueColor = ColorUtils.hslToRgb(h, 100, 50);
-                const hueHex = ColorUtils.rgbToHex(hueColor.r, hueColor.g, hueColor.b);
-
-                saturationGradient.style.color = hueHex;
-                lightnessGradient.style.color = hueHex;
-
                 // 当色相或饱和度改变时，重新绘制亮度环
                 if (Math.abs(h - lastHue) > 0.5 || Math.abs(s - lastSaturation) > 0.5) {
                     createRingWithCurrentColor();
@@ -662,18 +572,6 @@
             const updateMarkerPositions = () => {
                 const { h, s, l, a } = currentColor;
 
-                // 饱和度标记
-                const saturationPercent = 100 - s;
-                saturationMarker.style.top = `${saturationPercent}%`;
-
-                // 亮度标记
-                const lightnessPercent = 100 - l;
-                lightnessMarker.style.top = `${lightnessPercent}%`;
-
-                // 透明度标记
-                const alphaPercent = a;
-                alphaMarker.style.left = `${alphaPercent}%`;
-
                 // 颜色圆盘标记
                 const pos = ColorUtils.hslToPosition(
                     h, s,
@@ -686,9 +584,12 @@
                 const wheelRgb = ColorUtils.hslToRgb(h, s, 50); // 使用固定亮度值50%，与色盘一致
                 wheelMarker.style.backgroundColor = `rgb(${wheelRgb.r}, ${wheelRgb.g}, ${wheelRgb.b})`;
 
-                // 为每个分段环弧添加标记
+                // 确保ringData已初始化
+                if (!ringData) return;
+                
+                // 为每个分段环弧添加标记，确保位置计算基于容器
                 // 饱和度环弧标记 - 根据当前饱和度值计算角度位置
-                const saturationAngle = 160 + (100 - s) * 100 / 100;
+                const saturationAngle = 160 + (100 - s);
                 const saturationDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
                 const saturationPosX = ringData.centerX + Math.cos(saturationAngle * Math.PI / 180) * saturationDistanceFromCenter;
                 const saturationPosY = ringData.centerY + Math.sin(saturationAngle * Math.PI / 180) * saturationDistanceFromCenter;
@@ -699,7 +600,7 @@
                 
                 // 亮度环弧标记 - 根据当前亮度值计算角度位置
                 // 注意：因为亮度弧跨越了360度边界（280度到20度），需要特殊处理角度计算
-                let lightnessAngle = 280 + (100 - l) * 100 / 100;
+                let lightnessAngle = 280 + (100 - l);
                 if (lightnessAngle > 360) {
                     lightnessAngle -= 360;
                 }
@@ -712,7 +613,7 @@
                 lightnessMarker.style.display = 'block';
                 
                 // 透明度环弧标记 - 根据当前透明度值计算角度位置
-                const alphaAngle = 40 + a * 100 / 100;
+                const alphaAngle = 40 + a;
                 const alphaDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
                 const alphaPosX = ringData.centerX + Math.cos(alphaAngle * Math.PI / 180) * alphaDistanceFromCenter;
                 const alphaPosY = ringData.centerY + Math.sin(alphaAngle * Math.PI / 180) * alphaDistanceFromCenter;
@@ -745,8 +646,6 @@
 
                 currentColor.h = Math.round(hsl.h);
                 currentColor.s = Math.round(hsl.s);
-
-                saturationSlider.value = currentColor.s;
 
                 updateColorDisplay();
             };
@@ -1056,23 +955,7 @@
                 }
             });
 
-            // 饱和度滑块事件
-            saturationSlider.addEventListener('input', (e) => {
-                currentColor.s = parseInt(e.target.value);
-                updateColorDisplay();
-            });
 
-            // 亮度滑块事件
-            lightnessSlider.addEventListener('input', (e) => {
-                currentColor.l = parseInt(e.target.value);
-                updateColorDisplay();
-            });
-
-            // 透明度滑块事件
-            alphaSlider.addEventListener('input', (e) => {
-                currentColor.a = parseInt(e.target.value);
-                updateColorDisplay();
-            });
 
             // 输入框事件处理
             hexInput.addEventListener('blur', (e) => {
@@ -1082,9 +965,6 @@
                     currentColor.h = hsl.h;
                     currentColor.s = hsl.s;
                     currentColor.l = hsl.l;
-
-                    saturationSlider.value = hsl.s;
-                    lightnessSlider.value = hsl.l;
 
                     updateColorDisplay();
                 } else {
@@ -1105,9 +985,6 @@
                         currentColor.s = hsl.s;
                         currentColor.l = hsl.l;
 
-                        saturationSlider.value = hsl.s;
-                        lightnessSlider.value = hsl.l;
-
                         updateColorDisplay();
                         return;
                     }
@@ -1126,9 +1003,6 @@
                         currentColor.h = h;
                         currentColor.s = s;
                         currentColor.l = l;
-
-                        saturationSlider.value = s;
-                        lightnessSlider.value = l;
 
                         updateColorDisplay();
                         return;
@@ -1168,9 +1042,6 @@
                             currentColor.h = hsl.h;
                             currentColor.s = hsl.s;
                             currentColor.l = hsl.l;
-
-                            saturationSlider.value = hsl.s;
-                            lightnessSlider.value = hsl.l;
 
                             updateColorDisplay();
                         }
