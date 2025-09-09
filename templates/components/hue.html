@@ -438,24 +438,60 @@
                     // 使用圆锥渐变创建环弧
                     const gradient = ctx.createConicGradient(segment.startAngle * Math.PI / 180, centerX, centerY);
                     
+                    // 声明起始颜色和结束颜色变量
+                    let startColor, endColor;
+                    
                     // 根据环弧类型设置不同的渐变颜色
                     if (segment.type === 'saturation') {
                         // 饱和度环弧：从基于当前h值的基色（固定s=100%）到灰色的渐变
                         // 为饱和度弧创建基于当前h值的基色（固定s=100%，l=50%）
                         const saturationBaseColor = ColorUtils.hslToRgb(hsl.h, 100, 50);
-                        gradient.addColorStop(0, `rgba(${saturationBaseColor.r}, ${saturationBaseColor.g}, ${saturationBaseColor.b}, 1)`);
-                        gradient.addColorStop(segment.arcAngle / 360, 'rgba(128, 128, 128, 0.9)');
+                        startColor = `rgba(${saturationBaseColor.r}, ${saturationBaseColor.g}, ${saturationBaseColor.b}, 1)`;
+                        endColor = 'rgba(128, 128, 128, 1)';
+                        gradient.addColorStop(0, startColor);
+                        gradient.addColorStop(segment.arcAngle / 360, endColor);
                     } else if (segment.type === 'lightness') {
                         // 亮度环弧：从白色到黑色的渐变
                         const lightnessBaseColor = ColorUtils.hslToRgb(hsl.h,hsl.s,50)
-                        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                        startColor='rgba(255, 255, 255, 1)'
+                        endColor='rgba(0, 0, 0, 1)'
+                        gradient.addColorStop(0, startColor);
                         gradient.addColorStop(segment.arcAngle / 720, `rgba(${lightnessBaseColor.r}, ${lightnessBaseColor.g}, ${lightnessBaseColor.b}, 1)`);
-                        gradient.addColorStop(segment.arcAngle / 360, 'rgba(0, 0, 0, 0.9)');
+                        gradient.addColorStop(segment.arcAngle / 360, endColor);
                     } else if (segment.type === 'alpha') {
                         // 透明度环弧：从透明到基色的渐变
-                        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                        gradient.addColorStop(segment.arcAngle / 360, `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 1)`);
+                        startColor='rgba(0, 0, 0, 0)'
+                        endColor=`rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 1)`
+                        gradient.addColorStop(0, startColor);
+                        gradient.addColorStop(segment.arcAngle / 360, endColor);
                     }
+
+                    // 在环弧的两个端点绘制相同宽度的圆来实现圆角效果
+                    const ringWidth = outerRadius - innerRadius;
+                    const circleRadius = ringWidth / 2; // 圆的半径为环宽度的一半
+                    const midRadius = innerRadius + circleRadius; // 圆心位于内外半径之间的中点
+                    
+                    // 计算起始点的坐标
+                    const startAngleRad = segment.startAngle * Math.PI / 180;
+                    const startX = centerX + midRadius * Math.cos(startAngleRad);
+                    const startY = centerY + midRadius * Math.sin(startAngleRad);
+                    
+                    // 计算结束点的坐标
+                    const endAngleRad = (segment.startAngle + segment.arcAngle) * Math.PI / 180;
+                    const endX = centerX + midRadius * Math.cos(endAngleRad);
+                    const endY = centerY + midRadius * Math.sin(endAngleRad);
+                    
+                    // 绘制起始点的圆 - 使用起始颜色
+                    ctx.beginPath();
+                    ctx.arc(startX, startY, circleRadius, 0, 2 * Math.PI);
+                    ctx.fillStyle = startColor;
+                    ctx.fill();
+                    
+                    // 绘制结束点的圆 - 使用结束颜色
+                    ctx.beginPath();
+                    ctx.arc(endX, endY, circleRadius, 0, 2 * Math.PI);
+                    ctx.fillStyle = endColor;
+                    ctx.fill();
 
                     // 绘制环弧
                     ctx.beginPath();
@@ -464,6 +500,7 @@
                     ctx.closePath();
                     ctx.fillStyle = gradient;
                     ctx.fill();
+                    
                 } 
             });
 
@@ -922,14 +959,12 @@
                             if (angle >= segment.startAngle) {
                                 // 角度在起始角度到360度之间
                                 relativePosition = (angle - segment.startAngle) / segment.arcAngle;
-                                console.log('角度在起始角度到360度之间', relativePosition)
                             } else {
                                 // 角度在0度到结束角度减去360度之间
                                 if (angle < segment.startAngle && angle<=180) {
                                     angle += 360;
                                 }
                                 relativePosition = (angle - segment.startAngle) / segment.arcAngle;
-                                console.log('角度在0度到结束角度减去360度之间', relativePosition)
                             }
                         } else {
                             // 普通环弧（不跨越360度边界）
