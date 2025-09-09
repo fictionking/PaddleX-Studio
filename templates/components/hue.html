@@ -89,38 +89,42 @@
                 <i class="fa fa-times"></i>
             </button>
         </div>
-
-        <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
-        <div class="flex-1 flex w-[300px] h-[300px] items-center justify-center">
-            <!-- 分段环弧容器 - 位于底层 -->
-            <div id="lightness-ring-container"
-                class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
-                <!-- 分段环弧将通过JS生成 -->
-                <!-- 饱和度环弧标记 -->
-                <div id="saturation-marker" class="ring-marker absolute hidden"></div>
-                <!-- 亮度环弧标记 -->
-                <div id="lightness-marker" class="ring-marker absolute hidden"></div>
-                <!-- 透明度环弧标记 -->
-                <div id="alpha-marker" class="ring-marker absolute hidden"></div>
-            </div>
-            <!-- 彩色圆盘 - 位于上层 -->
-            <div id="color-wheel" class="absolute w-[200px] h-[200px] rounded-full overflow-hidden shadow-inner">
-                <!-- 颜色圆盘将通过JS生成 -->
-                <!-- 颜色圆盘标记 -->
-                <div id="wheel-marker" class="wheel-marker absolute hidden"></div>
-
-            </div>
-
-        </div>
-
-        <!-- 颜色预览和输入区 -->
-        <div class="px-4 pb-3">
-            <div class="w-full h-16 rounded-lg shadow-inner bg-white relative overflow-hidden mb-3">
+        <div class="relative w-[300px] h-[300px] m-auto">
+            <!-- 圆形颜色预览 - 位于左上角 -->
+            <div class="absolute top-2 left-2 w-16 h-16 rounded-full shadow-lg bg-white relative overflow-hidden z-10">
                 <div
                     class="absolute inset-0 bg-[repeating-conic-gradient(#00000022_0deg_90deg,#00000011_90deg_180deg)] bg-[length:8px_8px]">
                 </div>
                 <div id="color-preview" class="absolute inset-0 "></div>
             </div>
+            <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
+            <div class="absolute inset-0 flex items-center justify-center">
+
+                <!-- 分段环弧容器 - 位于底层 -->
+                <div id="lightness-ring-container"
+                    class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
+                    <!-- 分段环弧将通过JS生成 -->
+                    <!-- 饱和度环弧标记 -->
+                    <div id="saturation-marker" class="ring-marker absolute hidden"></div>
+                    <!-- 亮度环弧标记 -->
+                    <div id="lightness-marker" class="ring-marker absolute hidden"></div>
+                    <!-- 透明度环弧标记 -->
+                    <div id="alpha-marker" class="ring-marker absolute hidden"></div>
+                </div>
+                <!-- 彩色圆盘 - 位于上层 -->
+                <div id="color-wheel" class="absolute w-[200px] h-[200px] rounded-full overflow-hidden shadow-inner">
+                    <!-- 颜色圆盘将通过JS生成 -->
+                    <!-- 颜色圆盘标记 -->
+                    <div id="wheel-marker" class="wheel-marker absolute hidden"></div>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- 颜色输入区 -->
+        <div class="px-4 pb-3">
 
             <div class="grid grid-cols-3 gap-2 mb-4">
                 <div class="relative">
@@ -308,8 +312,13 @@
             }
         };
 
-        // 创建亮度环 - 使用中心辐射渐变实现从纯白色到纯黑色的连续渐变效果，基于当前选中的颜色
-        function createLightnessRing(element, baseColor = null) {
+        /**
+         * 创建色彩选择器的环形控件
+         * @param {HTMLElement} element - 要渲染环形的DOM元素
+         * @param {Object} baseColor - HSLA格式的基础颜色对象，包含.h, .s, .l, .a属性
+         * @returns {Object} 返回包含canvas信息的对象
+         */
+        function createRing(element, baseColor = null) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             const size = Math.min(element.clientWidth, element.clientHeight);
@@ -333,13 +342,10 @@
             const outerRadius = canvas.width / 2;
             const innerRadius = outerRadius * 0.87; // 环的宽度，设置为外半径的0.9倍，使内径大于色盘的外径
 
-            // 如果没有提供基色，使用默认的蓝色
+            // 如果没有提供基色，使用默认的蓝色 (HSLA格式)
             if (!baseColor) {
-                baseColor = { r: 59, g: 130, b: 246 }; // 默认蓝色
+                baseColor = { h: 219, s: 90, l: 59, a: 1 }; // 默认蓝色 (59, 130, 246 转换为HSLA)
             }
-
-            // 计算当前颜色的HSL值
-            const hsl = ColorUtils.rgbToHsl(baseColor.r, baseColor.g, baseColor.b);
 
 
             // 定义三个分段环弧的起始角度和占用角度
@@ -363,14 +369,14 @@
                     if (segment.type === 'saturation') {
                         // 饱和度环弧：从基于当前h值的基色（固定s=100%）到灰色的渐变
                         // 为饱和度弧创建基于当前h值的基色（固定s=100%，l=50%）
-                        const saturationBaseColor = ColorUtils.hslToRgb(hsl.h, 100, 50);
+                        const saturationBaseColor = ColorUtils.hslToRgb(baseColor.h, 100, 50);
                         startColor = `rgba(${saturationBaseColor.r}, ${saturationBaseColor.g}, ${saturationBaseColor.b}, 1)`;
                         endColor = 'rgba(128, 128, 128, 1)';
                         gradient.addColorStop(0, startColor);
                         gradient.addColorStop(segment.arcAngle / 360, endColor);
                     } else if (segment.type === 'lightness') {
                         // 亮度环弧：从白色到黑色的渐变
-                        const lightnessBaseColor = ColorUtils.hslToRgb(hsl.h, hsl.s, 50)
+                        const lightnessBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, 50)
                         startColor = 'rgba(255, 255, 255, 1)'
                         endColor = 'rgba(0, 0, 0, 1)'
                         gradient.addColorStop(0, startColor);
@@ -378,8 +384,9 @@
                         gradient.addColorStop(segment.arcAngle / 360, endColor);
                     } else if (segment.type === 'alpha') {
                         // 透明度环弧：从透明到基色的渐变
+                        const alphaBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, baseColor.l);
                         startColor = 'rgba(0, 0, 0, 0)'
-                        endColor = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 1)`
+                        endColor = `rgba(${alphaBaseColor.r}, ${alphaBaseColor.g}, ${alphaBaseColor.b}, 1)`
                         gradient.addColorStop(0, startColor);
                         gradient.addColorStop(segment.arcAngle / 360, endColor);
                     }
@@ -527,8 +534,8 @@
             const createRingWithCurrentColor = () => {
                 const { h, s } = currentColor;
                 const fixedLightness = 50; // 固定亮度值为50%，忽略当前颜色的亮度值
-                const rgb = ColorUtils.hslToRgb(h, s, fixedLightness);
-                ringData = createLightnessRing(lightnessRingContainer, rgb);
+                const alpha = 1; // 固定透明度为100%
+                ringData = createRing(lightnessRingContainer, { h, s, l: fixedLightness, a: alpha });
             };
 
             // 初始化创建亮度环
