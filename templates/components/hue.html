@@ -74,6 +74,31 @@
                 pointer-events: none;
                 z-index: 1;
             }
+            /* 泪滴形状样式，一个角为0，其它为50% */
+            .teardrop-left-bottom {
+                width: 30px;
+                height: 30px;
+                border-radius: 50% 50% 50% 0;
+                overflow: hidden;
+            }
+            .teardrop-right-bottom {
+                width: 30px;
+                height: 30px;
+                border-radius: 50% 50% 0 50%;
+                overflow: hidden;
+            }
+            .teardrop-left-top {
+                width: 30px;
+                height: 30px;
+                border-radius: 0 50% 50% 50%;
+                overflow: hidden;
+            }
+            .teardrop-right-top {
+                width: 30px;
+                height: 30px;
+                border-radius: 50% 0 50% 50%;
+                overflow: hidden;
+            }
 
         }
     </style>
@@ -97,30 +122,53 @@
                 </div>
                 <div id="color-preview" class="absolute inset-0 "></div>
             </div>
-            
+            <!-- 圆形初始颜色 - 位于左上角 -->
+            <div class="absolute top-3 left-2 w-8 h-8 rounded-full shadow-lg bg-white relative overflow-hidden z-10">
+                <div
+                    class="absolute inset-0 bg-[repeating-conic-gradient(#00000022_0deg_90deg,#00000011_90deg_180deg)] bg-[length:8px_8px]">
+                </div>
+                <div id="color-start" class="absolute inset-0 "></div>
+            </div>
             <!-- 最近使用颜色 - 右上角 -->
             <div id="recent-colors-top-right" class="absolute top-2 right-2 w-24 h-24 z-10">
                 <!-- 右上角三角形排布的3个颜色 -->
-                <div class="recent-color absolute top-0 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute top-0 right-6 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute top-6 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute top-4 right-4 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div
+                    class="recent-color teardrop-right-bottom absolute top-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+                <div
+                    class="recent-color teardrop-left-bottom absolute top-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+                <div
+                    class="recent-color teardrop-left-top absolute top-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
             </div>
-            
+
             <!-- 最近使用颜色 - 右下角 -->
             <div id="recent-colors-bottom-right" class="absolute bottom-2 right-2 w-24 h-24 z-10">
                 <!-- 右下角三角形排布的3个颜色 -->
-                <div class="recent-color absolute bottom-8 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute bottom-0 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute bottom-0 right-8 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div
+                    class="recent-color teardrop-left-bottom absolute bottom-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+                <div
+                    class="recent-color teardrop-left-top absolute bottom-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+                <div
+                    class="recent-color teardrop-right-top absolute bottom-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
             </div>
-            
+
             <!-- 最近使用颜色 - 左下角 -->
             <div id="recent-colors-bottom-left" class="absolute bottom-2 left-2 w-24 h-24 z-10">
                 <!-- 左下角三角形排布的3个颜色 -->
-                <div class="recent-color absolute bottom-8 left-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute bottom-0 left-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
-                <div class="recent-color absolute bottom-0 left-8 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div
+                    class="recent-color teardrop-left-top absolute bottom-0 left-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+                <div
+                    class="recent-color teardrop-right-top absolute bottom-0 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+                <div
+                    class="recent-color teardrop-right-bottom absolute bottom-9 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
             </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
             <div class="absolute inset-0 flex items-center justify-center">
@@ -192,28 +240,6 @@
 
         </div>
 
-        <!-- 最近使用的颜色 -->
-        <div class="px-4 pb-4 border-t border-gray-700 pt-3">
-            <h3 class="text-xs font-medium text-gray-300 mb-2">Recent</h3>
-            <div id="recent-colors" class="flex flex-wrap gap-1.5">
-                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
-                    style="background-color: #EF4444"></div>
-                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
-                    style="background-color: #10B981"></div>
-                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
-                    style="background-color: #F59E0B"></div>
-                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
-                    style="background-color: #8B5CF6"></div>
-                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
-                    style="background-color: #EC4899"></div>
-                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
-                    style="background-color: #64748B"></div>
-                <div
-                    class="w-6 h-6 rounded-full border border-dashed border-gray-600 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- 复制成功提示 -->
@@ -222,879 +248,898 @@
         <span>Copied!</span>
     </div>
 
-    <script>
-        // 颜色转换工具函数
-        const ColorUtils = {
-            // HSL 转 RGB
-            hslToRgb: (h, s, l) => {
-                s /= 100;
-                l /= 100;
+</body>
 
-                let r, g, b;
+<script>
+    // 颜色转换工具函数
+    const ColorUtils = {
+        // HSL 转 RGB
+        hslToRgb: (h, s, l) => {
+            s /= 100;
+            l /= 100;
 
-                if (s === 0) {
-                    r = g = b = l; // 灰色
-                } else {
-                    const hue2rgb = (p, q, t) => {
-                        if (t < 0) t += 1;
-                        if (t > 1) t -= 1;
-                        if (t < 1 / 6) return p + (q - p) * 6 * t;
-                        if (t < 1 / 2) return q;
-                        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                        return p;
-                    };
+            let r, g, b;
 
-                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                    const p = 2 * l - q;
+            if (s === 0) {
+                r = g = b = l; // 灰色
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
 
-                    r = hue2rgb(p, q, h / 360 + 1 / 3);
-                    g = hue2rgb(p, q, h / 360);
-                    b = hue2rgb(p, q, h / 360 - 1 / 3);
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+
+                r = hue2rgb(p, q, h / 360 + 1 / 3);
+                g = hue2rgb(p, q, h / 360);
+                b = hue2rgb(p, q, h / 360 - 1 / 3);
+            }
+
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        },
+
+        // RGB 转 HEX
+        rgbToHex: (r, g, b) => {
+            return `#${[r, g, b]
+                .map(x => Math.round(x).toString(16).padStart(2, '0'))
+                .join('')
+                .toUpperCase()}`;
+        },
+
+        // RGB 转 HSL
+        rgbToHsl: (r, g, b) => {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0; // 灰色
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
                 }
 
-                return {
-                    r: Math.round(r * 255),
-                    g: Math.round(g * 255),
-                    b: Math.round(b * 255)
-                };
-            },
+                h *= 60;
+            }
 
-            // RGB 转 HEX
-            rgbToHex: (r, g, b) => {
-                return `#${[r, g, b]
-                    .map(x => Math.round(x).toString(16).padStart(2, '0'))
-                    .join('')
-                    .toUpperCase()}`;
-            },
+            return {
+                h: Math.round(h),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        },
 
-            // RGB 转 HSL
-            rgbToHsl: (r, g, b) => {
-                r /= 255;
-                g /= 255;
-                b /= 255;
+        // HEX 转 RGB
+        hexToRgb: (hex) => {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        },
 
-                const max = Math.max(r, g, b);
-                const min = Math.min(r, g, b);
-                let h, s, l = (max + min) / 2;
+        // 从圆盘位置计算HSL颜色
+        positionToHsl: (x, y, centerX, centerY, radius) => {
+            const dx = x - centerX;
+            const dy = centerY - y;
+            const distance = Math.min(Math.sqrt(dx * dx + dy * dy), radius);
+            // 修正色相角度计算，使圆盘与滑块保持一致
+            const angle = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
 
-                if (max === min) {
-                    h = s = 0; // 灰色
-                } else {
-                    const d = max - min;
-                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            return {
+                h: angle,
+                s: (distance / radius) * 100,
+                l: 50
+            };
+        },
 
-                    switch (max) {
-                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                        case g: h = (b - r) / d + 2; break;
-                        case b: h = (r - g) / d + 4; break;
-                    }
+        // 从HSL计算圆盘位置
+        hslToPosition: (h, s, centerX, centerY, radius) => {
+            const radians = h * Math.PI / 180;
+            const distance = (s / 100) * radius;
 
-                    h *= 60;
+            // 修正Y轴方向，使圆盘与滑块保持一致
+            return {
+                x: centerX + distance * Math.cos(radians),
+                y: centerY - distance * Math.sin(-radians)
+            };
+        }
+    };
+
+    /**
+     * 创建色彩选择器的环形控件
+     * @param {HTMLElement} element - 要渲染环形的DOM元素
+     * @param {Object} baseColor - HSLA格式的基础颜色对象，包含.h, .s, .l, .a属性
+     * @returns {Object} 返回包含canvas信息的对象
+     */
+    function createRing(element, baseColor = null) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const size = Math.min(element.clientWidth, element.clientHeight);
+        const scale = 2;
+        canvas.width = size * scale;
+        canvas.height = size * scale;
+        canvas.style.width = `${size}px`;
+        canvas.style.height = `${size}px`;
+        canvas.className = 'lightness-ring';
+        canvas.style.zIndex = '0'; // 确保亮度环位于色盘下层
+
+        // 只删除已经存在的canvas元素，保留其他元素如ring-marker
+        const existingCanvases = element.querySelectorAll('canvas');
+        existingCanvases.forEach(canvasEl => {
+            element.removeChild(canvasEl);
+        });
+        element.appendChild(canvas);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const outerRadius = canvas.width / 2;
+        const innerRadius = outerRadius * 0.87; // 环的宽度，设置为外半径的0.9倍，使内径大于色盘的外径
+
+        // 如果没有提供基色，使用默认的蓝色 (HSLA格式)
+        if (!baseColor) {
+            baseColor = { h: 219, s: 90, l: 59, a: 1 }; // 默认蓝色 (59, 130, 246 转换为HSLA)
+        }
+
+
+        // 定义三个分段环弧的起始角度和占用角度
+        // 每个弧占用100度
+        const segments = [
+            { startAngle: 160, arcAngle: 100, type: 'saturation' },  // 160度到260度
+            { startAngle: 280, arcAngle: 100, type: 'lightness' },   // -80度到20度（280度到380度，即280度到20度）
+            { startAngle: 40, arcAngle: 100, type: 'alpha' }         // 40度到140度
+        ];
+
+        // 为每个分段绘制环弧
+        segments.forEach(segment => {
+            if (ctx.createConicGradient) {
+                // 使用圆锥渐变创建环弧
+                const gradient = ctx.createConicGradient(segment.startAngle * Math.PI / 180, centerX, centerY);
+
+                // 声明起始颜色和结束颜色变量
+                let startColor, endColor;
+
+                // 根据环弧类型设置不同的渐变颜色
+                if (segment.type === 'saturation') {
+                    // 饱和度环弧：从基于当前h值的基色（固定s=100%）到灰色的渐变
+                    // 为饱和度弧创建基于当前h值的基色（固定s=100%，l=50%）
+                    const saturationBaseColor = ColorUtils.hslToRgb(baseColor.h, 100, 50);
+                    startColor = `rgba(${saturationBaseColor.r}, ${saturationBaseColor.g}, ${saturationBaseColor.b}, 1)`;
+                    endColor = 'rgba(128, 128, 128, 1)';
+                    gradient.addColorStop(0, startColor);
+                    gradient.addColorStop(segment.arcAngle / 360, endColor);
+                } else if (segment.type === 'lightness') {
+                    // 亮度环弧：从白色到黑色的渐变
+                    const lightnessBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, 50)
+                    startColor = 'rgba(255, 255, 255, 1)'
+                    endColor = 'rgba(0, 0, 0, 1)'
+                    gradient.addColorStop(0, startColor);
+                    gradient.addColorStop(segment.arcAngle / 720, `rgba(${lightnessBaseColor.r}, ${lightnessBaseColor.g}, ${lightnessBaseColor.b}, 1)`);
+                    gradient.addColorStop(segment.arcAngle / 360, endColor);
+                } else if (segment.type === 'alpha') {
+                    // 透明度环弧：从透明到基色的渐变
+                    const alphaBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, baseColor.l);
+                    startColor = 'rgba(0, 0, 0, 0)'
+                    endColor = `rgba(${alphaBaseColor.r}, ${alphaBaseColor.g}, ${alphaBaseColor.b}, 1)`
+                    gradient.addColorStop(0, startColor);
+                    gradient.addColorStop(segment.arcAngle / 360, endColor);
                 }
 
-                return {
-                    h: Math.round(h),
-                    s: Math.round(s * 100),
-                    l: Math.round(l * 100)
-                };
-            },
+                // 在环弧的两个端点绘制相同宽度的圆来实现圆角效果
+                const ringWidth = outerRadius - innerRadius;
+                const circleRadius = ringWidth / 2; // 圆的半径为环宽度的一半
+                const midRadius = innerRadius + circleRadius; // 圆心位于内外半径之间的中点
 
-            // HEX 转 RGB
-            hexToRgb: (hex) => {
-                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                return result ? {
-                    r: parseInt(result[1], 16),
-                    g: parseInt(result[2], 16),
-                    b: parseInt(result[3], 16)
-                } : null;
-            },
+                // 计算起始点的坐标
+                const startAngleRad = segment.startAngle * Math.PI / 180;
+                const startX = centerX + midRadius * Math.cos(startAngleRad);
+                const startY = centerY + midRadius * Math.sin(startAngleRad);
 
-            // 从圆盘位置计算HSL颜色
-            positionToHsl: (x, y, centerX, centerY, radius) => {
+                // 计算结束点的坐标
+                const endAngleRad = (segment.startAngle + segment.arcAngle) * Math.PI / 180;
+                const endX = centerX + midRadius * Math.cos(endAngleRad);
+                const endY = centerY + midRadius * Math.sin(endAngleRad);
+
+                // 绘制起始点的圆 - 使用起始颜色
+                ctx.beginPath();
+                ctx.arc(startX, startY, circleRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = startColor;
+                ctx.fill();
+
+                // 绘制结束点的圆 - 使用结束颜色
+                ctx.beginPath();
+                ctx.arc(endX, endY, circleRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = endColor;
+                ctx.fill();
+
+                // 绘制环弧
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, outerRadius, segment.startAngle * Math.PI / 180, (segment.startAngle + segment.arcAngle) * Math.PI / 180);
+                ctx.arc(centerX, centerY, innerRadius, (segment.startAngle + segment.arcAngle) * Math.PI / 180, segment.startAngle * Math.PI / 180, true);
+                ctx.closePath();
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+            }
+        });
+
+        return {
+            canvas,
+            centerX: centerX / scale,
+            centerY: centerY / scale,
+            outerRadius: outerRadius / scale,
+            innerRadius: innerRadius / scale
+        };
+    }
+
+    // 创建颜色圆盘
+    function createColorWheel(element) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const size = Math.min(element.clientWidth, element.clientHeight);
+        const scale = 2;
+        canvas.width = size * scale;
+        canvas.height = size * scale;
+        canvas.style.width = `${size}px`;
+        canvas.style.height = `${size}px`;
+        element.appendChild(canvas);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = canvas.width / 2 * 0.8; // 缩小色盘，为色相环留出空间
+
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const pixels = imageData.data;
+
+        for (let y = 0; y < canvas.height; y++) {
+            for (let x = 0; x < canvas.width; x++) {
                 const dx = x - centerX;
                 const dy = centerY - y;
-                const distance = Math.min(Math.sqrt(dx * dx + dy * dy), radius);
-                // 修正色相角度计算，使圆盘与滑块保持一致
-                const angle = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
+                const distance = Math.sqrt(dx * dx + dy * dy);
 
-                return {
-                    h: angle,
-                    s: (distance / radius) * 100,
-                    l: 50
-                };
-            },
+                if (distance <= radius) {
+                    // 修正色相角度，使圆盘与滑块方向一致
+                    const angle = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
+                    const saturation = Math.min(100, (distance / radius) * 100);
+                    const lightness = 50;
 
-            // 从HSL计算圆盘位置
-            hslToPosition: (h, s, centerX, centerY, radius) => {
-                const radians = h * Math.PI / 180;
-                const distance = (s / 100) * radius;
+                    const rgb = ColorUtils.hslToRgb(angle, saturation, lightness);
+                    const index = (y * canvas.width + x) * 4;
+                    pixels[index] = rgb.r;
+                    pixels[index + 1] = rgb.g;
+                    pixels[index + 2] = rgb.b;
+                    pixels[index + 3] = 255;
+                }
+            }
+        }
 
-                // 修正Y轴方向，使圆盘与滑块保持一致
-                return {
-                    x: centerX + distance * Math.cos(radians),
-                    y: centerY - distance * Math.sin(-radians)
-                };
+        ctx.putImageData(imageData, 0, 0);
+        ctx.filter = 'blur(1px)';
+        ctx.drawImage(canvas, 0, 0);
+        ctx.filter = 'none';
+
+        return {
+            canvas,
+            centerX: centerX / scale,
+            centerY: centerY / scale,
+            radius: radius / scale
+        };
+    }
+
+    // 颜色选择器主逻辑
+    document.addEventListener('DOMContentLoaded', () => {
+        const colorWheel = document.getElementById('color-wheel');
+        const wheelData = createColorWheel(colorWheel);
+        const wheelMarker = document.getElementById('wheel-marker');
+
+        // 初始化分段环弧
+        const lightnessRingContainer = document.getElementById('lightness-ring-container');
+        let ringData = null;
+
+        // DOM 元素
+        const hueValue = document.getElementById('hue-value');
+
+        const saturationMarker = document.getElementById('saturation-marker');
+        const lightnessMarker = document.getElementById('lightness-marker');
+        const alphaMarker = document.getElementById('alpha-marker');
+
+        const colorPreview = document.getElementById('color-preview');
+        const hexInput = document.getElementById('hex-input');
+        const rgbInput = document.getElementById('rgb-input');
+        const hslInput = document.getElementById('hsl-input');
+
+        const copyBtns = document.querySelectorAll('.copy-btn');
+        const copyToast = document.getElementById('copy-toast');
+        const recentColors = document.querySelectorAll('.recent-color');
+
+        // 当前颜色状态
+        let currentColor = {
+            h: 217,    // 色相
+            s: 100,    // 饱和度
+            l: 50,     // 亮度
+            a: 100     // 透明度
+        };
+        
+        // 初始颜色状态 - 用于恢复初始颜色
+        let initialColor = { ...currentColor };
+        
+        // 初始颜色显示元素
+        const colorStart = document.getElementById('color-start');
+
+        // 预定义颜色表
+        const predefinedColors = [
+            { h: 0, s: 100, l: 50, name: '红色' },      // 红色
+            { h: 120, s: 100, l: 50, name: '绿色' },    // 绿色
+            { h: 240, s: 100, l: 50, name: '蓝色' },    // 蓝色
+            { h: 60, s: 100, l: 50, name: '黄色' },     // 黄色
+            { h: 300, s: 100, l: 50, name: '品红' },    // 品红
+            { h: 180, s: 100, l: 50, name: '青色' },    // 青色
+            { h: 45, s: 100, l: 50, name: '橙色' },     // 橙色
+            { h: 90, s: 100, l: 50, name: '黄绿色' },   // 黄绿色
+            { h: 270, s: 100, l: 50, name: '紫色' }     // 紫色
+        ];
+
+        // 更新预定义颜色表的UI
+        const updatePredefinedColorsUI = () => {
+            const colorElements = document.querySelectorAll('.recent-color');
+            colorElements.forEach((el, index) => {
+                if (index < predefinedColors.length) {
+                    const color = predefinedColors[index];
+                    el.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+                    el.title = color.name; // 添加颜色名称提示
+                    el.style.display = 'block';
+                } else {
+                    // 超出预定义颜色范围的元素隐藏
+                    el.style.display = 'none';
+                }
+            });
+        };
+
+        // 存储上一次的色相和饱和度值，用于检测变化
+        let lastHue = currentColor.h;
+        let lastSaturation = currentColor.s;
+
+        // 根据当前颜色创建亮度环 - 使用固定亮度值(50%)计算基色，确保亮度环基于色盘位置的颜色
+        const createRingWithCurrentColor = () => {
+            const { h, s } = currentColor;
+            const fixedLightness = 50; // 固定亮度值为50%，忽略当前颜色的亮度值
+            const alpha = 1; // 固定透明度为100%
+            ringData = createRing(lightnessRingContainer, { h, s, l: fixedLightness, a: alpha });
+        };
+
+        // 初始化创建亮度环
+        createRingWithCurrentColor();
+
+        // 更新颜色显示
+        const updateColorDisplay = () => {
+            const { h, s, l, a } = currentColor;
+            const rgb = ColorUtils.hslToRgb(h, s, l);
+            const hex = ColorUtils.rgbToHex(rgb.r, rgb.g, rgb.b);
+
+            colorPreview.style.backgroundColor = `hsla(${h}, ${s}%, ${l}%, ${a / 100})`;
+            
+            // 更新初始颜色显示
+            const initialRgb = ColorUtils.hslToRgb(initialColor.h, initialColor.s, initialColor.l);
+            colorStart.style.backgroundColor = `hsl(${initialColor.h}, ${initialColor.s}%, ${initialColor.l}%)`;
+
+            hexInput.value = hex;
+            rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            hslInput.value = `hsl(${h}, ${s}%, ${l}%)`;
+
+            // 当色相或饱和度改变时，重新绘制亮度环
+            if (Math.abs(h - lastHue) > 0.5 || Math.abs(s - lastSaturation) > 0.5) {
+                createRingWithCurrentColor();
+                lastHue = h;
+                lastSaturation = s;
+            }
+
+            updateMarkerPositions();
+        };
+
+        // 更新标记位置
+        const updateMarkerPositions = () => {
+            const { h, s, l, a } = currentColor;
+
+            // 颜色圆盘标记
+            const pos = ColorUtils.hslToPosition(
+                h, s,
+                wheelData.centerX, wheelData.centerY,
+                wheelData.radius
+            );
+            wheelMarker.style.left = `${pos.x}px`;
+            wheelMarker.style.top = `${pos.y}px`;
+            wheelMarker.style.display = 'block';
+            const wheelRgb = ColorUtils.hslToRgb(h, s, 50); // 使用固定亮度值50%，与色盘一致
+            wheelMarker.style.backgroundColor = `rgb(${wheelRgb.r}, ${wheelRgb.g}, ${wheelRgb.b})`;
+
+            // 确保ringData已初始化
+            if (!ringData) return;
+
+            // 为每个分段环弧添加标记，确保位置计算基于容器
+            // 饱和度环弧标记 - 根据当前饱和度值计算角度位置
+            const saturationAngle = 160 + (100 - s);
+            const saturationDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
+            const saturationPosX = ringData.centerX + Math.cos(saturationAngle * Math.PI / 180) * saturationDistanceFromCenter;
+            const saturationPosY = ringData.centerY + Math.sin(saturationAngle * Math.PI / 180) * saturationDistanceFromCenter;
+
+            saturationMarker.style.left = `${saturationPosX}px`;
+            saturationMarker.style.top = `${saturationPosY}px`;
+            saturationMarker.style.display = 'block';
+
+            // 亮度环弧标记 - 根据当前亮度值计算角度位置
+            // 注意：因为亮度弧跨越了360度边界（280度到20度），需要特殊处理角度计算
+            let lightnessAngle = 280 + (100 - l);
+            if (lightnessAngle > 360) {
+                lightnessAngle -= 360;
+            }
+            const lightnessDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
+            const lightnessPosX = ringData.centerX + Math.cos(lightnessAngle * Math.PI / 180) * lightnessDistanceFromCenter;
+            const lightnessPosY = ringData.centerY + Math.sin(lightnessAngle * Math.PI / 180) * lightnessDistanceFromCenter;
+
+            lightnessMarker.style.left = `${lightnessPosX}px`;
+            lightnessMarker.style.top = `${lightnessPosY}px`;
+            lightnessMarker.style.display = 'block';
+
+            // 透明度环弧标记 - 根据当前透明度值计算角度位置
+            const alphaAngle = 40 + a;
+            const alphaDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
+            const alphaPosX = ringData.centerX + Math.cos(alphaAngle * Math.PI / 180) * alphaDistanceFromCenter;
+            const alphaPosY = ringData.centerY + Math.sin(alphaAngle * Math.PI / 180) * alphaDistanceFromCenter;
+
+            alphaMarker.style.left = `${alphaPosX}px`;
+            alphaMarker.style.top = `${alphaPosY}px`;
+            alphaMarker.style.display = 'block';
+
+            // 为所有标记设置当前最终输出颜色
+            const rgb = ColorUtils.hslToRgb(h, s, l);
+            saturationMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            lightnessMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            alphaMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+        }
+
+        // 处理颜色圆盘交互
+        let isDraggingWheel = false;
+        let isDraggingRing = false;
+
+        const handleWheelInteraction = (clientX, clientY) => {
+            const rect = wheelData.canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            const hsl = ColorUtils.positionToHsl(
+                x, y,
+                wheelData.centerX, wheelData.centerY,
+                wheelData.radius
+            );
+
+            currentColor.h = Math.round(hsl.h);
+            currentColor.s = Math.round(hsl.s);
+
+            updateColorDisplay();
+        };
+
+        // 从亮度环位置计算亮度值 - 根据角度确定亮度值，连续渐变
+        const getLightnessFromRingPosition = (clientX, clientY) => {
+            const rect = ringData.canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            const dx = x - ringData.centerX;
+            const dy = y - ringData.centerY;
+            // 计算角度（0-360度）
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            if (angle < 0) angle += 360;
+
+            // 根据角度确定亮度值，连续渐变（0%到100%）
+            const lightness = 100 - (angle / 360) * 100; // 亮度从100%到0%的连续变化
+
+            // 限制在0-100范围内并四舍五入到整数
+            return Math.round(Math.max(0, Math.min(100, lightness)));
+        }
+
+        // 处理亮度环交互
+        const handleRingInteraction = (clientX, clientY) => {
+            const lightness = getLightnessFromRingPosition(clientX, clientY);
+            if (lightness !== null) {
+                currentColor.l = lightness;
+                updateColorDisplay();
             }
         };
 
-        /**
-         * 创建色彩选择器的环形控件
-         * @param {HTMLElement} element - 要渲染环形的DOM元素
-         * @param {Object} baseColor - HSLA格式的基础颜色对象，包含.h, .s, .l, .a属性
-         * @returns {Object} 返回包含canvas信息的对象
-         */
-        function createRing(element, baseColor = null) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const size = Math.min(element.clientWidth, element.clientHeight);
-            const scale = 2;
-            canvas.width = size * scale;
-            canvas.height = size * scale;
-            canvas.style.width = `${size}px`;
-            canvas.style.height = `${size}px`;
-            canvas.className = 'lightness-ring';
-            canvas.style.zIndex = '0'; // 确保亮度环位于色盘下层
+        // 从色盘位置检测是否在色彩区域内
+        const isPositionInColorWheel = (clientX, clientY) => {
+            const rect = wheelData.canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
 
-            // 只删除已经存在的canvas元素，保留其他元素如ring-marker
-            const existingCanvases = element.querySelectorAll('canvas');
-            existingCanvases.forEach(canvasEl => {
-                element.removeChild(canvasEl);
-            });
-            element.appendChild(canvas);
+            const dx = x - wheelData.centerX;
+            const dy = y - wheelData.centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const outerRadius = canvas.width / 2;
-            const innerRadius = outerRadius * 0.87; // 环的宽度，设置为外半径的0.9倍，使内径大于色盘的外径
-
-            // 如果没有提供基色，使用默认的蓝色 (HSLA格式)
-            if (!baseColor) {
-                baseColor = { h: 219, s: 90, l: 59, a: 1 }; // 默认蓝色 (59, 130, 246 转换为HSLA)
-            }
-
-
-            // 定义三个分段环弧的起始角度和占用角度
-            // 每个弧占用100度
-            const segments = [
-                { startAngle: 160, arcAngle: 100, type: 'saturation' },  // 160度到260度
-                { startAngle: 280, arcAngle: 100, type: 'lightness' },   // -80度到20度（280度到380度，即280度到20度）
-                { startAngle: 40, arcAngle: 100, type: 'alpha' }         // 40度到140度
-            ];
-
-            // 为每个分段绘制环弧
-            segments.forEach(segment => {
-                if (ctx.createConicGradient) {
-                    // 使用圆锥渐变创建环弧
-                    const gradient = ctx.createConicGradient(segment.startAngle * Math.PI / 180, centerX, centerY);
-
-                    // 声明起始颜色和结束颜色变量
-                    let startColor, endColor;
-
-                    // 根据环弧类型设置不同的渐变颜色
-                    if (segment.type === 'saturation') {
-                        // 饱和度环弧：从基于当前h值的基色（固定s=100%）到灰色的渐变
-                        // 为饱和度弧创建基于当前h值的基色（固定s=100%，l=50%）
-                        const saturationBaseColor = ColorUtils.hslToRgb(baseColor.h, 100, 50);
-                        startColor = `rgba(${saturationBaseColor.r}, ${saturationBaseColor.g}, ${saturationBaseColor.b}, 1)`;
-                        endColor = 'rgba(128, 128, 128, 1)';
-                        gradient.addColorStop(0, startColor);
-                        gradient.addColorStop(segment.arcAngle / 360, endColor);
-                    } else if (segment.type === 'lightness') {
-                        // 亮度环弧：从白色到黑色的渐变
-                        const lightnessBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, 50)
-                        startColor = 'rgba(255, 255, 255, 1)'
-                        endColor = 'rgba(0, 0, 0, 1)'
-                        gradient.addColorStop(0, startColor);
-                        gradient.addColorStop(segment.arcAngle / 720, `rgba(${lightnessBaseColor.r}, ${lightnessBaseColor.g}, ${lightnessBaseColor.b}, 1)`);
-                        gradient.addColorStop(segment.arcAngle / 360, endColor);
-                    } else if (segment.type === 'alpha') {
-                        // 透明度环弧：从透明到基色的渐变
-                        const alphaBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, baseColor.l);
-                        startColor = 'rgba(0, 0, 0, 0)'
-                        endColor = `rgba(${alphaBaseColor.r}, ${alphaBaseColor.g}, ${alphaBaseColor.b}, 1)`
-                        gradient.addColorStop(0, startColor);
-                        gradient.addColorStop(segment.arcAngle / 360, endColor);
-                    }
-
-                    // 在环弧的两个端点绘制相同宽度的圆来实现圆角效果
-                    const ringWidth = outerRadius - innerRadius;
-                    const circleRadius = ringWidth / 2; // 圆的半径为环宽度的一半
-                    const midRadius = innerRadius + circleRadius; // 圆心位于内外半径之间的中点
-
-                    // 计算起始点的坐标
-                    const startAngleRad = segment.startAngle * Math.PI / 180;
-                    const startX = centerX + midRadius * Math.cos(startAngleRad);
-                    const startY = centerY + midRadius * Math.sin(startAngleRad);
-
-                    // 计算结束点的坐标
-                    const endAngleRad = (segment.startAngle + segment.arcAngle) * Math.PI / 180;
-                    const endX = centerX + midRadius * Math.cos(endAngleRad);
-                    const endY = centerY + midRadius * Math.sin(endAngleRad);
-
-                    // 绘制起始点的圆 - 使用起始颜色
-                    ctx.beginPath();
-                    ctx.arc(startX, startY, circleRadius, 0, 2 * Math.PI);
-                    ctx.fillStyle = startColor;
-                    ctx.fill();
-
-                    // 绘制结束点的圆 - 使用结束颜色
-                    ctx.beginPath();
-                    ctx.arc(endX, endY, circleRadius, 0, 2 * Math.PI);
-                    ctx.fillStyle = endColor;
-                    ctx.fill();
-
-                    // 绘制环弧
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, outerRadius, segment.startAngle * Math.PI / 180, (segment.startAngle + segment.arcAngle) * Math.PI / 180);
-                    ctx.arc(centerX, centerY, innerRadius, (segment.startAngle + segment.arcAngle) * Math.PI / 180, segment.startAngle * Math.PI / 180, true);
-                    ctx.closePath();
-                    ctx.fillStyle = gradient;
-                    ctx.fill();
-
-                }
-            });
-
-            return {
-                canvas,
-                centerX: centerX / scale,
-                centerY: centerY / scale,
-                outerRadius: outerRadius / scale,
-                innerRadius: innerRadius / scale
-            };
+            // 检查是否在色盘半径范围内
+            return distance <= wheelData.radius * 1.1; // 添加一些容差范围
         }
 
-        // 创建颜色圆盘
-        function createColorWheel(element) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const size = Math.min(element.clientWidth, element.clientHeight);
-            const scale = 2;
-            canvas.width = size * scale;
-            canvas.height = size * scale;
-            canvas.style.width = `${size}px`;
-            canvas.style.height = `${size}px`;
-            element.appendChild(canvas);
-
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = canvas.width / 2 * 0.8; // 缩小色盘，为色相环留出空间
-
-            const imageData = ctx.createImageData(canvas.width, canvas.height);
-            const pixels = imageData.data;
-
-            for (let y = 0; y < canvas.height; y++) {
-                for (let x = 0; x < canvas.width; x++) {
-                    const dx = x - centerX;
-                    const dy = centerY - y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance <= radius) {
-                        // 修正色相角度，使圆盘与滑块方向一致
-                        const angle = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
-                        const saturation = Math.min(100, (distance / radius) * 100);
-                        const lightness = 50;
-
-                        const rgb = ColorUtils.hslToRgb(angle, saturation, lightness);
-                        const index = (y * canvas.width + x) * 4;
-                        pixels[index] = rgb.r;
-                        pixels[index + 1] = rgb.g;
-                        pixels[index + 2] = rgb.b;
-                        pixels[index + 3] = 255;
-                    }
-                }
+        colorWheel.addEventListener('mousedown', (e) => {
+            // 只有当鼠标按下位置在色盘色彩区域内时，才触发交互
+            if (isPositionInColorWheel(e.clientX, e.clientY)) {
+                isDraggingWheel = true;
+                handleWheelInteraction(e.clientX, e.clientY);
             }
+        });
 
-            ctx.putImageData(imageData, 0, 0);
-            ctx.filter = 'blur(1px)';
-            ctx.drawImage(canvas, 0, 0);
-            ctx.filter = 'none';
-
-            return {
-                canvas,
-                centerX: centerX / scale,
-                centerY: centerY / scale,
-                radius: radius / scale
-            };
-        }
-
-        // 颜色选择器主逻辑
-        document.addEventListener('DOMContentLoaded', () => {
-            const colorWheel = document.getElementById('color-wheel');
-            const wheelData = createColorWheel(colorWheel);
-            const wheelMarker = document.getElementById('wheel-marker');
-
-            // 初始化分段环弧
-            const lightnessRingContainer = document.getElementById('lightness-ring-container');
-            let ringData = null;
-
-            // DOM 元素
-            const hueValue = document.getElementById('hue-value');
-
-            const saturationMarker = document.getElementById('saturation-marker');
-            const lightnessMarker = document.getElementById('lightness-marker');
-            const alphaMarker = document.getElementById('alpha-marker');
-
-            const colorPreview = document.getElementById('color-preview');
-            const hexInput = document.getElementById('hex-input');
-            const rgbInput = document.getElementById('rgb-input');
-            const hslInput = document.getElementById('hsl-input');
-
-            const copyBtns = document.querySelectorAll('.copy-btn');
-            const copyToast = document.getElementById('copy-toast');
-            const recentColors = document.querySelectorAll('.recent-color');
-
-            // 当前颜色状态
-            let currentColor = {
-                h: 217,    // 色相
-                s: 100,    // 饱和度
-                l: 50,     // 亮度
-                a: 100     // 透明度
-            };
-            
-            // 预定义颜色表
-            const predefinedColors = [
-                { h: 0, s: 100, l: 50, name: '红色' },      // 红色
-                { h: 120, s: 100, l: 50, name: '绿色' },    // 绿色
-                { h: 240, s: 100, l: 50, name: '蓝色' },    // 蓝色
-                { h: 60, s: 100, l: 50, name: '黄色' },     // 黄色
-                { h: 300, s: 100, l: 50, name: '品红' },    // 品红
-                { h: 180, s: 100, l: 50, name: '青色' },    // 青色
-                { h: 45, s: 100, l: 50, name: '橙色' },     // 橙色
-                { h: 90, s: 100, l: 50, name: '黄绿色' },   // 黄绿色
-                { h: 270, s: 100, l: 50, name: '紫色' }     // 紫色
-            ];
-            
-            // 更新预定义颜色表的UI
-            const updatePredefinedColorsUI = () => {
-                const colorElements = document.querySelectorAll('.recent-color');
-                colorElements.forEach((el, index) => {
-                    if (index < predefinedColors.length) {
-                        const color = predefinedColors[index];
-                        el.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
-                        el.title = color.name; // 添加颜色名称提示
-                        el.style.display = 'block';
-                    } else {
-                        // 超出预定义颜色范围的元素隐藏
-                        el.style.display = 'none';
-                    }
-                });
-            };
-
-            // 存储上一次的色相和饱和度值，用于检测变化
-            let lastHue = currentColor.h;
-            let lastSaturation = currentColor.s;
-
-            // 根据当前颜色创建亮度环 - 使用固定亮度值(50%)计算基色，确保亮度环基于色盘位置的颜色
-            const createRingWithCurrentColor = () => {
-                const { h, s } = currentColor;
-                const fixedLightness = 50; // 固定亮度值为50%，忽略当前颜色的亮度值
-                const alpha = 1; // 固定透明度为100%
-                ringData = createRing(lightnessRingContainer, { h, s, l: fixedLightness, a: alpha });
-            };
-
-            // 初始化创建亮度环
-            createRingWithCurrentColor();
-
-            // 更新颜色显示
-            const updateColorDisplay = () => {
-                const { h, s, l, a } = currentColor;
-                const rgb = ColorUtils.hslToRgb(h, s, l);
-                const hex = ColorUtils.rgbToHex(rgb.r, rgb.g, rgb.b);
-
-                colorPreview.style.backgroundColor = `hsla(${h}, ${s}%, ${l}%, ${a / 100})`;
-
-                hexInput.value = hex;
-                rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-                hslInput.value = `hsl(${h}, ${s}%, ${l}%)`;
-
-                // 当色相或饱和度改变时，重新绘制亮度环
-                if (Math.abs(h - lastHue) > 0.5 || Math.abs(s - lastSaturation) > 0.5) {
-                    createRingWithCurrentColor();
-                    lastHue = h;
-                    lastSaturation = s;
-                }
-
-                updateMarkerPositions();
-            };
-
-            // 更新标记位置
-            const updateMarkerPositions = () => {
-                const { h, s, l, a } = currentColor;
-
-                // 颜色圆盘标记
-                const pos = ColorUtils.hslToPosition(
-                    h, s,
-                    wheelData.centerX, wheelData.centerY,
-                    wheelData.radius
-                );
-                wheelMarker.style.left = `${pos.x}px`;
-                wheelMarker.style.top = `${pos.y}px`;
-                wheelMarker.style.display = 'block';
-                const wheelRgb = ColorUtils.hslToRgb(h, s, 50); // 使用固定亮度值50%，与色盘一致
-                wheelMarker.style.backgroundColor = `rgb(${wheelRgb.r}, ${wheelRgb.g}, ${wheelRgb.b})`;
-
-                // 确保ringData已初始化
-                if (!ringData) return;
-
-                // 为每个分段环弧添加标记，确保位置计算基于容器
-                // 饱和度环弧标记 - 根据当前饱和度值计算角度位置
-                const saturationAngle = 160 + (100 - s);
-                const saturationDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
-                const saturationPosX = ringData.centerX + Math.cos(saturationAngle * Math.PI / 180) * saturationDistanceFromCenter;
-                const saturationPosY = ringData.centerY + Math.sin(saturationAngle * Math.PI / 180) * saturationDistanceFromCenter;
-
-                saturationMarker.style.left = `${saturationPosX}px`;
-                saturationMarker.style.top = `${saturationPosY}px`;
-                saturationMarker.style.display = 'block';
-
-                // 亮度环弧标记 - 根据当前亮度值计算角度位置
-                // 注意：因为亮度弧跨越了360度边界（280度到20度），需要特殊处理角度计算
-                let lightnessAngle = 280 + (100 - l);
-                if (lightnessAngle > 360) {
-                    lightnessAngle -= 360;
-                }
-                const lightnessDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
-                const lightnessPosX = ringData.centerX + Math.cos(lightnessAngle * Math.PI / 180) * lightnessDistanceFromCenter;
-                const lightnessPosY = ringData.centerY + Math.sin(lightnessAngle * Math.PI / 180) * lightnessDistanceFromCenter;
-
-                lightnessMarker.style.left = `${lightnessPosX}px`;
-                lightnessMarker.style.top = `${lightnessPosY}px`;
-                lightnessMarker.style.display = 'block';
-
-                // 透明度环弧标记 - 根据当前透明度值计算角度位置
-                const alphaAngle = 40 + a;
-                const alphaDistanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
-                const alphaPosX = ringData.centerX + Math.cos(alphaAngle * Math.PI / 180) * alphaDistanceFromCenter;
-                const alphaPosY = ringData.centerY + Math.sin(alphaAngle * Math.PI / 180) * alphaDistanceFromCenter;
-
-                alphaMarker.style.left = `${alphaPosX}px`;
-                alphaMarker.style.top = `${alphaPosY}px`;
-                alphaMarker.style.display = 'block';
-
-                // 为所有标记设置当前最终输出颜色
-                const rgb = ColorUtils.hslToRgb(h, s, l);
-                saturationMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-                lightnessMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-                alphaMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-            }
-
-            // 处理颜色圆盘交互
-            let isDraggingWheel = false;
-            let isDraggingRing = false;
-
-            const handleWheelInteraction = (clientX, clientY) => {
-                const rect = wheelData.canvas.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
-
-                const hsl = ColorUtils.positionToHsl(
-                    x, y,
-                    wheelData.centerX, wheelData.centerY,
-                    wheelData.radius
-                );
-
-                currentColor.h = Math.round(hsl.h);
-                currentColor.s = Math.round(hsl.s);
-
-                updateColorDisplay();
-            };
-
-            // 从亮度环位置计算亮度值 - 根据角度确定亮度值，连续渐变
-            const getLightnessFromRingPosition = (clientX, clientY) => {
+        // 鼠标移动事件，同时处理色盘和分段环弧
+        document.addEventListener('mousemove', (e) => {
+            if (isDraggingWheel) {
+                handleWheelInteraction(e.clientX, e.clientY);
+            } else if (isDraggingRing && currentDraggingSegmentType) {
                 const rect = ringData.canvas.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
-                const dx = x - ringData.centerX;
-                const dy = y - ringData.centerY;
-                // 计算角度（0-360度）
-                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                if (angle < 0) angle += 360;
-
-                // 根据角度确定亮度值，连续渐变（0%到100%）
-                const lightness = 100 - (angle / 360) * 100; // 亮度从100%到0%的连续变化
-
-                // 限制在0-100范围内并四舍五入到整数
-                return Math.round(Math.max(0, Math.min(100, lightness)));
-            }
-
-            // 处理亮度环交互
-            const handleRingInteraction = (clientX, clientY) => {
-                const lightness = getLightnessFromRingPosition(clientX, clientY);
-                if (lightness !== null) {
-                    currentColor.l = lightness;
+                // 根据鼠标按下时确定的环弧类型和当前角度计算值
+                const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
+                if (value !== null) {
+                    if (currentDraggingSegmentType === 'saturation') {
+                        currentColor.s = value;
+                    } else if (currentDraggingSegmentType === 'lightness') {
+                        currentColor.l = value;
+                    } else if (currentDraggingSegmentType === 'alpha') {
+                        currentColor.a = value;
+                    }
                     updateColorDisplay();
                 }
-            };
-
-            // 从色盘位置检测是否在色彩区域内
-            const isPositionInColorWheel = (clientX, clientY) => {
-                const rect = wheelData.canvas.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
-
-                const dx = x - wheelData.centerX;
-                const dy = y - wheelData.centerY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                // 检查是否在色盘半径范围内
-                return distance <= wheelData.radius * 1.1; // 添加一些容差范围
             }
+        });
 
-            colorWheel.addEventListener('mousedown', (e) => {
-                // 只有当鼠标按下位置在色盘色彩区域内时，才触发交互
-                if (isPositionInColorWheel(e.clientX, e.clientY)) {
-                    isDraggingWheel = true;
-                    handleWheelInteraction(e.clientX, e.clientY);
+        document.addEventListener('mouseup', () => {
+            isDraggingWheel = false;
+            isDraggingRing = false;
+            currentDraggingSegmentType = null;
+        });
+
+        // 触摸设备支持 - 色盘
+        colorWheel.addEventListener('touchstart', (e) => {
+            isDraggingWheel = true;
+            const touch = e.touches[0];
+            handleWheelInteraction(touch.clientX, touch.clientY);
+            e.preventDefault();
+        });
+
+        // 触摸设备支持 - 环弧
+        document.addEventListener('touchstart', (e) => {
+            // 只有当不是在拖动色盘时，才触发环弧的交互
+            if (!isDraggingWheel) {
+                const touch = e.touches[0];
+                const rect = ringData.canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+
+                // 检查点击位置属于哪个环弧
+                const segmentType = getSegmentTypeAtPosition(x, y);
+
+                if (segmentType) {
+                    isDraggingRing = true;
+                    currentDraggingSegmentType = segmentType;
+                    e.preventDefault();
                 }
-            });
+            }
+        });
 
-            // 鼠标移动事件，同时处理色盘和分段环弧
-            document.addEventListener('mousemove', (e) => {
-                if (isDraggingWheel) {
-                    handleWheelInteraction(e.clientX, e.clientY);
-                } else if (isDraggingRing && currentDraggingSegmentType) {
-                    const rect = ringData.canvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    // 根据鼠标按下时确定的环弧类型和当前角度计算值
-                    const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
-                    if (value !== null) {
-                        if (currentDraggingSegmentType === 'saturation') {
-                            currentColor.s = value;
-                        } else if (currentDraggingSegmentType === 'lightness') {
-                            currentColor.l = value;
-                        } else if (currentDraggingSegmentType === 'alpha') {
-                            currentColor.a = value;
-                        }
-                        updateColorDisplay();
-                    }
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                isDraggingWheel = false;
-                isDraggingRing = false;
-                currentDraggingSegmentType = null;
-            });
-
-            // 触摸设备支持 - 色盘
-            colorWheel.addEventListener('touchstart', (e) => {
-                isDraggingWheel = true;
+        // 触摸移动事件，同时处理色盘和分段环弧
+        document.addEventListener('touchmove', (e) => {
+            if (isDraggingWheel) {
                 const touch = e.touches[0];
                 handleWheelInteraction(touch.clientX, touch.clientY);
                 e.preventDefault();
-            });
+            } else if (isDraggingRing && currentDraggingSegmentType) {
+                const touch = e.touches[0];
+                const rect = ringData.canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
 
-            // 触摸设备支持 - 环弧
-            document.addEventListener('touchstart', (e) => {
-                // 只有当不是在拖动色盘时，才触发环弧的交互
-                if (!isDraggingWheel) {
-                    const touch = e.touches[0];
-                    const rect = ringData.canvas.getBoundingClientRect();
-                    const x = touch.clientX - rect.left;
-                    const y = touch.clientY - rect.top;
-
-                    // 检查点击位置属于哪个环弧
-                    const segmentType = getSegmentTypeAtPosition(x, y);
-
-                    if (segmentType) {
-                        isDraggingRing = true;
-                        currentDraggingSegmentType = segmentType;
-                        e.preventDefault();
+                // 根据触摸按下时确定的环弧类型和当前角度计算值
+                const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
+                if (value !== null) {
+                    if (currentDraggingSegmentType === 'saturation') {
+                        currentColor.s = value;
+                    } else if (currentDraggingSegmentType === 'lightness') {
+                        currentColor.l = value;
+                    } else if (currentDraggingSegmentType === 'alpha') {
+                        currentColor.a = value;
                     }
-                }
-            });
-
-            // 触摸移动事件，同时处理色盘和分段环弧
-            document.addEventListener('touchmove', (e) => {
-                if (isDraggingWheel) {
-                    const touch = e.touches[0];
-                    handleWheelInteraction(touch.clientX, touch.clientY);
+                    updateColorDisplay();
                     e.preventDefault();
-                } else if (isDraggingRing && currentDraggingSegmentType) {
-                    const touch = e.touches[0];
-                    const rect = ringData.canvas.getBoundingClientRect();
-                    const x = touch.clientX - rect.left;
-                    const y = touch.clientY - rect.top;
+                }
+            }
+        });
 
-                    // 根据触摸按下时确定的环弧类型和当前角度计算值
-                    const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
-                    if (value !== null) {
-                        if (currentDraggingSegmentType === 'saturation') {
-                            currentColor.s = value;
-                        } else if (currentDraggingSegmentType === 'lightness') {
-                            currentColor.l = value;
-                        } else if (currentDraggingSegmentType === 'alpha') {
-                            currentColor.a = value;
-                        }
-                        updateColorDisplay();
-                        e.preventDefault();
+        document.addEventListener('touchend', () => {
+            isDraggingWheel = false;
+            isDraggingRing = false;
+            currentDraggingSegmentType = null;
+        });
+
+        // 定义三个分段环弧的起始角度和占用角度
+        const segments = [
+            { startAngle: 160, arcAngle: 100, type: 'saturation' },  // 160度到260度
+            { startAngle: 280, arcAngle: 100, type: 'lightness' },   // -80度到20度（280度到380度，即280度到20度）
+            { startAngle: 40, arcAngle: 100, type: 'alpha' }         // 40度到140度
+        ];
+
+        // 检查点击位置是否在某个环弧上，并返回对应的环弧类型
+        const getSegmentTypeAtPosition = (x, y) => {
+            const centerX = ringData.centerX;
+            const centerY = ringData.centerY;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // 检查是否在环的宽度范围内
+            if (distance < ringData.innerRadius * 0.9 || distance > ringData.outerRadius * 1.1) {
+                return null;
+            }
+
+            // 计算点击位置的角度
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            if (angle < 0) angle += 360;
+
+            // 检查点击位置属于哪个环弧
+            for (const segment of segments) {
+                const endAngle = segment.startAngle + segment.arcAngle;
+
+                // 处理跨越360度边界的情况
+                if (endAngle > 360) {
+                    // 对于跨越360度边界的环弧（如亮度弧：280度到380度即280度到20度）
+                    if ((angle >= segment.startAngle && angle <= 360) || (angle >= 0 && angle <= endAngle - 360)) {
+                        return segment.type;
+                    }
+                } else {
+                    // 普通环弧（不跨越360度边界）
+                    if (angle >= segment.startAngle && angle <= endAngle) {
+                        return segment.type;
                     }
                 }
-            });
+            }
 
-            document.addEventListener('touchend', () => {
-                isDraggingWheel = false;
-                isDraggingRing = false;
-                currentDraggingSegmentType = null;
-            });
+            return null;
+        };
 
-            // 定义三个分段环弧的起始角度和占用角度
-            const segments = [
-                { startAngle: 160, arcAngle: 100, type: 'saturation' },  // 160度到260度
-                { startAngle: 280, arcAngle: 100, type: 'lightness' },   // -80度到20度（280度到380度，即280度到20度）
-                { startAngle: 40, arcAngle: 100, type: 'alpha' }         // 40度到140度
-            ];
+        // 从环弧位置计算对应的值
+        const getValueFromSegmentPosition = (x, y, segmentType) => {
+            const centerX = ringData.centerX;
+            const centerY = ringData.centerY;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            if (angle < 0) angle += 360;
 
-            // 检查点击位置是否在某个环弧上，并返回对应的环弧类型
-            const getSegmentTypeAtPosition = (x, y) => {
-                const centerX = ringData.centerX;
-                const centerY = ringData.centerY;
-                const dx = x - centerX;
-                const dy = y - centerY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                // 检查是否在环的宽度范围内
-                if (distance < ringData.innerRadius * 0.9 || distance > ringData.outerRadius * 1.1) {
-                    return null;
-                }
-
-                // 计算点击位置的角度
-                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                if (angle < 0) angle += 360;
-
-                // 检查点击位置属于哪个环弧
-                for (const segment of segments) {
+            // 根据不同的环弧类型计算值
+            for (const segment of segments) {
+                if (segment.type === segmentType) {
+                    // 计算在当前环弧中的相对位置
+                    let relativePosition;
                     const endAngle = segment.startAngle + segment.arcAngle;
 
                     // 处理跨越360度边界的情况
                     if (endAngle > 360) {
-                        // 对于跨越360度边界的环弧（如亮度弧：280度到380度即280度到20度）
-                        if ((angle >= segment.startAngle && angle <= 360) || (angle >= 0 && angle <= endAngle - 360)) {
-                            return segment.type;
+                        if (angle >= segment.startAngle) {
+                            // 角度在起始角度到360度之间
+                            relativePosition = (angle - segment.startAngle) / segment.arcAngle;
+                        } else {
+                            // 角度在0度到结束角度减去360度之间
+                            if (angle < segment.startAngle && angle <= 180) {
+                                angle += 360;
+                            }
+                            relativePosition = (angle - segment.startAngle) / segment.arcAngle;
                         }
                     } else {
                         // 普通环弧（不跨越360度边界）
-                        if (angle >= segment.startAngle && angle <= endAngle) {
-                            return segment.type;
-                        }
+                        relativePosition = (angle - segment.startAngle) / segment.arcAngle;
+                    }
+                    // 确保相对位置在0-1范围内
+                    const clampedPosition = Math.max(0, Math.min(1, relativePosition));
+
+                    // 根据环弧类型返回不同的值
+                    if (segmentType === 'saturation') {
+                        return Math.round((1 - clampedPosition) * 100); // 饱和度从100%到0%
+                    } else if (segmentType === 'lightness') {
+                        return Math.round((1 - clampedPosition) * 100); // 亮度从100%到0%
+                    } else if (segmentType === 'alpha') {
+                        return Math.round(clampedPosition * 100); // 透明度从0%到100%
                     }
                 }
+            }
 
-                return null;
-            };
+            return null;
+        };
 
-            // 从环弧位置计算对应的值
-            const getValueFromSegmentPosition = (x, y, segmentType) => {
-                const centerX = ringData.centerX;
-                const centerY = ringData.centerY;
-                const dx = x - centerX;
-                const dy = y - centerY;
-                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                if (angle < 0) angle += 360;
+        // 保存当前拖动的环弧类型
+        let currentDraggingSegmentType = null;
 
-                // 根据不同的环弧类型计算值
-                for (const segment of segments) {
-                    if (segment.type === segmentType) {
-                        // 计算在当前环弧中的相对位置
-                        let relativePosition;
-                        const endAngle = segment.startAngle + segment.arcAngle;
+        // 分段环弧鼠标事件
+        document.addEventListener('mousedown', (e) => {
+            // 只有当不是在拖动色盘时，才触发环弧的交互
+            if (!isDraggingWheel) {
+                const rect = ringData.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
-                        // 处理跨越360度边界的情况
-                        if (endAngle > 360) {
-                            if (angle >= segment.startAngle) {
-                                // 角度在起始角度到360度之间
-                                relativePosition = (angle - segment.startAngle) / segment.arcAngle;
-                            } else {
-                                // 角度在0度到结束角度减去360度之间
-                                if (angle < segment.startAngle && angle <= 180) {
-                                    angle += 360;
-                                }
-                                relativePosition = (angle - segment.startAngle) / segment.arcAngle;
-                            }
-                        } else {
-                            // 普通环弧（不跨越360度边界）
-                            relativePosition = (angle - segment.startAngle) / segment.arcAngle;
-                        }
-                        // 确保相对位置在0-1范围内
-                        const clampedPosition = Math.max(0, Math.min(1, relativePosition));
+                // 检查点击位置属于哪个环弧
+                const segmentType = getSegmentTypeAtPosition(x, y);
 
-                        // 根据环弧类型返回不同的值
+                if (segmentType) {
+                    isDraggingRing = true;
+                    currentDraggingSegmentType = segmentType;
+
+                    // 根据点击的环弧类型处理交互
+                    const value = getValueFromSegmentPosition(x, y, segmentType);
+                    if (value !== null) {
                         if (segmentType === 'saturation') {
-                            return Math.round((1 - clampedPosition) * 100); // 饱和度从100%到0%
+                            currentColor.s = value;
                         } else if (segmentType === 'lightness') {
-                            return Math.round((1 - clampedPosition) * 100); // 亮度从100%到0%
+                            currentColor.l = value;
                         } else if (segmentType === 'alpha') {
-                            return Math.round(clampedPosition * 100); // 透明度从0%到100%
+                            currentColor.a = value;
                         }
+                        updateColorDisplay();
                     }
+
+                    e.stopPropagation(); // 阻止事件冒泡到色盘
                 }
+            }
+        });
 
-                return null;
-            };
+        // 分段环弧触摸事件
+        document.addEventListener('touchstart', (e) => {
+            if (!isDraggingWheel) {
+                const touch = e.touches[0];
+                const rect = ringData.canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
 
-            // 保存当前拖动的环弧类型
-            let currentDraggingSegmentType = null;
+                // 检查触摸位置属于哪个环弧
+                const segmentType = getSegmentTypeAtPosition(x, y);
 
-            // 分段环弧鼠标事件
-            document.addEventListener('mousedown', (e) => {
-                // 只有当不是在拖动色盘时，才触发环弧的交互
-                if (!isDraggingWheel) {
-                    const rect = ringData.canvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+                if (segmentType) {
+                    isDraggingRing = true;
 
-                    // 检查点击位置属于哪个环弧
-                    const segmentType = getSegmentTypeAtPosition(x, y);
-
-                    if (segmentType) {
-                        isDraggingRing = true;
-                        currentDraggingSegmentType = segmentType;
-
-                        // 根据点击的环弧类型处理交互
-                        const value = getValueFromSegmentPosition(x, y, segmentType);
-                        if (value !== null) {
-                            if (segmentType === 'saturation') {
-                                currentColor.s = value;
-                            } else if (segmentType === 'lightness') {
-                                currentColor.l = value;
-                            } else if (segmentType === 'alpha') {
-                                currentColor.a = value;
-                            }
-                            updateColorDisplay();
+                    // 根据触摸的环弧类型处理交互
+                    const value = getValueFromSegmentPosition(x, y, segmentType);
+                    if (value !== null) {
+                        if (segmentType === 'saturation') {
+                            currentColor.s = value;
+                        } else if (segmentType === 'lightness') {
+                            currentColor.l = value;
+                        } else if (segmentType === 'alpha') {
+                            currentColor.a = value;
                         }
-
-                        e.stopPropagation(); // 阻止事件冒泡到色盘
+                        updateColorDisplay();
                     }
+
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
-            });
-
-            // 分段环弧触摸事件
-            document.addEventListener('touchstart', (e) => {
-                if (!isDraggingWheel) {
-                    const touch = e.touches[0];
-                    const rect = ringData.canvas.getBoundingClientRect();
-                    const x = touch.clientX - rect.left;
-                    const y = touch.clientY - rect.top;
-
-                    // 检查触摸位置属于哪个环弧
-                    const segmentType = getSegmentTypeAtPosition(x, y);
-
-                    if (segmentType) {
-                        isDraggingRing = true;
-
-                        // 根据触摸的环弧类型处理交互
-                        const value = getValueFromSegmentPosition(x, y, segmentType);
-                        if (value !== null) {
-                            if (segmentType === 'saturation') {
-                                currentColor.s = value;
-                            } else if (segmentType === 'lightness') {
-                                currentColor.l = value;
-                            } else if (segmentType === 'alpha') {
-                                currentColor.a = value;
-                            }
-                            updateColorDisplay();
-                        }
-
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                }
-            });
+            }
+        });
 
 
 
-            // 输入框事件处理
-            hexInput.addEventListener('blur', (e) => {
-                const rgb = ColorUtils.hexToRgb(e.target.value);
-                if (rgb) {
-                    const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
+        // 输入框事件处理
+        hexInput.addEventListener('blur', (e) => {
+            const rgb = ColorUtils.hexToRgb(e.target.value);
+            if (rgb) {
+                const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
+                currentColor.h = hsl.h;
+                currentColor.s = hsl.s;
+                currentColor.l = hsl.l;
+
+                updateColorDisplay();
+            } else {
+                updateColorDisplay();
+            }
+        });
+
+        rgbInput.addEventListener('blur', (e) => {
+            const match = e.target.value.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+            if (match) {
+                const r = parseInt(match[1]);
+                const g = parseInt(match[2]);
+                const b = parseInt(match[3]);
+
+                if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+                    const hsl = ColorUtils.rgbToHsl(r, g, b);
                     currentColor.h = hsl.h;
                     currentColor.s = hsl.s;
                     currentColor.l = hsl.l;
 
                     updateColorDisplay();
-                } else {
+                    return;
+                }
+            }
+            updateColorDisplay();
+        });
+
+        hslInput.addEventListener('blur', (e) => {
+            const match = e.target.value.match(/^hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/);
+            if (match) {
+                const h = parseInt(match[1]);
+                const s = parseInt(match[2]);
+                const l = parseInt(match[3]);
+
+                if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
+                    currentColor.h = h;
+                    currentColor.s = s;
+                    currentColor.l = l;
+
+                    updateColorDisplay();
+                    return;
+                }
+            }
+            updateColorDisplay();
+        });
+
+        // 复制按钮功能
+        copyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+
+                targetInput.select();
+                document.execCommand('copy');
+
+                copyToast.style.opacity = '1';
+                setTimeout(() => {
+                    copyToast.style.opacity = '0';
+                }, 2000);
+            });
+        });
+
+        // 预定义颜色点击事件
+        recentColors.forEach((colorEl, index) => {
+            colorEl.addEventListener('click', () => {
+                if (index < predefinedColors.length) {
+                    const color = predefinedColors[index];
+                    currentColor.h = color.h;
+                    currentColor.s = color.s;
+                    currentColor.l = color.l;
+
                     updateColorDisplay();
                 }
             });
+        });
 
-            rgbInput.addEventListener('blur', (e) => {
-                const match = e.target.value.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
-                if (match) {
-                    const r = parseInt(match[1]);
-                    const g = parseInt(match[2]);
-                    const b = parseInt(match[3]);
-
-                    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
-                        const hsl = ColorUtils.rgbToHsl(r, g, b);
-                        currentColor.h = hsl.h;
-                        currentColor.s = hsl.s;
-                        currentColor.l = hsl.l;
-
-                        updateColorDisplay();
-                        return;
-                    }
-                }
-                updateColorDisplay();
-            });
-
-            hslInput.addEventListener('blur', (e) => {
-                const match = e.target.value.match(/^hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/);
-                if (match) {
-                    const h = parseInt(match[1]);
-                    const s = parseInt(match[2]);
-                    const l = parseInt(match[3]);
-
-                    if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
-                        currentColor.h = h;
-                        currentColor.s = s;
-                        currentColor.l = l;
-
-                        updateColorDisplay();
-                        return;
-                    }
-                }
-                updateColorDisplay();
-            });
-
-            // 复制按钮功能
-            copyBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const targetId = btn.getAttribute('data-target');
-                    const targetInput = document.getElementById(targetId);
-
-                    targetInput.select();
-                    document.execCommand('copy');
-
-                    copyToast.style.opacity = '1';
-                    setTimeout(() => {
-                        copyToast.style.opacity = '0';
-                    }, 2000);
-                });
-            });
-
-            // 预定义颜色点击事件
-            recentColors.forEach((colorEl, index) => {
-                colorEl.addEventListener('click', () => {
-                    if (index < predefinedColors.length) {
-                        const color = predefinedColors[index];
-                        currentColor.h = color.h;
-                        currentColor.s = color.s;
-                        currentColor.l = color.l;
-                        
-                        updateColorDisplay();
-                    }
-                });
-            });
-
-            // 初始化
-            updatePredefinedColorsUI();
+        // 点击恢复初始颜色
+        colorStart.addEventListener('click', () => {
+            // 复制初始颜色到当前颜色
+            currentColor = { ...initialColor };
+            // 更新显示
             updateColorDisplay();
         });
-    </script>
-</body>
+        
+        // 初始化
+        updatePredefinedColorsUI();
+        updateColorDisplay();
+    });
+</script>
 
 </html>
