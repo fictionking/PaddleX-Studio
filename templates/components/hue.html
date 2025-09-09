@@ -768,27 +768,22 @@
             document.addEventListener('mousemove', (e) => {
                 if (isDraggingWheel) {
                     handleWheelInteraction(e.clientX, e.clientY);
-                } else if (isDraggingRing) {
+                } else if (isDraggingRing && currentDraggingSegmentType) {
                     const rect = ringData.canvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     
-                    // 检查拖动位置属于哪个环弧
-                    const segmentType = getSegmentTypeAtPosition(x, y);
-                    
-                    if (segmentType) {
-                        // 根据拖动的环弧类型处理交互
-                        const value = getValueFromSegmentPosition(x, y, segmentType);
-                        if (value !== null) {
-                            if (segmentType === 'saturation') {
-                                currentColor.s = value;
-                            } else if (segmentType === 'lightness') {
-                                currentColor.l = value;
-                            } else if (segmentType === 'alpha') {
-                                currentColor.a = value;
-                            }
-                            updateColorDisplay();
+                    // 根据鼠标按下时确定的环弧类型和当前角度计算值
+                    const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
+                    if (value !== null) {
+                        if (currentDraggingSegmentType === 'saturation') {
+                            currentColor.s = value;
+                        } else if (currentDraggingSegmentType === 'lightness') {
+                            currentColor.l = value;
+                        } else if (currentDraggingSegmentType === 'alpha') {
+                            currentColor.a = value;
                         }
+                        updateColorDisplay();
                     }
                 }
             });
@@ -796,6 +791,7 @@
             document.addEventListener('mouseup', () => {
                 isDraggingWheel = false;
                 isDraggingRing = false;
+                currentDraggingSegmentType = null;
             });
 
             // 触摸设备支持 - 色盘
@@ -805,6 +801,26 @@
                 handleWheelInteraction(touch.clientX, touch.clientY);
                 e.preventDefault();
             });
+            
+            // 触摸设备支持 - 环弧
+            document.addEventListener('touchstart', (e) => {
+                // 只有当不是在拖动色盘时，才触发环弧的交互
+                if (!isDraggingWheel) {
+                    const touch = e.touches[0];
+                    const rect = ringData.canvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    
+                    // 检查点击位置属于哪个环弧
+                    const segmentType = getSegmentTypeAtPosition(x, y);
+                    
+                    if (segmentType) {
+                        isDraggingRing = true;
+                        currentDraggingSegmentType = segmentType;
+                        e.preventDefault();
+                    }
+                }
+            });
 
             // 触摸移动事件，同时处理色盘和分段环弧
             document.addEventListener('touchmove', (e) => {
@@ -812,28 +828,23 @@
                     const touch = e.touches[0];
                     handleWheelInteraction(touch.clientX, touch.clientY);
                     e.preventDefault();
-                } else if (isDraggingRing) {
+                } else if (isDraggingRing && currentDraggingSegmentType) {
                     const touch = e.touches[0];
                     const rect = ringData.canvas.getBoundingClientRect();
                     const x = touch.clientX - rect.left;
                     const y = touch.clientY - rect.top;
                     
-                    // 检查拖动位置属于哪个环弧
-                    const segmentType = getSegmentTypeAtPosition(x, y);
-                    
-                    if (segmentType) {
-                        // 根据拖动的环弧类型处理交互
-                        const value = getValueFromSegmentPosition(x, y, segmentType);
-                        if (value !== null) {
-                            if (segmentType === 'saturation') {
-                                currentColor.s = value;
-                            } else if (segmentType === 'lightness') {
-                                currentColor.l = value;
-                            } else if (segmentType === 'alpha') {
-                                currentColor.a = value;
-                            }
-                            updateColorDisplay();
+                    // 根据触摸按下时确定的环弧类型和当前角度计算值
+                    const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
+                    if (value !== null) {
+                        if (currentDraggingSegmentType === 'saturation') {
+                            currentColor.s = value;
+                        } else if (currentDraggingSegmentType === 'lightness') {
+                            currentColor.l = value;
+                        } else if (currentDraggingSegmentType === 'alpha') {
+                            currentColor.a = value;
                         }
+                        updateColorDisplay();
                         e.preventDefault();
                     }
                 }
@@ -842,6 +853,7 @@
             document.addEventListener('touchend', () => {
                 isDraggingWheel = false;
                 isDraggingRing = false;
+                currentDraggingSegmentType = null;
             });
 
             // 定义三个分段环弧的起始角度和占用角度
@@ -910,9 +922,14 @@
                             if (angle >= segment.startAngle) {
                                 // 角度在起始角度到360度之间
                                 relativePosition = (angle - segment.startAngle) / segment.arcAngle;
+                                console.log('角度在起始角度到360度之间', relativePosition)
                             } else {
                                 // 角度在0度到结束角度减去360度之间
-                                relativePosition = (angle + 360 - segment.startAngle) / segment.arcAngle;
+                                if (angle < segment.startAngle && angle<=180) {
+                                    angle += 360;
+                                }
+                                relativePosition = (angle - segment.startAngle) / segment.arcAngle;
+                                console.log('角度在0度到结束角度减去360度之间', relativePosition)
                             }
                         } else {
                             // 普通环弧（不跨越360度边界）
@@ -935,6 +952,9 @@
                 return null;
             };
 
+            // 保存当前拖动的环弧类型
+            let currentDraggingSegmentType = null;
+            
             // 分段环弧鼠标事件
             document.addEventListener('mousedown', (e) => {
                 // 只有当不是在拖动色盘时，才触发环弧的交互
@@ -948,6 +968,7 @@
                     
                     if (segmentType) {
                         isDraggingRing = true;
+                        currentDraggingSegmentType = segmentType;
                         
                         // 根据点击的环弧类型处理交互
                         const value = getValueFromSegmentPosition(x, y, segmentType);
