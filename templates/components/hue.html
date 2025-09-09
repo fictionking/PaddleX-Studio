@@ -106,7 +106,7 @@
 
 <body class="font-inter bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <!-- 主容器 -->
-    <div class="bg-gray-800 rounded-xl shadow-elevation-2 w-full max-w-md overflow-hidden transform-transition">
+    <div class="bg-gray-800 rounded-xl shadow-elevation-2 max-w-md overflow-hidden transform-transition">
         <!-- 标题栏 -->
         <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
             <h1 class="text-sm font-semibold text-white">Color Picker</h1>
@@ -199,42 +199,23 @@
         <!-- 颜色输入区 -->
         <div class="px-4 pb-3">
 
-            <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="relative">
-                    <label class="text-xs text-gray-300 mb-1 block">HEX</label>
-                    <div class="flex">
-                        <input type="text" id="hex-input" value="#3B82F6"
-                            class="w-full px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
-                        <button
-                            class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs"
-                            data-target="hex-input">
-                            <i class="fa fa-copy text-gray-300"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="relative">
-                    <label class="text-xs text-gray-300 mb-1 block">RGB</label>
-                    <div class="flex">
-                        <input type="text" id="rgb-input" value="rgb(59, 130, 246)"
-                            class="w-full px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
-                        <button
-                            class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs"
-                            data-target="rgb-input">
-                            <i class="fa fa-copy text-gray-300"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="relative">
-                    <label class="text-xs text-gray-300 mb-1 block">HSL</label>
-                    <div class="flex">
-                        <input type="text" id="hsl-input" value="hsl(217, 90%, 58%)"
-                            class="w-full px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
-                        <button
-                            class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs"
-                            data-target="hsl-input">
-                            <i class="fa fa-copy text-gray-300"></i>
-                        </button>
-                    </div>
+            <div class="mb-4">
+                <label class="text-xs text-gray-300 mb-1 block">颜色格式</label>
+                <div class="flex">
+                    <select id="color-format-select"
+                        class="w-16 px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white appearance-none">
+                        <option value="hex">HEX</option>
+                        <option value="rgb">RGB</option>
+                        <option value="rgba">RGBA</option>
+                        <option value="hsl">HSL</option>
+                        <option value="hsla">HSLA</option>
+                    </select>
+                    <input type="text" id="color-value-input" value="#3B82F6"
+                        class="flex-1 px-2 py-1.5 border-l-0 border border-gray-700 bg-gray-800 focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
+                    <button id="copy-color-btn"
+                        class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs">
+                        <i class="fa fa-copy text-gray-300"></i>
+                    </button>
                 </div>
             </div>
 
@@ -335,6 +316,62 @@
                 g: parseInt(result[2], 16),
                 b: parseInt(result[3], 16)
             } : null;
+        },
+
+        // RGB 转 RGBA
+        rgbToRgba: (rgb, a = 100) => {
+            return {
+                r: rgb.r,
+                g: rgb.g,
+                b: rgb.b,
+                a: a
+            };
+        },
+
+        // RGBA 转字符串
+        rgbaToString: (r, g, b, a) => {
+            return `rgba(${r}, ${g}, ${b}, ${a / 100})`;
+        },
+
+        // 字符串转 RGBA
+        stringToRgba: (str) => {
+            const match = str.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(0|1|0\.\d+)\s*\)$/);
+            if (match) {
+                const r = parseInt(match[1]);
+                const g = parseInt(match[2]);
+                const b = parseInt(match[3]);
+                const a = Math.round(parseFloat(match[4]) * 100);
+                return { r, g, b, a };
+            }
+            return null;
+        },
+
+        // HSL 转 HSLA
+        hslToHsla: (hsl, a = 100) => {
+            return {
+                h: hsl.h,
+                s: hsl.s,
+                l: hsl.l,
+                a: a
+            };
+        },
+
+        // HSLA 转字符串
+        hslaToString: (h, s, l, a) => {
+            return `hsla(${h}, ${s}%, ${l}%, ${a / 100})`;
+        },
+
+        // 字符串转 HSLA
+        stringToHsla: (str) => {
+            const match = str.match(/^hsla\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*(0|1|0\.\d+)\s*\)$/);
+            if (match) {
+                const h = parseInt(match[1]);
+                const s = parseInt(match[2]);
+                const l = parseInt(match[3]);
+                const a = Math.round(parseFloat(match[4]) * 100);
+                return { h, s, l, a };
+            }
+            return null;
         },
 
         // 从圆盘位置计算HSL颜色
@@ -570,6 +607,9 @@
         const copyBtns = document.querySelectorAll('.copy-btn');
         const copyToast = document.getElementById('copy-toast');
         const recentColors = document.querySelectorAll('.recent-color');
+        const colorFormatSelect = document.getElementById('color-format-select');
+        const colorValueInput = document.getElementById('color-value-input');
+        const copyColorBtn = document.getElementById('copy-color-btn');
 
         // 当前颜色状态
         let currentColor = {
@@ -641,9 +681,25 @@
             const initialRgb = ColorUtils.hslToRgb(initialColor.h, initialColor.s, initialColor.l);
             colorStart.style.backgroundColor = `hsl(${initialColor.h}, ${initialColor.s}%, ${initialColor.l}%)`;
 
-            hexInput.value = hex;
-            rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-            hslInput.value = `hsl(${h}, ${s}%, ${l}%)`;
+            // 根据当前选择的格式更新输入框
+            const format = colorFormatSelect.value;
+            switch (format) {
+                case 'hex':
+                    colorValueInput.value = hex;
+                    break;
+                case 'rgb':
+                    colorValueInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                    break;
+                case 'rgba':
+                    colorValueInput.value = ColorUtils.rgbaToString(rgb.r, rgb.g, rgb.b, a);
+                    break;
+                case 'hsl':
+                    colorValueInput.value = `hsl(${h}, ${s}%, ${l}%)`;
+                    break;
+                case 'hsla':
+                    colorValueInput.value = ColorUtils.hslaToString(h, s, l, a);
+                    break;
+            }
 
             // 当色相或饱和度改变时，重新绘制亮度环
             if (Math.abs(h - lastHue) > 0.5 || Math.abs(s - lastSaturation) > 0.5) {
@@ -1044,74 +1100,113 @@
 
 
 
-        // 输入框事件处理
-        hexInput.addEventListener('blur', (e) => {
-            const rgb = ColorUtils.hexToRgb(e.target.value);
-            if (rgb) {
-                const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
-                currentColor.h = hsl.h;
-                currentColor.s = hsl.s;
-                currentColor.l = hsl.l;
+        // 颜色格式选择器事件
+        colorFormatSelect.addEventListener('change', () => {
+            updateColorDisplay();
+        });
 
+        // 新的颜色值输入框事件处理
+        colorValueInput.addEventListener('blur', (e) => {
+            const format = colorFormatSelect.value;
+            const value = e.target.value;
+            let isValid = false;
+
+            switch (format) {
+                case 'hex':
+                    const rgb = ColorUtils.hexToRgb(value);
+                    if (rgb) {
+                        const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
+                        currentColor.h = hsl.h;
+                        currentColor.s = hsl.s;
+                        currentColor.l = hsl.l;
+                        isValid = true;
+                    }
+                    break;
+                case 'rgb':
+                    const rgbMatch = value.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+                    if (rgbMatch) {
+                        const r = parseInt(rgbMatch[1]);
+                        const g = parseInt(rgbMatch[2]);
+                        const b = parseInt(rgbMatch[3]);
+                        
+                        if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+                            const hsl = ColorUtils.rgbToHsl(r, g, b);
+                            currentColor.h = hsl.h;
+                            currentColor.s = hsl.s;
+                            currentColor.l = hsl.l;
+                            isValid = true;
+                        }
+                    }
+                    break;
+                case 'rgba':
+                    const rgbaMatch = value.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(0|1|0\.\d+)\s*\)$/);
+                    if (rgbaMatch) {
+                        const r = parseInt(rgbaMatch[1]);
+                        const g = parseInt(rgbaMatch[2]);
+                        const b = parseInt(rgbaMatch[3]);
+                        const a = Math.round(parseFloat(rgbaMatch[4]) * 100);
+                        
+                        if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255 && a >= 0 && a <= 100) {
+                            const hsl = ColorUtils.rgbToHsl(r, g, b);
+                            currentColor.h = hsl.h;
+                            currentColor.s = hsl.s;
+                            currentColor.l = hsl.l;
+                            currentColor.a = a;
+                            isValid = true;
+                        }
+                    }
+                    break;
+                case 'hsl':
+                    const hslMatch = value.match(/^hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/);
+                    if (hslMatch) {
+                        const h = parseInt(hslMatch[1]);
+                        const s = parseInt(hslMatch[2]);
+                        const l = parseInt(hslMatch[3]);
+                        
+                        if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
+                            currentColor.h = h;
+                            currentColor.s = s;
+                            currentColor.l = l;
+                            isValid = true;
+                        }
+                    }
+                    break;
+                case 'hsla':
+                    const hslaMatch = value.match(/^hsla\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*(0|1|0\.\d+)\s*\)$/);
+                    if (hslaMatch) {
+                        const h = parseInt(hslaMatch[1]);
+                        const s = parseInt(hslaMatch[2]);
+                        const l = parseInt(hslaMatch[3]);
+                        const a = Math.round(parseFloat(hslaMatch[4]) * 100);
+                        
+                        if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100 && a >= 0 && a <= 100) {
+                            currentColor.h = h;
+                            currentColor.s = s;
+                            currentColor.l = l;
+                            currentColor.a = a;
+                            isValid = true;
+                        }
+                    }
+                    break;
+            }
+
+            if (isValid) {
                 updateColorDisplay();
             } else {
+                // 如果输入无效，重置显示
                 updateColorDisplay();
             }
-        });
-
-        rgbInput.addEventListener('blur', (e) => {
-            const match = e.target.value.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
-            if (match) {
-                const r = parseInt(match[1]);
-                const g = parseInt(match[2]);
-                const b = parseInt(match[3]);
-
-                if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
-                    const hsl = ColorUtils.rgbToHsl(r, g, b);
-                    currentColor.h = hsl.h;
-                    currentColor.s = hsl.s;
-                    currentColor.l = hsl.l;
-
-                    updateColorDisplay();
-                    return;
-                }
-            }
-            updateColorDisplay();
-        });
-
-        hslInput.addEventListener('blur', (e) => {
-            const match = e.target.value.match(/^hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/);
-            if (match) {
-                const h = parseInt(match[1]);
-                const s = parseInt(match[2]);
-                const l = parseInt(match[3]);
-
-                if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
-                    currentColor.h = h;
-                    currentColor.s = s;
-                    currentColor.l = l;
-
-                    updateColorDisplay();
-                    return;
-                }
-            }
-            updateColorDisplay();
         });
 
         // 复制按钮功能
-        copyBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.getAttribute('data-target');
-                const targetInput = document.getElementById(targetId);
+        copyColorBtn.addEventListener('click', () => {
+            colorValueInput.select();
+            document.execCommand('copy');
 
-                targetInput.select();
-                document.execCommand('copy');
-
-                copyToast.style.opacity = '1';
-                setTimeout(() => {
-                    copyToast.style.opacity = '0';
-                }, 2000);
-            });
+            copyToast.style.opacity = '1';
+            setTimeout(() => {
+                copyToast.style.opacity = '0';
+            }, 2000);
         });
 
         // 预定义颜色点击事件
