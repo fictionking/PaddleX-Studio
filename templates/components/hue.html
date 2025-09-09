@@ -97,6 +97,31 @@
                 </div>
                 <div id="color-preview" class="absolute inset-0 "></div>
             </div>
+            
+            <!-- 最近使用颜色 - 右上角 -->
+            <div id="recent-colors-top-right" class="absolute top-2 right-2 w-24 h-24 z-10">
+                <!-- 右上角三角形排布的3个颜色 -->
+                <div class="recent-color absolute top-0 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute top-0 right-6 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute top-6 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute top-4 right-4 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+            </div>
+            
+            <!-- 最近使用颜色 - 右下角 -->
+            <div id="recent-colors-bottom-right" class="absolute bottom-2 right-2 w-24 h-24 z-10">
+                <!-- 右下角三角形排布的3个颜色 -->
+                <div class="recent-color absolute bottom-8 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute bottom-0 right-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute bottom-0 right-8 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+            </div>
+            
+            <!-- 最近使用颜色 - 左下角 -->
+            <div id="recent-colors-bottom-left" class="absolute bottom-2 left-2 w-24 h-24 z-10">
+                <!-- 左下角三角形排布的3个颜色 -->
+                <div class="recent-color absolute bottom-8 left-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute bottom-0 left-0 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+                <div class="recent-color absolute bottom-0 left-8 w-5 h-5 rounded-full border border-gray-700 cursor-pointer transition-transform hover:scale-110"></div>
+            </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
             <div class="absolute inset-0 flex items-center justify-center">
 
@@ -524,6 +549,35 @@
                 s: 100,    // 饱和度
                 l: 50,     // 亮度
                 a: 100     // 透明度
+            };
+            
+            // 预定义颜色表
+            const predefinedColors = [
+                { h: 0, s: 100, l: 50, name: '红色' },      // 红色
+                { h: 120, s: 100, l: 50, name: '绿色' },    // 绿色
+                { h: 240, s: 100, l: 50, name: '蓝色' },    // 蓝色
+                { h: 60, s: 100, l: 50, name: '黄色' },     // 黄色
+                { h: 300, s: 100, l: 50, name: '品红' },    // 品红
+                { h: 180, s: 100, l: 50, name: '青色' },    // 青色
+                { h: 45, s: 100, l: 50, name: '橙色' },     // 橙色
+                { h: 90, s: 100, l: 50, name: '黄绿色' },   // 黄绿色
+                { h: 270, s: 100, l: 50, name: '紫色' }     // 紫色
+            ];
+            
+            // 更新预定义颜色表的UI
+            const updatePredefinedColorsUI = () => {
+                const colorElements = document.querySelectorAll('.recent-color');
+                colorElements.forEach((el, index) => {
+                    if (index < predefinedColors.length) {
+                        const color = predefinedColors[index];
+                        el.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+                        el.title = color.name; // 添加颜色名称提示
+                        el.style.display = 'block';
+                    } else {
+                        // 超出预定义颜色范围的元素隐藏
+                        el.style.display = 'none';
+                    }
+                });
             };
 
             // 存储上一次的色相和饱和度值，用于检测变化
@@ -1022,29 +1076,22 @@
                 });
             });
 
-            // 最近使用的颜色点击事件
-            recentColors.forEach(colorEl => {
+            // 预定义颜色点击事件
+            recentColors.forEach((colorEl, index) => {
                 colorEl.addEventListener('click', () => {
-                    const color = colorEl.style.backgroundColor;
-                    if (color) {
-                        const match = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
-                        if (match) {
-                            const r = parseInt(match[1]);
-                            const g = parseInt(match[2]);
-                            const b = parseInt(match[3]);
-
-                            const hsl = ColorUtils.rgbToHsl(r, g, b);
-                            currentColor.h = hsl.h;
-                            currentColor.s = hsl.s;
-                            currentColor.l = hsl.l;
-
-                            updateColorDisplay();
-                        }
+                    if (index < predefinedColors.length) {
+                        const color = predefinedColors[index];
+                        currentColor.h = color.h;
+                        currentColor.s = color.s;
+                        currentColor.l = color.l;
+                        
+                        updateColorDisplay();
                     }
                 });
             });
 
             // 初始化
+            updatePredefinedColorsUI();
             updateColorDisplay();
         });
     </script>
