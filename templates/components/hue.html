@@ -612,11 +612,15 @@
         const copyColorBtn = document.getElementById('copy-color-btn');
 
         // 当前颜色状态
+        // 同时保存RGB和HSL值，避免转换导致的精度损失
         let currentColor = {
-            h: 217,    // 色相
+            h: 240,    // 色相
             s: 100,    // 饱和度
             l: 50,     // 亮度
-            a: 100     // 透明度
+            a: 100,    // 透明度
+            r: 0,      // 红色
+            g: 0,      // 绿色
+            b: 255     // 蓝色
         };
         
         // 初始颜色状态 - 用于恢复初始颜色
@@ -671,14 +675,12 @@
 
         // 更新颜色显示
         const updateColorDisplay = () => {
-            const { h, s, l, a } = currentColor;
-            const rgb = ColorUtils.hslToRgb(h, s, l);
-            const hex = ColorUtils.rgbToHex(rgb.r, rgb.g, rgb.b);
+            const { h, s, l, a, r, g, b } = currentColor;
+            const hex = ColorUtils.rgbToHex(r, g, b);
 
             colorPreview.style.backgroundColor = `hsla(${h}, ${s}%, ${l}%, ${a / 100})`;
             
             // 更新初始颜色显示
-            const initialRgb = ColorUtils.hslToRgb(initialColor.h, initialColor.s, initialColor.l);
             colorStart.style.backgroundColor = `hsl(${initialColor.h}, ${initialColor.s}%, ${initialColor.l}%)`;
 
             // 根据当前选择的格式更新输入框
@@ -688,10 +690,10 @@
                     colorValueInput.value = hex;
                     break;
                 case 'rgb':
-                    colorValueInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                    colorValueInput.value = `rgb(${r}, ${g}, ${b})`;
                     break;
                 case 'rgba':
-                    colorValueInput.value = ColorUtils.rgbaToString(rgb.r, rgb.g, rgb.b, a);
+                    colorValueInput.value = ColorUtils.rgbaToString(r, g, b, a);
                     break;
                 case 'hsl':
                     colorValueInput.value = `hsl(${h}, ${s}%, ${l}%)`;
@@ -787,8 +789,17 @@
                 wheelData.radius
             );
 
-            currentColor.h = Math.round(hsl.h);
-            currentColor.s = Math.round(hsl.s);
+            // 同时更新HSL和RGB值
+            const h = Math.round(hsl.h);
+            const s = Math.round(hsl.s);
+            const l = currentColor.l; // 保持当前亮度值
+            currentColor.h = h;
+            currentColor.s = s;
+            // 从HSL转换为RGB并更新
+            const rgb = ColorUtils.hslToRgb(h, s, l);
+            currentColor.r = rgb.r;
+            currentColor.g = rgb.g;
+            currentColor.b = rgb.b;
 
             updateColorDisplay();
         };
@@ -812,14 +823,6 @@
             return Math.round(Math.max(0, Math.min(100, lightness)));
         }
 
-        // 处理亮度环交互
-        const handleRingInteraction = (clientX, clientY) => {
-            const lightness = getLightnessFromRingPosition(clientX, clientY);
-            if (lightness !== null) {
-                currentColor.l = lightness;
-                updateColorDisplay();
-            }
-        };
 
         // 从色盘位置检测是否在色彩区域内
         const isPositionInColorWheel = (clientX, clientY) => {
@@ -855,12 +858,26 @@
                 // 根据鼠标按下时确定的环弧类型和当前角度计算值
                 const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
                 if (value !== null) {
+                    // 获取当前颜色的HSL值
+                    const { h, s, l } = currentColor;
+                    
                     if (currentDraggingSegmentType === 'saturation') {
                         currentColor.s = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, value, l);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
                     } else if (currentDraggingSegmentType === 'lightness') {
                         currentColor.l = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, s, value);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
                     } else if (currentDraggingSegmentType === 'alpha') {
                         currentColor.a = value;
+                        // 透明度不影响RGB值
                     }
                     updateColorDisplay();
                 }
@@ -916,12 +933,26 @@
                 // 根据触摸按下时确定的环弧类型和当前角度计算值
                 const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
                 if (value !== null) {
+                    // 获取当前颜色的HSL值
+                    const { h, s, l } = currentColor;
+                    
                     if (currentDraggingSegmentType === 'saturation') {
                         currentColor.s = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, value, l);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
                     } else if (currentDraggingSegmentType === 'lightness') {
                         currentColor.l = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, s, value);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
                     } else if (currentDraggingSegmentType === 'alpha') {
                         currentColor.a = value;
+                        // 透明度不影响RGB值
                     }
                     updateColorDisplay();
                     e.preventDefault();
@@ -1048,17 +1079,31 @@
                     currentDraggingSegmentType = segmentType;
 
                     // 根据点击的环弧类型处理交互
-                    const value = getValueFromSegmentPosition(x, y, segmentType);
-                    if (value !== null) {
-                        if (segmentType === 'saturation') {
-                            currentColor.s = value;
-                        } else if (segmentType === 'lightness') {
-                            currentColor.l = value;
-                        } else if (segmentType === 'alpha') {
-                            currentColor.a = value;
-                        }
-                        updateColorDisplay();
+                const value = getValueFromSegmentPosition(x, y, segmentType);
+                if (value !== null) {
+                    // 获取当前颜色的HSL值
+                    const { h, s, l } = currentColor;
+                    
+                    if (segmentType === 'saturation') {
+                        currentColor.s = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, value, l);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
+                    } else if (segmentType === 'lightness') {
+                        currentColor.l = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, s, value);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
+                    } else if (segmentType === 'alpha') {
+                        currentColor.a = value;
+                        // 透明度不影响RGB值
                     }
+                    updateColorDisplay();
+                }
 
                     e.stopPropagation(); // 阻止事件冒泡到色盘
                 }
@@ -1080,17 +1125,31 @@
                     isDraggingRing = true;
 
                     // 根据触摸的环弧类型处理交互
-                    const value = getValueFromSegmentPosition(x, y, segmentType);
-                    if (value !== null) {
-                        if (segmentType === 'saturation') {
-                            currentColor.s = value;
-                        } else if (segmentType === 'lightness') {
-                            currentColor.l = value;
-                        } else if (segmentType === 'alpha') {
-                            currentColor.a = value;
-                        }
-                        updateColorDisplay();
+                const value = getValueFromSegmentPosition(x, y, segmentType);
+                if (value !== null) {
+                    // 获取当前颜色的HSL值
+                    const { h, s, l } = currentColor;
+                    
+                    if (segmentType === 'saturation') {
+                        currentColor.s = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, value, l);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
+                    } else if (segmentType === 'lightness') {
+                        currentColor.l = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, s, value);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
+                    } else if (segmentType === 'alpha') {
+                        currentColor.a = value;
+                        // 透明度不影响RGB值
                     }
+                    updateColorDisplay();
+                }
 
                     e.preventDefault();
                     e.stopPropagation();
@@ -1105,10 +1164,9 @@
             updateColorDisplay();
         });
 
-        // 新的颜色值输入框事件处理
-        colorValueInput.addEventListener('blur', (e) => {
+        // 处理颜色值输入的函数
+        function processColorInput(value) {
             const format = colorFormatSelect.value;
-            const value = e.target.value;
             let isValid = false;
 
             switch (format) {
@@ -1116,9 +1174,13 @@
                     const rgb = ColorUtils.hexToRgb(value);
                     if (rgb) {
                         const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
+                        // 同时更新HSL和RGB值
                         currentColor.h = hsl.h;
                         currentColor.s = hsl.s;
                         currentColor.l = hsl.l;
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
                         isValid = true;
                     }
                     break;
@@ -1128,12 +1190,16 @@
                         const r = parseInt(rgbMatch[1]);
                         const g = parseInt(rgbMatch[2]);
                         const b = parseInt(rgbMatch[3]);
-                        
+                         
                         if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
                             const hsl = ColorUtils.rgbToHsl(r, g, b);
+                            // 同时更新HSL和RGB值
                             currentColor.h = hsl.h;
                             currentColor.s = hsl.s;
                             currentColor.l = hsl.l;
+                            currentColor.r = r;
+                            currentColor.g = g;
+                            currentColor.b = b;
                             isValid = true;
                         }
                     }
@@ -1145,12 +1211,16 @@
                         const g = parseInt(rgbaMatch[2]);
                         const b = parseInt(rgbaMatch[3]);
                         const a = Math.round(parseFloat(rgbaMatch[4]) * 100);
-                        
+                         
                         if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255 && a >= 0 && a <= 100) {
                             const hsl = ColorUtils.rgbToHsl(r, g, b);
+                            // 同时更新HSL、RGB和透明度值
                             currentColor.h = hsl.h;
                             currentColor.s = hsl.s;
                             currentColor.l = hsl.l;
+                            currentColor.r = r;
+                            currentColor.g = g;
+                            currentColor.b = b;
                             currentColor.a = a;
                             isValid = true;
                         }
@@ -1162,11 +1232,16 @@
                         const h = parseInt(hslMatch[1]);
                         const s = parseInt(hslMatch[2]);
                         const l = parseInt(hslMatch[3]);
-                        
+                         
                         if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
+                            // 同时更新HSL和RGB值
                             currentColor.h = h;
                             currentColor.s = s;
                             currentColor.l = l;
+                            const rgbFromHsl = ColorUtils.hslToRgb(h, s, l);
+                            currentColor.r = rgbFromHsl.r;
+                            currentColor.g = rgbFromHsl.g;
+                            currentColor.b = rgbFromHsl.b;
                             isValid = true;
                         }
                     }
@@ -1178,12 +1253,17 @@
                         const s = parseInt(hslaMatch[2]);
                         const l = parseInt(hslaMatch[3]);
                         const a = Math.round(parseFloat(hslaMatch[4]) * 100);
-                        
+                         
                         if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100 && a >= 0 && a <= 100) {
+                            // 同时更新HSL、RGB和透明度值
                             currentColor.h = h;
                             currentColor.s = s;
                             currentColor.l = l;
                             currentColor.a = a;
+                            const rgbFromHsl = ColorUtils.hslToRgb(h, s, l);
+                            currentColor.r = rgbFromHsl.r;
+                            currentColor.g = rgbFromHsl.g;
+                            currentColor.b = rgbFromHsl.b;
                             isValid = true;
                         }
                     }
@@ -1195,6 +1275,20 @@
             } else {
                 // 如果输入无效，重置显示
                 updateColorDisplay();
+            }
+        }
+
+        // 新的颜色值输入框事件处理 - 失去焦点时
+        colorValueInput.addEventListener('blur', (e) => {
+            processColorInput(e.target.value);
+        });
+
+        // 新的颜色值输入框事件处理 - 按下回车键时
+        colorValueInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                processColorInput(e.target.value);
+                // 阻止默认行为，避免回车键在某些情况下可能导致的表单提交
+                e.preventDefault();
             }
         });
 
@@ -1217,6 +1311,12 @@
                     currentColor.h = color.h;
                     currentColor.s = color.s;
                     currentColor.l = color.l;
+                    
+                    // 根据HSL值计算并更新RGB值
+                    const rgb = ColorUtils.hslToRgb(color.h, color.s, color.l);
+                    currentColor.r = rgb.r;
+                    currentColor.g = rgb.g;
+                    currentColor.b = rgb.b;
 
                     updateColorDisplay();
                 }
