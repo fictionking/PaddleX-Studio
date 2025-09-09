@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Hue Corrected Color Picker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        neutral: '#64748B',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'elevation-1': '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+                        'elevation-2': '0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)',
+                    }
+                },
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .color-transition {
+                transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            }
+            .transform-transition {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            /* 色相渐变 - 从上到下按色相值递增排列 */
+            .hue-gradient {
+                background: linear-gradient(
+                    to bottom,
+                    #ff0000, #ffff00, #00ff00, 
+                    #00ffff, #0000ff, #ff00ff, #ff0000
+                );
+            }
+            /* 饱和度渐变 */
+            .saturation-gradient {
+                background: linear-gradient(to bottom, currentColor, #808080);
+            }
+            /* 亮度渐变 */
+            .lightness-gradient {
+                background: linear-gradient(to bottom, #ffffff, currentColor, #000000);
+            }
+            /* 垂直滑块样式 */
+            input[type=range][orient=vertical] {
+                writing-mode: bt-lr; /* IE */
+                -webkit-appearance: slider-vertical; /* Chromium */
+                width: 8px;
+                height: 100%;
+                padding: 0 5px;
+            }
+            /* 亮度环样式 */
+            .lightness-ring {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                pointer-events: auto;
+            }
+            /* 亮度环标记 - 调整大小与环的宽度匹配 */
+            .ring-marker {
+                position: absolute;
+                width: 14px;
+                height: 14px;
+                border: 2px solid white;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+                pointer-events: none;
+                z-index: 1;
+            }
+            /* 颜色圆盘标记 */
+            .wheel-marker {
+                width: 14px;
+                height: 14px;
+                border: 2px solid white;
+                border-radius: 50%;
+                box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 1;
+            }
+            /* 滑块长条标记 */
+            .slider-bar-marker {
+                width: 100%;
+                height: 4px;
+                left: 0;
+                border-radius: 2px;
+                border: 1px solid rgba(0,0,0,0.2);
+                background-color: white;
+                transform: translateY(-50%);
+                pointer-events: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-inter bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <!-- 主容器 -->
+    <div class="bg-gray-800 rounded-xl shadow-elevation-2 w-full max-w-md overflow-hidden transform-transition">
+        <!-- 标题栏 -->
+        <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+            <h1 class="text-sm font-semibold text-white">Color Picker</h1>
+            <button id="close-btn" class="text-gray-400 hover:text-white color-transition text-xs">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <!-- 主要颜色选择区域 -->
+        <div class="px-4 py-3 flex flex-col md:flex-row gap-4">
+            <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
+            <div class="flex-1 flex  items-center justify-center">
+                <!-- 亮度环容器 - 位于底层 -->
+                <div id="lightness-ring-container"
+                    class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
+                    <!-- 亮度环将通过JS生成 -->
+                    <div id="ring-marker" class="ring-marker absolute hidden"></div>
+                </div>
+                <!-- 彩色圆盘 - 位于上层 -->
+                <div id="color-wheel" class="absolute w-[200px] h-[200px] rounded-full overflow-hidden shadow-inner">
+                    <!-- 颜色圆盘将通过JS生成 -->
+                    <!-- 颜色圆盘标记 -->
+                    <div id="wheel-marker" class="wheel-marker absolute hidden"></div>
+
+                </div>
+
+            </div>
+
+            <!-- 两个垂直滑块（移除了色相滑块） -->
+            <div class="flex gap-2">
+
+                <!-- 饱和度滑块 -->
+                <div class="flex flex-col items-center w-6">
+                    <label class="text-xs text-gray-300 mb-1.5 block text-center">Saturation</label>
+                    <div class="relative h-[200px] rounded-lg overflow-hidden w-full">
+                        <div class="absolute inset-0 saturation-gradient" id="saturation-gradient"></div>
+                        <input type="range" id="saturation-slider" min="0" max="100" value="100" orient="vertical"
+                            class="absolute inset-0 opacity-0 cursor-pointer">
+                        <div id="saturation-marker" class="slider-bar-marker absolute" style="top: 0%"></div>
+                    </div>
+                    <span class="text-xs text-gray-300 mt-1" id="saturation-value">100%</span>
+                </div>
+
+                <!-- 亮度滑块 -->
+                <div class="flex flex-col items-center w-6">
+                    <label class="text-xs text-gray-300 mb-1.5 block text-center">Lightness</label>
+                    <div class="relative h-[200px] rounded-lg overflow-hidden w-full">
+                        <div class="absolute inset-0 lightness-gradient" id="lightness-gradient"></div>
+                        <input type="range" id="lightness-slider" min="0" max="100" value="50" orient="vertical"
+                            class="absolute inset-0 opacity-0 cursor-pointer">
+                        <div id="lightness-marker" class="slider-bar-marker absolute" style="top: 50%"></div>
+                    </div>
+                    <span class="text-xs text-gray-300 mt-1" id="lightness-value">50%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 颜色预览和输入区 -->
+        <div class="px-4 pb-3">
+            <div id="color-preview"
+                class="w-full h-16 rounded-lg shadow-inner bg-primary relative overflow-hidden mb-3">
+                <div class="absolute inset-0 bg-gradient-to-tr from-transparent to-white/20"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <div class="relative">
+                    <label class="text-xs text-gray-300 mb-1 block">HEX</label>
+                    <div class="flex">
+                        <input type="text" id="hex-input" value="#3B82F6"
+                            class="w-full px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
+                        <button
+                            class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs"
+                            data-target="hex-input">
+                            <i class="fa fa-copy text-gray-300"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="text-xs text-gray-300 mb-1 block">RGB</label>
+                    <div class="flex">
+                        <input type="text" id="rgb-input" value="rgb(59, 130, 246)"
+                            class="w-full px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
+                        <button
+                            class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs"
+                            data-target="rgb-input">
+                            <i class="fa fa-copy text-gray-300"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="text-xs text-gray-300 mb-1 block">HSL</label>
+                    <div class="flex">
+                        <input type="text" id="hsl-input" value="hsl(217, 90%, 58%)"
+                            class="w-full px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
+                        <button
+                            class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs"
+                            data-target="hsl-input">
+                            <i class="fa fa-copy text-gray-300"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alpha (透明度) 控制 -->
+            <div>
+                <div class="flex justify-between mb-1.5">
+                    <label class="text-xs text-gray-300">Alpha</label>
+                    <span class="text-xs text-gray-300" id="alpha-value">100%</span>
+                </div>
+                <div class="relative h-5 rounded-lg overflow-hidden">
+                    <div id="alpha-slider-bg"
+                        class="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-primary"></div>
+                    <input type="range" id="alpha-slider" min="0" max="100" value="100"
+                        class="w-full h-full opacity-0 cursor-pointer">
+                    <div id="alpha-marker" class="slider-bar-marker absolute h-5" style="top: 50%; left: 100%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-300">
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最近使用的颜色 -->
+        <div class="px-4 pb-4 border-t border-gray-700 pt-3">
+            <h3 class="text-xs font-medium text-gray-300 mb-2">Recent</h3>
+            <div id="recent-colors" class="flex flex-wrap gap-1.5">
+                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
+                    style="background-color: #EF4444"></div>
+                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
+                    style="background-color: #10B981"></div>
+                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
+                    style="background-color: #F59E0B"></div>
+                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
+                    style="background-color: #8B5CF6"></div>
+                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
+                    style="background-color: #EC4899"></div>
+                <div class="recent-color w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border border-gray-700"
+                    style="background-color: #64748B"></div>
+                <div
+                    class="w-6 h-6 rounded-full border border-dashed border-gray-600 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 复制成功提示 -->
+    <div id="copy-toast"
+        class="fixed top-4 right-4 bg-dark text-white px-3 py-1.5 rounded-lg shadow-elevation-2 opacity-0 transition-opacity duration-300 pointer-events-none text-xs">
+        <span>Copied!</span>
+    </div>
+
+    <script>
+        // 颜色转换工具函数
+        const ColorUtils = {
+            // HSL 转 RGB
+            hslToRgb: (h, s, l) => {
+                s /= 100;
+                l /= 100;
+
+                let r, g, b;
+
+                if (s === 0) {
+                    r = g = b = l; // 灰色
+                } else {
+                    const hue2rgb = (p, q, t) => {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1 / 6) return p + (q - p) * 6 * t;
+                        if (t < 1 / 2) return q;
+                        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                        return p;
+                    };
+
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+
+                    r = hue2rgb(p, q, h / 360 + 1 / 3);
+                    g = hue2rgb(p, q, h / 360);
+                    b = hue2rgb(p, q, h / 360 - 1 / 3);
+                }
+
+                return {
+                    r: Math.round(r * 255),
+                    g: Math.round(g * 255),
+                    b: Math.round(b * 255)
+                };
+            },
+
+            // RGB 转 HEX
+            rgbToHex: (r, g, b) => {
+                return `#${[r, g, b]
+                    .map(x => Math.round(x).toString(16).padStart(2, '0'))
+                    .join('')
+                    .toUpperCase()}`;
+            },
+
+            // RGB 转 HSL
+            rgbToHsl: (r, g, b) => {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+
+                if (max === min) {
+                    h = s = 0; // 灰色
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+
+                    h *= 60;
+                }
+
+                return {
+                    h: Math.round(h),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            },
+
+            // HEX 转 RGB
+            hexToRgb: (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            },
+
+            // 从圆盘位置计算HSL颜色
+            positionToHsl: (x, y, centerX, centerY, radius) => {
+                const dx = x - centerX;
+                const dy = centerY - y;
+                const distance = Math.min(Math.sqrt(dx * dx + dy * dy), radius);
+                // 修正色相角度计算，使圆盘与滑块保持一致
+                const angle = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
+
+                return {
+                    h: angle,
+                    s: (distance / radius) * 100,
+                    l: 50
+                };
+            },
+
+            // 从HSL计算圆盘位置
+            hslToPosition: (h, s, centerX, centerY, radius) => {
+                const radians = h * Math.PI / 180;
+                const distance = (s / 100) * radius;
+
+                // 修正Y轴方向，使圆盘与滑块保持一致
+                return {
+                    x: centerX + distance * Math.cos(radians),
+                    y: centerY - distance * Math.sin(-radians)
+                };
+            }
+        };
+
+        // 创建亮度环 - 使用中心辐射渐变实现从纯白色到纯黑色的连续渐变效果，基于当前选中的颜色
+        function createLightnessRing(element, baseColor = null) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const size = Math.min(element.clientWidth, element.clientHeight);
+            const scale = 2;
+            canvas.width = size * scale;
+            canvas.height = size * scale;
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+            canvas.className = 'lightness-ring';
+            canvas.style.zIndex = '0'; // 确保亮度环位于色盘下层
+
+            // 只删除已经存在的canvas元素，保留其他元素如ring-marker
+            const existingCanvases = element.querySelectorAll('canvas');
+            existingCanvases.forEach(canvasEl => {
+                element.removeChild(canvasEl);
+            });
+            element.appendChild(canvas);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const outerRadius = canvas.width / 2;
+            const innerRadius = outerRadius * 0.87; // 亮度环的宽度，设置为外半径的0.9倍，使内径大于色盘的外径
+
+            // 如果没有提供基色，使用默认的蓝色
+            if (!baseColor) {
+                baseColor = { r: 59, g: 130, b: 246 }; // 默认蓝色
+            }
+
+            // 确保浏览器支持createConicGradient方法
+            if (ctx.createConicGradient) {
+                // 使用圆锥渐变创建亮度环
+                const gradient = ctx.createConicGradient(0, centerX, centerY);
+
+                // 创建渐变颜色停止点，每1度一个点，总共360个点
+                for (let angle = 0; angle <= 360; angle++) {
+                    // 根据角度计算亮度值（从100%到0%，基于角度的连续值）
+                    const lightness = 100 - (angle / 360) * 100;
+
+                    // 根据亮度计算颜色
+                    let r, g, b;
+                    if (lightness > 50) {
+                        // 从基色到白色的渐变
+                        const ratio = (lightness - 50) / 50;
+                        r = Math.round(baseColor.r + (255 - baseColor.r) * ratio);
+                        g = Math.round(baseColor.g + (255 - baseColor.g) * ratio);
+                        b = Math.round(baseColor.b + (255 - baseColor.b) * ratio);
+                    } else {
+                        // 从基色到黑色的渐变
+                        const ratio = lightness / 50;
+                        r = Math.round(baseColor.r * ratio);
+                        g = Math.round(baseColor.g * ratio);
+                        b = Math.round(baseColor.b * ratio);
+                    }
+
+                    // 添加渐变颜色停止点
+                    const stop = angle / 360;
+                    gradient.addColorStop(stop, `rgba(${r}, ${g}, ${b}, 0.9)`);
+                }
+
+                // 绘制亮度环
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+                ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            } else {
+                // 兼容不支持createConicGradient的浏览器
+                // 使用角度循环绘制，每0.5度一个非常小的分段，模拟连续渐变效果
+                for (let angle = 0; angle < 360; angle += 0.5) {
+                    // 根据角度计算亮度值（从100%到0%，基于角度的连续值）
+                    const lightness = 100 - (angle / 360) * 100;
+
+                    // 根据亮度计算颜色
+                    let r, g, b;
+                    if (lightness > 50) {
+                        // 从基色到白色的渐变
+                        const ratio = (lightness - 50) / 50;
+                        r = Math.round(baseColor.r + (255 - baseColor.r) * ratio);
+                        g = Math.round(baseColor.g + (255 - baseColor.g) * ratio);
+                        b = Math.round(baseColor.b + (255 - baseColor.b) * ratio);
+                    } else {
+                        // 从基色到黑色的渐变
+                        const ratio = lightness / 50;
+                        r = Math.round(baseColor.r * ratio);
+                        g = Math.round(baseColor.g * ratio);
+                        b = Math.round(baseColor.b * ratio);
+                    }
+
+                    // 绘制非常小的分段
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, outerRadius, angle * Math.PI / 180, (angle + 0.5) * Math.PI / 180);
+                    ctx.arc(centerX, centerY, innerRadius, (angle + 0.5) * Math.PI / 180, angle * Math.PI / 180, true);
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
+                    ctx.fill();
+                }
+            }
+
+            return {
+                canvas,
+                centerX: centerX / scale,
+                centerY: centerY / scale,
+                outerRadius: outerRadius / scale,
+                innerRadius: innerRadius / scale
+            };
+        }
+
+        // 创建颜色圆盘
+        function createColorWheel(element) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const size = Math.min(element.clientWidth, element.clientHeight);
+            const scale = 2;
+            canvas.width = size * scale;
+            canvas.height = size * scale;
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+            element.appendChild(canvas);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 * 0.8; // 缩小色盘，为色相环留出空间
+
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const pixels = imageData.data;
+
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const dx = x - centerX;
+                    const dy = centerY - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance <= radius) {
+                        // 修正色相角度，使圆盘与滑块方向一致
+                        const angle = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
+                        const saturation = Math.min(100, (distance / radius) * 100);
+                        const lightness = 50;
+
+                        const rgb = ColorUtils.hslToRgb(angle, saturation, lightness);
+                        const index = (y * canvas.width + x) * 4;
+                        pixels[index] = rgb.r;
+                        pixels[index + 1] = rgb.g;
+                        pixels[index + 2] = rgb.b;
+                        pixels[index + 3] = 255;
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            ctx.filter = 'blur(1px)';
+            ctx.drawImage(canvas, 0, 0);
+            ctx.filter = 'none';
+
+            return {
+                canvas,
+                centerX: centerX / scale,
+                centerY: centerY / scale,
+                radius: radius / scale
+            };
+        }
+
+        // 颜色选择器主逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const colorWheel = document.getElementById('color-wheel');
+            const wheelData = createColorWheel(colorWheel);
+            const wheelMarker = document.getElementById('wheel-marker');
+
+            // 初始化亮度环
+            const lightnessRingContainer = document.getElementById('lightness-ring-container');
+            let ringData = null;
+            const ringMarker = document.getElementById('ring-marker');
+
+            // DOM 元素
+            const hueValue = document.getElementById('hue-value');
+
+            const saturationSlider = document.getElementById('saturation-slider');
+            const saturationMarker = document.getElementById('saturation-marker');
+            const saturationValue = document.getElementById('saturation-value');
+            const saturationGradient = document.getElementById('saturation-gradient');
+
+            const lightnessSlider = document.getElementById('lightness-slider');
+            const lightnessMarker = document.getElementById('lightness-marker');
+            const lightnessValue = document.getElementById('lightness-value');
+            const lightnessGradient = document.getElementById('lightness-gradient');
+
+            const alphaSlider = document.getElementById('alpha-slider');
+            const alphaMarker = document.getElementById('alpha-marker');
+            const alphaValue = document.getElementById('alpha-value');
+
+            const colorPreview = document.getElementById('color-preview');
+            const hexInput = document.getElementById('hex-input');
+            const rgbInput = document.getElementById('rgb-input');
+            const hslInput = document.getElementById('hsl-input');
+
+            const copyBtns = document.querySelectorAll('.copy-btn');
+            const copyToast = document.getElementById('copy-toast');
+            const recentColors = document.querySelectorAll('.recent-color');
+
+            // 当前颜色状态
+            let currentColor = {
+                h: 217,    // 色相
+                s: 100,    // 饱和度
+                l: 50,     // 亮度
+                a: 100     // 透明度
+            };
+
+            // 存储上一次的色相和饱和度值，用于检测变化
+            let lastHue = currentColor.h;
+            let lastSaturation = currentColor.s;
+
+            // 根据当前颜色创建亮度环 - 使用固定亮度值(50%)计算基色，确保亮度环基于色盘位置的颜色
+            const createRingWithCurrentColor = () => {
+                const { h, s } = currentColor;
+                const fixedLightness = 50; // 固定亮度值为50%，忽略当前颜色的亮度值
+                const rgb = ColorUtils.hslToRgb(h, s, fixedLightness);
+                ringData = createLightnessRing(lightnessRingContainer, rgb);
+            };
+
+            // 初始化创建亮度环
+            createRingWithCurrentColor();
+
+            // 更新颜色显示
+            const updateColorDisplay = () => {
+                const { h, s, l, a } = currentColor;
+                const rgb = ColorUtils.hslToRgb(h, s, l);
+                const hex = ColorUtils.rgbToHex(rgb.r, rgb.g, rgb.b);
+
+                colorPreview.style.backgroundColor = `hsla(${h}, ${s}%, ${l}%, ${a / 100})`;
+
+                hexInput.value = hex;
+                rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                hslInput.value = `hsl(${h}, ${s}%, ${l}%)`;
+
+                saturationValue.textContent = `${s}%`;
+                lightnessValue.textContent = `${l}%`;
+                alphaValue.textContent = `${a}%`;
+
+                const hueColor = ColorUtils.hslToRgb(h, 100, 50);
+                const hueHex = ColorUtils.rgbToHex(hueColor.r, hueColor.g, hueColor.b);
+
+                saturationGradient.style.color = hueHex;
+                lightnessGradient.style.color = hueHex;
+
+                // 当色相或饱和度改变时，重新绘制亮度环
+                if (Math.abs(h - lastHue) > 0.5 || Math.abs(s - lastSaturation) > 0.5) {
+                    createRingWithCurrentColor();
+                    lastHue = h;
+                    lastSaturation = s;
+                }
+
+                updateMarkerPositions();
+            };
+
+            // 更新标记位置
+            const updateMarkerPositions = () => {
+                const { h, s, l, a } = currentColor;
+
+                // 饱和度标记
+                const saturationPercent = 100 - s;
+                saturationMarker.style.top = `${saturationPercent}%`;
+
+                // 亮度标记
+                const lightnessPercent = 100 - l;
+                lightnessMarker.style.top = `${lightnessPercent}%`;
+
+                // 透明度标记
+                const alphaPercent = a;
+                alphaMarker.style.left = `${alphaPercent}%`;
+
+                // 颜色圆盘标记
+                const pos = ColorUtils.hslToPosition(
+                    h, s,
+                    wheelData.centerX, wheelData.centerY,
+                    wheelData.radius
+                );
+                wheelMarker.style.left = `${pos.x}px`;
+                wheelMarker.style.top = `${pos.y}px`;
+                wheelMarker.style.display = 'block';
+                const wheelRgb = ColorUtils.hslToRgb(h, s, 50); // 使用固定亮度值50%，与色盘一致
+                wheelMarker.style.backgroundColor = `rgb(${wheelRgb.r}, ${wheelRgb.g}, ${wheelRgb.b})`;
+
+                // 亮度环标记 - 根据当前亮度值确定对应的角度位置
+                // 连续渐变效果，从0%到100%
+                const angle = (100 - l) * 3.6; // 亮度值转换为角度（100%对应0度，0%对应360度）
+                const radians = angle * Math.PI / 180;
+
+                // 计算标记位置（位于亮度环的中间位置）
+                const distanceFromCenter = (ringData.innerRadius + ringData.outerRadius) / 2;
+                const ringPosX = ringData.centerX + Math.cos(radians) * distanceFromCenter;
+                const ringPosY = ringData.centerY + Math.sin(radians) * distanceFromCenter;
+
+                ringMarker.style.left = `${ringPosX}px`;
+                ringMarker.style.top = `${ringPosY}px`;
+                ringMarker.style.display = 'block';
+                // 为亮度环标记设置当前最终输出颜色
+                const rgb = ColorUtils.hslToRgb(h, s, l);
+                ringMarker.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            }
+
+            // 处理颜色圆盘交互
+            let isDraggingWheel = false;
+            let isDraggingRing = false;
+
+            const handleWheelInteraction = (clientX, clientY) => {
+                const rect = wheelData.canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const hsl = ColorUtils.positionToHsl(
+                    x, y,
+                    wheelData.centerX, wheelData.centerY,
+                    wheelData.radius
+                );
+
+                currentColor.h = Math.round(hsl.h);
+                currentColor.s = Math.round(hsl.s);
+
+                saturationSlider.value = currentColor.s;
+
+                updateColorDisplay();
+            };
+
+            // 从亮度环位置计算亮度值 - 根据角度确定亮度值，连续渐变
+            const getLightnessFromRingPosition = (clientX, clientY) => {
+                const rect = ringData.canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const dx = x - ringData.centerX;
+                const dy = y - ringData.centerY;
+                // 计算角度（0-360度）
+                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                if (angle < 0) angle += 360;
+
+                // 根据角度确定亮度值，连续渐变（0%到100%）
+                const lightness = 100 - (angle / 360) * 100; // 亮度从100%到0%的连续变化
+
+                // 限制在0-100范围内并四舍五入到整数
+                return Math.round(Math.max(0, Math.min(100, lightness)));
+            }
+
+            // 处理亮度环交互
+            const handleRingInteraction = (clientX, clientY) => {
+                const lightness = getLightnessFromRingPosition(clientX, clientY);
+                if (lightness !== null) {
+                    currentColor.l = lightness;
+                    updateColorDisplay();
+                }
+            };
+
+            // 从色盘位置检测是否在色彩区域内
+            const isPositionInColorWheel = (clientX, clientY) => {
+                const rect = wheelData.canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const dx = x - wheelData.centerX;
+                const dy = y - wheelData.centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // 检查是否在色盘半径范围内
+                return distance <= wheelData.radius * 1.1; // 添加一些容差范围
+            }
+
+            colorWheel.addEventListener('mousedown', (e) => {
+                // 只有当鼠标按下位置在色盘色彩区域内时，才触发交互
+                if (isPositionInColorWheel(e.clientX, e.clientY)) {
+                    isDraggingWheel = true;
+                    handleWheelInteraction(e.clientX, e.clientY);
+                }
+            });
+
+            // 鼠标移动事件，同时处理色盘和亮度环
+            document.addEventListener('mousemove', (e) => {
+                if (isDraggingWheel) {
+                    handleWheelInteraction(e.clientX, e.clientY);
+                } else if (isDraggingRing) {
+                    handleRingInteraction(e.clientX, e.clientY);
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDraggingWheel = false;
+                isDraggingRing = false;
+            });
+
+            // 触摸设备支持 - 色盘
+            colorWheel.addEventListener('touchstart', (e) => {
+                isDraggingWheel = true;
+                const touch = e.touches[0];
+                handleWheelInteraction(touch.clientX, touch.clientY);
+                e.preventDefault();
+            });
+
+            // 触摸移动事件，同时处理色盘和色相环
+            document.addEventListener('touchmove', (e) => {
+                if (isDraggingWheel) {
+                    const touch = e.touches[0];
+                    handleWheelInteraction(touch.clientX, touch.clientY);
+                    e.preventDefault();
+                } else if (isDraggingRing) {
+                    const touch = e.touches[0];
+                    handleRingInteraction(touch.clientX, touch.clientY);
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                isDraggingWheel = false;
+                isDraggingRing = false;
+            });
+
+            // 亮度环鼠标事件 - 注意：由于亮度环在色盘下层，我们需要特殊处理事件
+            // 由于z-index的限制，我们在document上监听鼠标事件，然后通过位置判断是否在亮度环上
+            document.addEventListener('mousedown', (e) => {
+                // 只有当不是在拖动色盘且点击位置在亮度环上时，才触发亮度环的交互
+                if (!isDraggingWheel && !isDraggingRing) {
+                    const rect = lightnessRingContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    // 检查点击位置是否在亮度环上
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // 亮度环的内外半径范围
+                    const outerRadius = rect.width / 2;
+                    const innerRadius = outerRadius * 0.8;
+
+                    if (distance >= innerRadius * 0.9 && distance <= outerRadius * 1.1) {
+                        isDraggingRing = true;
+                        handleRingInteraction(e.clientX, e.clientY);
+                        e.stopPropagation(); // 阻止事件冒泡到色盘
+                    }
+                }
+            });
+
+            // 亮度环触摸事件
+            document.addEventListener('touchstart', (e) => {
+                if (!isDraggingWheel && !isDraggingRing) {
+                    const touch = e.touches[0];
+                    const rect = lightnessRingContainer.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+
+                    // 检查触摸位置是否在亮度环上
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // 亮度环的内外半径范围
+                    const outerRadius = rect.width / 2;
+                    const innerRadius = outerRadius * 0.8;
+
+                    if (distance >= innerRadius * 0.9 && distance <= outerRadius * 1.1) {
+                        isDraggingRing = true;
+                        handleRingInteraction(touch.clientX, touch.clientY);
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            });
+
+            // 饱和度滑块事件
+            saturationSlider.addEventListener('input', (e) => {
+                currentColor.s = parseInt(e.target.value);
+                updateColorDisplay();
+            });
+
+            // 亮度滑块事件
+            lightnessSlider.addEventListener('input', (e) => {
+                currentColor.l = parseInt(e.target.value);
+                updateColorDisplay();
+            });
+
+            // 透明度滑块事件
+            alphaSlider.addEventListener('input', (e) => {
+                currentColor.a = parseInt(e.target.value);
+                updateColorDisplay();
+            });
+
+            // 输入框事件处理
+            hexInput.addEventListener('blur', (e) => {
+                const rgb = ColorUtils.hexToRgb(e.target.value);
+                if (rgb) {
+                    const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
+                    currentColor.h = hsl.h;
+                    currentColor.s = hsl.s;
+                    currentColor.l = hsl.l;
+
+                    saturationSlider.value = hsl.s;
+                    lightnessSlider.value = hsl.l;
+
+                    updateColorDisplay();
+                } else {
+                    updateColorDisplay();
+                }
+            });
+
+            rgbInput.addEventListener('blur', (e) => {
+                const match = e.target.value.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+                if (match) {
+                    const r = parseInt(match[1]);
+                    const g = parseInt(match[2]);
+                    const b = parseInt(match[3]);
+
+                    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+                        const hsl = ColorUtils.rgbToHsl(r, g, b);
+                        currentColor.h = hsl.h;
+                        currentColor.s = hsl.s;
+                        currentColor.l = hsl.l;
+
+                        saturationSlider.value = hsl.s;
+                        lightnessSlider.value = hsl.l;
+
+                        updateColorDisplay();
+                        return;
+                    }
+                }
+                updateColorDisplay();
+            });
+
+            hslInput.addEventListener('blur', (e) => {
+                const match = e.target.value.match(/^hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/);
+                if (match) {
+                    const h = parseInt(match[1]);
+                    const s = parseInt(match[2]);
+                    const l = parseInt(match[3]);
+
+                    if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
+                        currentColor.h = h;
+                        currentColor.s = s;
+                        currentColor.l = l;
+
+                        saturationSlider.value = s;
+                        lightnessSlider.value = l;
+
+                        updateColorDisplay();
+                        return;
+                    }
+                }
+                updateColorDisplay();
+            });
+
+            // 复制按钮功能
+            copyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.getAttribute('data-target');
+                    const targetInput = document.getElementById(targetId);
+
+                    targetInput.select();
+                    document.execCommand('copy');
+
+                    copyToast.style.opacity = '1';
+                    setTimeout(() => {
+                        copyToast.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // 最近使用的颜色点击事件
+            recentColors.forEach(colorEl => {
+                colorEl.addEventListener('click', () => {
+                    const color = colorEl.style.backgroundColor;
+                    if (color) {
+                        const match = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+                        if (match) {
+                            const r = parseInt(match[1]);
+                            const g = parseInt(match[2]);
+                            const b = parseInt(match[3]);
+
+                            const hsl = ColorUtils.rgbToHsl(r, g, b);
+                            currentColor.h = hsl.h;
+                            currentColor.s = hsl.s;
+                            currentColor.l = hsl.l;
+
+                            saturationSlider.value = hsl.s;
+                            lightnessSlider.value = hsl.l;
+
+                            updateColorDisplay();
+                        }
+                    }
+                });
+            });
+
+            // 初始化
+            updateColorDisplay();
+        });
+    </script>
+</body>
+
+</html>

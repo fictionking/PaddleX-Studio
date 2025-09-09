@@ -20,14 +20,10 @@
                 class="name-input nodrag" ref="nameInput" />
         </div>
         <div :class="['node-content', type]">
-            <el-input v-model="data.content" type="textarea" :autosize="{ minRows: 2, maxRows: 10 }" resize="none" class="content-input nodrag"/>
+            <el-input v-model="data.content" type="textarea" :autosize="{ minRows: 2, maxRows: 10 }" resize="none"
+                class="content-input nodrag" :input-style="{ color: textColor }" />
         </div>
-        <div class="node-footer">
-            <div 
-                class="resize-handle nodrag"
-                @mousedown="startResize"
-                @touchstart="startResize"
-            ></div>
+        <div class="node-footer nodrag" @mousedown="startResize" @touchstart="startResize">
         </div>
     </div>
 </template>
@@ -90,6 +86,22 @@ export default {
             ]
         };
     },
+    computed: {
+        /**
+         * 计算并返回根据背景色流明度确定的文本颜色
+         */
+        textColor() {
+            return this.calculateTextColor(this.data.color);
+        }
+    },
+    watch: {
+        /**
+         * 监听data.color变化，重新计算文本颜色
+         */
+        'data.color'() {
+            // 当背景色变化时，computed属性textColor会自动重新计算
+        }
+    },
     setup(props) {
         return {
             Position
@@ -102,7 +114,7 @@ export default {
             this.nodeWidth = Math.max(this.minWidth, Math.min(this.maxWidth, this.data.width));
         }
     },
-    
+
     methods: {
         /** 开始编辑节点名称 */
         startEditName() {
@@ -130,34 +142,34 @@ export default {
             this.nameEditing = false;
             this.editingName = '';
         },
-        
+
         /** 开始调整节点宽度 */
         startResize(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             this.isResizing = true;
             const startX = e.clientX || e.touches[0].clientX;
             const startWidth = this.nodeWidth;
-            
+
             // 添加鼠标/触摸移动和释放事件监听
             const handleMouseMove = (moveEvent) => {
                 if (!this.isResizing) return;
-                
+
                 const currentX = moveEvent.clientX || moveEvent.touches[0].clientX;
                 const widthDelta = currentX - startX;
                 let newWidth = startWidth + widthDelta;
-                
+
                 // 限制宽度在最小和最大值之间
                 newWidth = Math.max(this.minWidth, Math.min(this.maxWidth, newWidth));
                 this.nodeWidth = newWidth;
-                
+
                 // 通知父组件宽度变化并保存到data中
                 this.$emit('update:width', newWidth);
                 // 保存宽度到data对象中
                 this.data.width = newWidth;
             };
-            
+
             const handleMouseUp = () => {
                 this.isResizing = false;
                 document.removeEventListener('mousemove', handleMouseMove);
@@ -165,12 +177,66 @@ export default {
                 document.removeEventListener('touchmove', handleMouseMove);
                 document.removeEventListener('touchend', handleMouseUp);
             };
-            
+
             // 添加事件监听器
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             document.addEventListener('touchmove', handleMouseMove);
             document.addEventListener('touchend', handleMouseUp);
+        },
+
+        /**
+         * 计算相对亮度
+         * @param {number} r - 红色值 (0-255)
+         * @param {number} g - 绿色值 (0-255)
+         * @param {number} b - 蓝色值 (0-255)
+         * @returns {number} 相对亮度值 (0-1)
+         */
+        getRelativeLuminance(r, g, b) {
+            [r, g, b] = [r, g, b].map(val => {
+                val /= 255;
+                return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        },
+
+        /**
+         * 根据背景色计算适合的文本颜色
+         * @param {string} bgColor - 背景颜色（十六进制格式）
+         * @returns {string} 文本颜色 ('#000000' 或 '#ffffff')
+         */
+        calculateTextColor(bgColor) {
+            // 从十六进制颜色字符串中提取RGB值
+            let r, g, b;
+
+            // 检查是否为十六进制颜色格式
+            if (bgColor && bgColor.startsWith('#')) {
+                // 移除#号
+                const hex = bgColor.slice(1);
+
+                // 处理简写形式的十六进制颜色 (#RGB)
+                if (hex.length === 3) {
+                    r = parseInt(hex[0] + hex[0], 16);
+                    g = parseInt(hex[1] + hex[1], 16);
+                    b = parseInt(hex[2] + hex[2], 16);
+                }
+                // 处理完整形式的十六进制颜色 (#RRGGBB)
+                else if (hex.length === 6) {
+                    r = parseInt(hex.slice(0, 2), 16);
+                    g = parseInt(hex.slice(2, 4), 16);
+                    b = parseInt(hex.slice(4, 6), 16);
+                }
+            }
+
+            // 如果无法提取有效的RGB值，默认使用黄色背景的RGB值
+            if (r === undefined || g === undefined || b === undefined) {
+                r = 255;
+                g = 215;
+                b = 0;
+            }
+
+            const luminance = this.getRelativeLuminance(r, g, b);
+            return luminance > 0.5 ? '#000000' : '#ffffff';
         }
     }
 };
@@ -179,22 +245,27 @@ export default {
 
 <style scoped>
 .custom-node {
-    border: 0px solid rgba(0, 0, 0, 0.0);
+    /* 设置为相对定位，作为绝对定位子元素的参考 */
+    position: relative;
+    border: 2px solid rgba(0, 0, 0, 0.9);
     border-radius: 6px;
     overflow: hidden;
     box-shadow: var(--el-box-shadow);
-    background-color: #ffd500;
+    background-color: #ffcf3d;
+    /* content-box确保边框不包括在元素宽高内 */
+    box-sizing: content-box;
 }
 
 .custom-node.selected {
     border: 2px solid rgb(224, 154, 2);
+    box-sizing: content-box;
 }
 
 .node-header {
     padding: 8px 8px;
     font-weight: bold;
     font-size: var(--el-font-size-small);
-    margin-bottom: 5px;
+    margin-bottom: 0px;
     display: flex;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
@@ -211,70 +282,12 @@ export default {
     font-size: var(--el-font-size-extra-small);
     padding-left: 10px;
     padding-right: 10px;
+    padding-top: 5px;
     margin-bottom: 20px;
+    border-top: 2px dashed rgba(0, 0, 0, 0.5);
 }
 
-.node-inputs {
-    min-width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 5px;
-}
 
-.node-outputs {
-    min-width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-bottom: 5px;
-}
-
-.node-properties {
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 10px;
-}
-
-.io-connection {
-    position: relative;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.io-label {
-    font-weight: bold;
-    white-space: nowrap;
-    color: #ffffff;
-    line-height: 1;
-}
-
-.io-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.property-group {
-    margin-top: 0px;
-}
-
-.group-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #42b983;
-}
-
-.left-handle-pos {
-    position: absolute;
-    left: -10px;
-}
-
-.right-handle-pos {
-    position: absolute;
-    right: -10px;
-}
 
 .name-input {
     background: transparent;
@@ -285,7 +298,8 @@ export default {
     width: 100%;
     outline: none;
 }
-.content-input{
+
+.content-input {
     --el-input-text-color: #000;
     --el-input-border: none;
     --el-input-hover-border: none;
@@ -298,53 +312,41 @@ export default {
     --el-input-hover-border-color: transparent;
     --el-input-clear-hover-color: transparent;
     --el-input-focus-border-color: transparent;
+    transition: color 0.2s ease;
 }
 
 /* 简化滚动条样式，移除上下箭头 */
 .content-input::-webkit-scrollbar {
-    width: 6px; /* 滚动条宽度 */
+    width: 6px;
+    /* 滚动条宽度 */
 }
 
 .content-input::-webkit-scrollbar-track {
-    background: transparent; /* 滚动条轨道背景透明 */
+    background: transparent;
+    /* 滚动条轨道背景透明 */
 }
 
 .content-input::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2); /* 滚动条滑块半透明黑色 */
-    border-radius: 3px; /* 滑块圆角 */
+    background: rgba(0, 0, 0, 0.2);
+    /* 滚动条滑块半透明黑色 */
+    border-radius: 3px;
+    /* 滑块圆角 */
 }
 
 .content-input::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3); /* 鼠标悬停时滑块颜色变深 */
+    background: rgba(0, 0, 0, 0.3);
+    /* 鼠标悬停时滑块颜色变深 */
 }
 
 /* Firefox 滚动条样式 */
 .content-input {
-    scrollbar-width: thin; /* 细滚动条 */
-    scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* 滑块颜色和轨道颜色 */
+    scrollbar-width: thin;
+    /* 细滚动条 */
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    /* 滑块颜色和轨道颜色 */
 }
 
 .node-footer {
-    position: relative;
-    height: 20px;
-}
-
-.node-footer::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 20px 20px 0 0;
-    border-color: rgba(0, 0, 0, 0.3) transparent transparent transparent;
-    border-top-left-radius: 6px;
-    z-index: 1;
-}
-
-/* 调整大小的句柄样式 */
-.resize-handle {
     position: absolute;
     bottom: 0;
     right: 0;
@@ -352,6 +354,13 @@ export default {
     height: 20px;
     cursor: ew-resize;
     z-index: 2;
-    /* 让拖拽区域覆盖整个折角 */
+    border-top-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    background: linear-gradient(-45deg,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(30, 0, 0, 0.6) 50%,
+            rgba(30, 0, 0, 0.3) 70%,
+            rgba(30, 0, 0, 0.1) 100%);
 }
 </style>
