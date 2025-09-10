@@ -33,6 +33,13 @@
     </script>
 
     <style type="text/tailwindcss">
+        @layer components {
+            /* 预定义颜色按钮共性样式 */
+            .preset-color {
+                @apply border border-gray-700 cursor-pointer transition-transform hover:scale-110;
+            }
+        }
+        
         @layer utilities {
             .content-auto {
                 content-visibility: auto;
@@ -99,7 +106,6 @@
                 border-radius: 50% 0 50% 50%;
                 overflow: hidden;
             }
-
         }
     </style>
 </head>
@@ -120,90 +126,11 @@
             <div
                 class="absolute inset-0 bg-[repeating-conic-gradient(#000000_0deg_90deg,#FFFFFF_90deg_180deg)] bg-[length:8px_8px] opacity-5">
             </div>
-            <!-- 圆形颜色预览 - 位于左上角 -->
-            <div id="color-preview"
-                class="absolute top-2 left-2 w-16 h-16 rounded-full shadow-lg  relative overflow-hidden z-10"
-                style="border: 2px solid #808080;"></div>
-            <!-- 圆形初始颜色 - 位于左上角 -->
-            <div id="color-start"
-                class="absolute top-4 left-2 w-8 h-8 rounded-full shadow-lg  relative overflow-hidden z-10"
-                style="border: 2px solid #808080;"></div>
-            <!-- 预定义颜色 - 右上角 -->
-            <div id="preset-colors-top-right" class="absolute top-2 right-2 w-24 h-24 z-10">
-                <!-- 右上角三角形排布的3个颜色 -->
-                <div
-                    class="preset-color teardrop-right-bottom absolute top-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-                <div
-                    class="preset-color teardrop-left-bottom absolute top-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-                <div
-                    class="preset-color teardrop-left-top absolute top-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-            </div>
-
-            <!-- 预定义颜色 - 右下角 -->
-            <div id="preset-colors-bottom-right" class="absolute bottom-2 right-2 w-24 h-24 z-10">
-                <!-- 右下角三角形排布的3个颜色 -->
-                <div
-                    class="preset-color teardrop-left-bottom absolute bottom-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-                <div
-                    class="preset-color teardrop-left-top absolute bottom-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-                <div
-                    class="preset-color teardrop-right-top absolute bottom-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-            </div>
-
-            <!-- 预定义颜色 - 左下角 -->
-            <div id="preset-colors-bottom-left" class="absolute bottom-2 left-2 w-24 h-24 z-10">
-                <!-- 左下角三角形排布的3个颜色 -->
-                <div
-                    class="preset-color teardrop-left-top absolute bottom-0 left-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-                <div
-                    class="preset-color teardrop-right-top absolute bottom-0 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-                <div
-                    class="preset-color teardrop-right-bottom absolute bottom-9 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
-                </div>
-            </div>
-            <!-- 收藏的颜色-底部 -->
-            <div id="fav-colors" class="absolute left-1/2 bottom-2 transform -translate-x-1/2 flex flex-wrap gap-1.5">
-                <div id="fav-color-0" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #EF4444"></div>
-                <div id="fav-color-1" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #10B981"></div>
-                <div id="fav-color-2" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #F59E0B"></div>
-                <div id="fav-color-3" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #8B5CF6"></div>
-                <div id="fav-color-4" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #64748B"></div>
-                <!-- <div id="fav-color-7" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div> -->
-            </div>
-            <!-- 收藏的颜色-右侧 -->
-            <div id="fav-colors" class="absolute top-1/2 right-2 transform -translate-y-1/2 flex flex-col gap-1.5">
-                <div id="fav-color-5" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div>
-                <div id="fav-color-6" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div>
-                <div id="fav-color-7" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div>
-                <div id="fav-color-8" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div>
-                <div id="fav-color-9" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
-                    <i class="fa fa-plus"></i>
-                </div>
-            </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
-            <div class="absolute inset-0 flex items-center justify-center">
+            <div class="absolute inset-0 flex items-center justify-center  pointer-events-auto z-10">
 
                 <!-- 分段环弧容器 - 位于底层 -->
-                <div id="lightness-ring-container"
-                    class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
+                <div id="ring-container" class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
                     <!-- 分段环弧将通过JS生成 -->
                     <!-- 饱和度环弧标记 -->
                     <div id="saturation-marker" class="ring-marker absolute hidden" title="饱和度"></div>
@@ -221,28 +148,76 @@
                 </div>
 
             </div>
+            <!-- 圆形颜色预览 - 位于左上角 -->
+            <div id="color-preview"
+                class="absolute top-2 left-2 w-16 h-16 rounded-full shadow-lg  relative overflow-hidden z-10"
+                style="border: 2px solid #808080;"></div>
+            <!-- 圆形初始颜色 - 位于左上角 -->
+            <div id="color-start"
+                class="absolute top-4 left-2 w-8 h-8 rounded-full shadow-lg  relative overflow-hidden z-10"
+                style="border: 2px solid #808080;"></div>
+            <!-- 预定义颜色 - 右上角 -->
+            <div class="preset-color teardrop-right-bottom absolute top-2 right-11 z-10">
+            </div>
+            <div class="preset-color teardrop-left-bottom absolute top-2 right-2 z-10">
+            </div>
+            <div class="preset-color teardrop-left-top absolute top-11 right-2 z-10">
+            </div>
+
+            <!-- 预定义颜色 - 右下角 -->
+            <div class="preset-color teardrop-left-bottom absolute bottom-11 right-2 z-10">
+            </div>
+            <div class="preset-color teardrop-left-top absolute bottom-2 right-2 z-10">
+            </div>
+            <div class="preset-color teardrop-right-top absolute bottom-2 right-11 z-10">
+            </div>
+
+            <!-- 预定义颜色 - 左下角 -->
+            <div class="preset-color teardrop-left-top absolute bottom-2 left-11 z-10">
+            </div>
+            <div class="preset-color teardrop-right-top absolute bottom-2 left-2 z-10">
+            </div>
+            <div class="preset-color teardrop-right-bottom absolute bottom-11 left-2 z-10">
+            </div>
+            <!-- 收藏的颜色-底部 -->
+            <div class="absolute left-1/2 bottom-2 transform -translate-x-1/2 flex flex-wrap gap-1.5 z-10">
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+                <div i class="fav-color"></div>
+            </div>
+            <!-- 收藏的颜色-右侧 -->
+            <div class="absolute top-1/2 right-2 transform -translate-y-1/2 flex flex-col gap-1.5 z-10">
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+                <div class="fav-color"></div>
+            </div>
+
         </div>
 
 
         <!-- 颜色输入区 -->
         <div class="px-4 pb-3 pt-2">
 
-                <div class="flex">
-                    <select id="color-format-select"
-                        class="w-16 px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white appearance-none">
-                        <option value="hex">HEX</option>
-                        <option value="rgb">RGB</option>
-                        <option value="rgba">RGBA</option>
-                        <option value="hsl">HSL</option>
-                        <option value="hsla">HSLA</option>
-                    </select>
-                    <input type="text" id="color-value-input" value="#3B82F6"
-                        class="flex-1 px-2 py-1.5 border-l-0 border border-gray-700 bg-gray-800 focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
-                    <button id="copy-color-btn"
-                        class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs">
-                        <i class="fa fa-copy text-gray-300"></i>
-                    </button>
-                </div>
+            <div class="flex">
+                <select id="color-format-select"
+                    class="w-16 px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white appearance-none">
+                    <option value="hex">HEX</option>
+                    <option value="rgb">RGB</option>
+                    <option value="rgba">RGBA</option>
+                    <option value="hsl">HSL</option>
+                    <option value="hsla">HSLA</option>
+                </select>
+                <input type="text" id="color-value-input" value="#3B82F6"
+                    class="flex-1 px-2 py-1.5 border-l-0 border border-gray-700 bg-gray-800 focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
+                <button id="copy-color-btn"
+                    class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs">
+                    <i class="fa fa-copy text-gray-300"></i>
+                </button>
+            </div>
 
         </div>
 
@@ -739,7 +714,7 @@
         const wheelMarker = document.getElementById('wheel-marker');
 
         // 初始化分段环弧
-        const lightnessRingContainer = document.getElementById('lightness-ring-container');
+        const ringContainer = document.getElementById('ring-container');
         let ringData = null;
 
         // DOM 元素
@@ -750,13 +725,9 @@
         const alphaMarker = document.getElementById('alpha-marker');
 
         const colorPreview = document.getElementById('color-preview');
-        const hexInput = document.getElementById('hex-input');
-        const rgbInput = document.getElementById('rgb-input');
-        const hslInput = document.getElementById('hsl-input');
 
-        const copyBtns = document.querySelectorAll('.copy-btn');
         const copyToast = document.getElementById('copy-toast');
-        const recentColors = document.querySelectorAll('.preset-color');
+        const presetElements = document.querySelectorAll('.preset-color');
         const colorFormatSelect = document.getElementById('color-format-select');
         const colorValueInput = document.getElementById('color-value-input');
         const copyColorBtn = document.getElementById('copy-color-btn');
@@ -794,8 +765,7 @@
 
         // 更新预定义颜色表的UI - 仅支持字符串格式
         const updatepresetColorsUI = () => {
-            const colorElements = document.querySelectorAll('.preset-color');
-            colorElements.forEach((el, index) => {
+            presetElements.forEach((el, index) => {
                 if (index < presetColors.length) {
                     const presetColor = presetColors[index];
 
@@ -819,7 +789,7 @@
             const { h, s } = currentColor;
             const fixedLightness = 50; // 固定亮度值为50%，忽略当前颜色的亮度值
             const alpha = 1; // 固定透明度为100%
-            ringData = createRing(lightnessRingContainer, { h, s, l: fixedLightness, a: alpha });
+            ringData = createRing(ringContainer, { h, s, l: fixedLightness, a: alpha });
         };
 
         // 初始化创建亮度环
@@ -996,7 +966,9 @@
             if (isPositionInColorWheel(e.clientX, e.clientY)) {
                 isDraggingWheel = true;
                 handleWheelInteraction(e.clientX, e.clientY);
+                e.preventDefault();
             }
+
         });
 
         // 鼠标移动事件，同时处理色盘和分段环弧
@@ -1217,7 +1189,7 @@
         let currentDraggingSegmentType = null;
 
         // 分段环弧鼠标事件
-        document.addEventListener('mousedown', (e) => {
+        ringContainer.addEventListener('mousedown', (e) => {
             // 只有当不是在拖动色盘时，才触发环弧的交互
             if (!isDraggingWheel) {
                 const rect = ringData.canvas.getBoundingClientRect();
@@ -1257,10 +1229,9 @@
                         }
                         updateColorDisplay();
                     }
-                    e.preventDefault();
-                    e.stopPropagation(); // 阻止事件冒泡到色盘
                 }
-
+                e.preventDefault();
+                e.stopPropagation(); // 阻止事件冒泡到色盘
             }
         });
 
@@ -1366,7 +1337,7 @@
         });
 
         // 预定义颜色点击事件 - 仅支持字符串格式
-        recentColors.forEach((colorEl, index) => {
+        presetElements.forEach((colorEl, index) => {
             colorEl.addEventListener('click', () => {
                 if (index < presetColors.length) {
                     const presetColor = presetColors[index];
@@ -1400,6 +1371,157 @@
         // 初始化
         updatepresetColorsUI();
         updateColorDisplay();
+
+        // 收藏颜色功能实现
+        // 1. 初始化收藏颜色数组，存储HEX格式的颜色值
+        const favoriteColors = [];
+        const STORAGE_KEY = 'colorPickerFavoriteColors';
+
+        // 从localStorage加载收藏颜色
+        function loadFavoriteColorsFromStorage() {
+            try {
+                const storedColors = localStorage.getItem(STORAGE_KEY);
+                if (storedColors) {
+                    const parsedColors = JSON.parse(storedColors);
+                    for (let i = 0; i < 10; i++) {
+                        favoriteColors[i] = parsedColors[i] || null;
+                    }
+                } else {
+                    // 首次使用，初始化为空
+                    for (let i = 0; i < 10; i++) {
+                        favoriteColors[i] = null;
+                    }
+                }
+            } catch (error) {
+                console.error('加载收藏颜色失败:', error);
+                // 出错时全部初始化为空
+                for (let i = 0; i < 10; i++) {
+                    favoriteColors[i] = null;
+                }
+            }
+        }
+
+        // 保存收藏颜色到localStorage
+        function saveFavoriteColorsToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(favoriteColors));
+            } catch (error) {
+                console.error('保存收藏颜色失败:', error);
+            }
+        }
+
+        // 2. 获取所有收藏颜色元素
+        const favColorElements = document.querySelectorAll('.fav-color');
+
+        // 3. 更新收藏颜色UI显示
+        function updateFavoriteColorsUI() {
+            favColorElements.forEach((el, index) => {
+                if (!el) return;
+
+                // 清空元素内的内容
+                el.innerHTML = '';
+                el.className = '';
+
+                if (favoriteColors[index]) {
+                    // 有收藏色的样式
+                    el.className = 'w-6 h-6 rounded-full cursor-pointer transform transition hover:scale-110 border border-dashed border-gray-200 pointer-events-auto';
+                    el.style.backgroundColor = favoriteColors[index];
+                    el.title = '右键或拖出删除';
+
+                    // 启用拖出删除功能
+                    el.draggable = true;
+                } else {
+                    // 无收藏色的样式
+                    el.className = 'w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 transition-colors pointer-events-auto';
+                    el.style.backgroundColor = '';
+                    el.title = '点击添加当前颜色';
+
+                    // 添加加号图标
+                    const plusIcon = document.createElement('i');
+                    plusIcon.className = 'fa fa-plus';
+                    el.appendChild(plusIcon);
+
+                    // 禁用拖出功能
+                    el.draggable = false;
+                }
+            });
+        }
+
+        // 4. 为收藏颜色元素添加点击事件
+        favColorElements.forEach((el, index) => {
+            if (!el) return;
+
+            el.addEventListener('click', () => {
+                if (favoriteColors[index]) {
+                    // 点击有收藏色的收藏位，应用该颜色
+                    const parsedColor = ColorUtils.colorStringToObject(favoriteColors[index]);
+                    if (parsedColor) {
+                        // 更新currentColor的所有属性
+                        currentColor.h = parsedColor.h;
+                        currentColor.s = parsedColor.s;
+                        currentColor.l = parsedColor.l;
+                        currentColor.r = parsedColor.r;
+                        currentColor.g = parsedColor.g;
+                        currentColor.b = parsedColor.b;
+                        currentColor.a = parsedColor.a || 100;
+
+                        // 更新所有UI显示
+                        updateColorDisplay();
+                    }
+                } else {
+                    // 点击空白收藏位，将当前颜色添加到该收藏位
+                    // 保存为rgba格式
+                    const currentRgba = ColorUtils.rgbaToString(currentColor.r, currentColor.g, currentColor.b, currentColor.a || 100);
+                    favoriteColors[index] = currentRgba;
+                    updateFavoriteColorsUI();
+                    saveFavoriteColorsToStorage(); // 保存到本地存储
+                }
+            });
+
+            // 5. 添加右键点击删除功能
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault(); // 阻止默认右键菜单
+                if (favoriteColors[index]) {
+                    favoriteColors[index] = null;
+                    updateFavoriteColorsUI();
+                    saveFavoriteColorsToStorage(); // 保存到本地存储
+                }
+            });
+
+            // 6. 添加拖出删除功能
+            el.addEventListener('dragstart', (e) => {
+                if (favoriteColors[index]) {
+                    e.dataTransfer.setData('text/plain', index.toString());
+                    // 设置拖拽时的透明度，提供视觉反馈
+                    el.style.opacity = '0.5';
+                }
+            });
+
+            el.addEventListener('dragend', () => {
+                // 恢复元素透明度
+                el.style.opacity = '1';
+            });
+        });
+
+        // 7. 添加文档拖拽事件，实现拖出删除
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault(); // 允许放置
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const colorIndex = e.dataTransfer.getData('text/plain');
+            if (colorIndex !== '' && !isNaN(parseInt(colorIndex))) {
+                // 从收藏位置删除颜色
+                favoriteColors[parseInt(colorIndex)] = null;
+                updateFavoriteColorsUI();
+                saveFavoriteColorsToStorage(); // 保存到本地存储
+            }
+        });
+
+        // 初始化收藏颜色UI
+        loadFavoriteColorsFromStorage(); // 先从localStorage加载
+        updateFavoriteColorsUI();
     });
 </script>
 
