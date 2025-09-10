@@ -1122,12 +1122,12 @@
                 // 处理跨越360度边界的情况
                 if (endAngle > 360) {
                     // 对于跨越360度边界的环弧（如亮度弧：280度到380度即280度到20度）
-                    if ((angle >= segment.startAngle && angle <= 360) || (angle >= 0 && angle <= endAngle - 360)) {
+                    if ((angle >= segment.startAngle - 5 && angle <= 360) || (angle >= 0 && angle <= endAngle - 360 + 5)) {
                         return segment.type;
                     }
                 } else {
                     // 普通环弧（不跨越360度边界）
-                    if (angle >= segment.startAngle && angle <= endAngle) {
+                    if (angle >= segment.startAngle - 5 && angle <= endAngle + 5) {
                         return segment.type;
                     }
                 }
