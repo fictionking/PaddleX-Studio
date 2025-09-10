@@ -114,60 +114,88 @@
                 <i class="fa fa-times"></i>
             </button>
         </div>
-        <div class="relative w-[300px] h-[300px] m-auto">
+        <!-- 颜色选择器 -->
+        <div class="relative w-[300px] h-[300px] m-auto overflow-hidden">
+            <!-- 网格背景 - 应用于整个颜色选择器 -->
+            <div
+                class="absolute inset-0 bg-[repeating-conic-gradient(#000000_0deg_90deg,#FFFFFF_90deg_180deg)] bg-[length:8px_8px] opacity-5">
+            </div>
             <!-- 圆形颜色预览 - 位于左上角 -->
-            <div class="absolute top-2 left-2 w-16 h-16 rounded-full shadow-lg bg-white relative overflow-hidden z-10">
-                <div
-                    class="absolute inset-0 bg-[repeating-conic-gradient(#00000022_0deg_90deg,#00000011_90deg_180deg)] bg-[length:8px_8px]">
-                </div>
-                <div id="color-preview" class="absolute inset-0 "></div>
-            </div>
+            <div id="color-preview"
+                class="absolute top-2 left-2 w-16 h-16 rounded-full shadow-lg  relative overflow-hidden z-10"
+                style="border: 2px solid #808080;"></div>
             <!-- 圆形初始颜色 - 位于左上角 -->
-            <div class="absolute top-3 left-2 w-8 h-8 rounded-full shadow-lg bg-white relative overflow-hidden z-10">
-                <div
-                    class="absolute inset-0 bg-[repeating-conic-gradient(#00000022_0deg_90deg,#00000011_90deg_180deg)] bg-[length:8px_8px]">
-                </div>
-                <div id="color-start" class="absolute inset-0 "></div>
-            </div>
-            <!-- 最近使用颜色 - 右上角 -->
-            <div id="recent-colors-top-right" class="absolute top-2 right-2 w-24 h-24 z-10">
+            <div id="color-start"
+                class="absolute top-4 left-2 w-8 h-8 rounded-full shadow-lg  relative overflow-hidden z-10"
+                style="border: 2px solid #808080;"></div>
+            <!-- 预定义颜色 - 右上角 -->
+            <div id="preset-colors-top-right" class="absolute top-2 right-2 w-24 h-24 z-10">
                 <!-- 右上角三角形排布的3个颜色 -->
                 <div
-                    class="recent-color teardrop-right-bottom absolute top-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-right-bottom absolute top-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
                 <div
-                    class="recent-color teardrop-left-bottom absolute top-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-left-bottom absolute top-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
                 <div
-                    class="recent-color teardrop-left-top absolute top-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-left-top absolute top-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
             </div>
 
-            <!-- 最近使用颜色 - 右下角 -->
-            <div id="recent-colors-bottom-right" class="absolute bottom-2 right-2 w-24 h-24 z-10">
+            <!-- 预定义颜色 - 右下角 -->
+            <div id="preset-colors-bottom-right" class="absolute bottom-2 right-2 w-24 h-24 z-10">
                 <!-- 右下角三角形排布的3个颜色 -->
                 <div
-                    class="recent-color teardrop-left-bottom absolute bottom-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-left-bottom absolute bottom-9 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
                 <div
-                    class="recent-color teardrop-left-top absolute bottom-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-left-top absolute bottom-0 right-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
                 <div
-                    class="recent-color teardrop-right-top absolute bottom-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-right-top absolute bottom-0 right-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
             </div>
 
-            <!-- 最近使用颜色 - 左下角 -->
-            <div id="recent-colors-bottom-left" class="absolute bottom-2 left-2 w-24 h-24 z-10">
+            <!-- 预定义颜色 - 左下角 -->
+            <div id="preset-colors-bottom-left" class="absolute bottom-2 left-2 w-24 h-24 z-10">
                 <!-- 左下角三角形排布的3个颜色 -->
                 <div
-                    class="recent-color teardrop-left-top absolute bottom-0 left-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-left-top absolute bottom-0 left-9 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
                 <div
-                    class="recent-color teardrop-right-top absolute bottom-0 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-right-top absolute bottom-0 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
                 </div>
                 <div
-                    class="recent-color teardrop-right-bottom absolute bottom-9 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                    class="preset-color teardrop-right-bottom absolute bottom-9 left-0 border border-gray-700 cursor-pointer transition-transform hover:scale-110">
+                </div>
+            </div>
+            <!-- 收藏的颜色-底部 -->
+            <div id="fav-colors" class="absolute left-1/2 bottom-2 transform -translate-x-1/2 flex flex-wrap gap-1.5">
+                <div id="fav-color-0" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #EF4444"></div>
+                <div id="fav-color-1" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #10B981"></div>
+                <div id="fav-color-2" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #F59E0B"></div>
+                <div id="fav-color-3" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #8B5CF6"></div>
+                <div id="fav-color-4" class="w-6 h-6 rounded-full cursor-pointer transform-transition hover:scale-110 border  border-dashed  border-gray-200" style="background-color: #64748B"></div>
+                <!-- <div id="fav-color-7" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
+                </div> -->
+            </div>
+            <!-- 收藏的颜色-右侧 -->
+            <div id="fav-colors" class="absolute top-1/2 right-2 transform -translate-y-1/2 flex flex-col gap-1.5">
+                <div id="fav-color-5" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
+                </div>
+                <div id="fav-color-6" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
+                </div>
+                <div id="fav-color-7" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
+                </div>
+                <div id="fav-color-8" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
+                </div>
+                <div id="fav-color-9" class="w-6 h-6 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs cursor-pointer hover:border-gray-400 color-transition">
+                    <i class="fa fa-plus"></i>
                 </div>
             </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
@@ -197,10 +225,8 @@
 
 
         <!-- 颜色输入区 -->
-        <div class="px-4 pb-3">
+        <div class="px-4 pb-3 pt-2">
 
-            <div class="mb-4">
-                <label class="text-xs text-gray-300 mb-1 block">颜色格式</label>
                 <div class="flex">
                     <select id="color-format-select"
                         class="w-16 px-2 py-1.5 border border-gray-700 bg-gray-800 rounded-l-lg focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white appearance-none">
@@ -217,7 +243,6 @@
                         <i class="fa fa-copy text-gray-300"></i>
                     </button>
                 </div>
-            </div>
 
         </div>
 
@@ -388,17 +413,17 @@
                 l: 50
             };
         },
-        
+
         // 通用颜色字符串解析函数，支持HEX、RGB、RGBA、HSL、HSLA格式
         // 确保返回包含完整的h、s、l、r、g、b、a属性的对象
         colorStringToObject: (colorStr) => {
             if (!colorStr || typeof colorStr !== 'string') {
                 return null;
             }
-            
+
             // 去除空格，便于解析
             colorStr = colorStr.trim().replace(/\s+/g, '');
-            
+
             // 确保所有返回值都包含完整的属性
             const result = {
                 h: 0,
@@ -409,7 +434,7 @@
                 b: 0,
                 a: 100
             };
-            
+
             // 尝试解析HEX格式
             if (/^#[0-9A-Fa-f]{3,6}$/.test(colorStr)) {
                 const rgb = ColorUtils.hexToRgb(colorStr);
@@ -428,7 +453,7 @@
                     }
                 }
             }
-            
+
             // 尝试解析RGB格式
             const rgbMatch = colorStr.match(/^rgb\((\d+),(\d+),(\d+)\)$/i);
             if (rgbMatch) {
@@ -448,7 +473,7 @@
                     };
                 }
             }
-            
+
             // 尝试解析RGBA格式
             const rgbaMatch = colorStr.match(/^rgba\((\d+),(\d+),(\d+),(0|1|0\.\d+)\)$/i);
             if (rgbaMatch) {
@@ -469,7 +494,7 @@
                     };
                 }
             }
-            
+
             // 尝试解析HSL格式
             const hslMatch = colorStr.match(/^hsl\((\d+),(\d+)%?,(\d+)%?\)$/i);
             if (hslMatch) {
@@ -489,7 +514,7 @@
                     };
                 }
             }
-            
+
             // 尝试解析HSLA格式
             const hslaMatch = colorStr.match(/^hsla\((\d+),(\d+)%?,(\d+)%?,(0|1|0\.\d+)\)$/i);
             if (hslaMatch) {
@@ -510,7 +535,7 @@
                     };
                 }
             }
-            
+
             return null;
         },
 
@@ -731,7 +756,7 @@
 
         const copyBtns = document.querySelectorAll('.copy-btn');
         const copyToast = document.getElementById('copy-toast');
-        const recentColors = document.querySelectorAll('.recent-color');
+        const recentColors = document.querySelectorAll('.preset-color');
         const colorFormatSelect = document.getElementById('color-format-select');
         const colorValueInput = document.getElementById('color-value-input');
         const copyColorBtn = document.getElementById('copy-color-btn');
@@ -747,15 +772,15 @@
             g: 0,      // 绿色
             b: 255     // 蓝色
         };
-        
+
         // 初始颜色状态 - 用于恢复初始颜色
         let initialColor = { ...currentColor };
-        
+
         // 初始颜色显示元素
         const colorStart = document.getElementById('color-start');
 
         // 预定义颜色表 - 仅支持字符串格式（HEX、RGB、RGBA、HSL、HSLA）
-        const predefinedColors = [
+        const presetColors = [
             { value: '#FF0000', name: '红色' },             // HEX格式
             { value: 'rgb(0, 255, 0)', name: '绿色' },       // RGB格式
             { value: 'rgb(0, 0, 255)', name: '蓝色' }, // RGBA格式
@@ -768,15 +793,15 @@
         ];
 
         // 更新预定义颜色表的UI - 仅支持字符串格式
-        const updatePredefinedColorsUI = () => {
-            const colorElements = document.querySelectorAll('.recent-color');
+        const updatepresetColorsUI = () => {
+            const colorElements = document.querySelectorAll('.preset-color');
             colorElements.forEach((el, index) => {
-                if (index < predefinedColors.length) {
-                    const predefinedColor = predefinedColors[index];
-                    
+                if (index < presetColors.length) {
+                    const presetColor = presetColors[index];
+
                     // 直接使用字符串格式的颜色值
-                    el.style.backgroundColor = predefinedColor.value;
-                    el.title = predefinedColor.name; // 添加颜色名称提示
+                    el.style.backgroundColor = presetColor.value;
+                    el.title = presetColor.name; // 添加颜色名称提示
                     el.style.display = 'block';
                 } else {
                     // 超出预定义颜色范围的元素隐藏
@@ -807,7 +832,7 @@
 
             // 在rgba格式中，RGB值不应该带百分号
             colorPreview.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${a / 100})`;
-            
+
             // 更新初始颜色显示
             colorStart.style.backgroundColor = `rgba(${initialColor.r}, ${initialColor.g}, ${initialColor.b}, ${initialColor.a / 100})`;
 
@@ -988,7 +1013,7 @@
                 if (value !== null) {
                     // 获取当前颜色的HSL值
                     const { h, s, l } = currentColor;
-                    
+
                     if (currentDraggingSegmentType === 'saturation') {
                         currentColor.s = value;
                         // 更新RGB值
@@ -1063,7 +1088,7 @@
                 if (value !== null) {
                     // 获取当前颜色的HSL值
                     const { h, s, l } = currentColor;
-                    
+
                     if (currentDraggingSegmentType === 'saturation') {
                         currentColor.s = value;
                         // 更新RGB值
@@ -1207,34 +1232,35 @@
                     currentDraggingSegmentType = segmentType;
 
                     // 根据点击的环弧类型处理交互
-                const value = getValueFromSegmentPosition(x, y, segmentType);
-                if (value !== null) {
-                    // 获取当前颜色的HSL值
-                    const { h, s, l } = currentColor;
-                    
-                    if (segmentType === 'saturation') {
-                        currentColor.s = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, value, l);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (segmentType === 'lightness') {
-                        currentColor.l = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, s, value);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (segmentType === 'alpha') {
-                        currentColor.a = value;
-                        // 透明度不影响RGB值
-                    }
-                    updateColorDisplay();
-                }
+                    const value = getValueFromSegmentPosition(x, y, segmentType);
+                    if (value !== null) {
+                        // 获取当前颜色的HSL值
+                        const { h, s, l } = currentColor;
 
+                        if (segmentType === 'saturation') {
+                            currentColor.s = value;
+                            // 更新RGB值
+                            const rgb = ColorUtils.hslToRgb(h, value, l);
+                            currentColor.r = rgb.r;
+                            currentColor.g = rgb.g;
+                            currentColor.b = rgb.b;
+                        } else if (segmentType === 'lightness') {
+                            currentColor.l = value;
+                            // 更新RGB值
+                            const rgb = ColorUtils.hslToRgb(h, s, value);
+                            currentColor.r = rgb.r;
+                            currentColor.g = rgb.g;
+                            currentColor.b = rgb.b;
+                        } else if (segmentType === 'alpha') {
+                            currentColor.a = value;
+                            // 透明度不影响RGB值
+                        }
+                        updateColorDisplay();
+                    }
+                    e.preventDefault();
                     e.stopPropagation(); // 阻止事件冒泡到色盘
                 }
+
             }
         });
 
@@ -1253,31 +1279,31 @@
                     isDraggingRing = true;
 
                     // 根据触摸的环弧类型处理交互
-                const value = getValueFromSegmentPosition(x, y, segmentType);
-                if (value !== null) {
-                    // 获取当前颜色的HSL值
-                    const { h, s, l } = currentColor;
-                    
-                    if (segmentType === 'saturation') {
-                        currentColor.s = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, value, l);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (segmentType === 'lightness') {
-                        currentColor.l = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, s, value);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (segmentType === 'alpha') {
-                        currentColor.a = value;
-                        // 透明度不影响RGB值
+                    const value = getValueFromSegmentPosition(x, y, segmentType);
+                    if (value !== null) {
+                        // 获取当前颜色的HSL值
+                        const { h, s, l } = currentColor;
+
+                        if (segmentType === 'saturation') {
+                            currentColor.s = value;
+                            // 更新RGB值
+                            const rgb = ColorUtils.hslToRgb(h, value, l);
+                            currentColor.r = rgb.r;
+                            currentColor.g = rgb.g;
+                            currentColor.b = rgb.b;
+                        } else if (segmentType === 'lightness') {
+                            currentColor.l = value;
+                            // 更新RGB值
+                            const rgb = ColorUtils.hslToRgb(h, s, value);
+                            currentColor.r = rgb.r;
+                            currentColor.g = rgb.g;
+                            currentColor.b = rgb.b;
+                        } else if (segmentType === 'alpha') {
+                            currentColor.a = value;
+                            // 透明度不影响RGB值
+                        }
+                        updateColorDisplay();
                     }
-                    updateColorDisplay();
-                }
 
                     e.preventDefault();
                     e.stopPropagation();
@@ -1296,7 +1322,7 @@
         function processColorInput(value) {
             // 复用colorStringToObject函数解析所有格式的颜色值
             const parsedColor = ColorUtils.colorStringToObject(value);
-            
+
             if (parsedColor) {
                 // 更新currentColor的所有属性
                 currentColor.h = parsedColor.h;
@@ -1306,7 +1332,7 @@
                 currentColor.g = parsedColor.g;
                 currentColor.b = parsedColor.b;
                 currentColor.a = parsedColor.a || 100;
-                
+
                 updateColorDisplay();
             } else {
                 // 如果输入无效，重置显示
@@ -1342,11 +1368,11 @@
         // 预定义颜色点击事件 - 仅支持字符串格式
         recentColors.forEach((colorEl, index) => {
             colorEl.addEventListener('click', () => {
-                if (index < predefinedColors.length) {
-                    const predefinedColor = predefinedColors[index];
-                    
+                if (index < presetColors.length) {
+                    const presetColor = presetColors[index];
+
                     // 解析字符串格式的颜色值
-                    const parsedColor = ColorUtils.colorStringToObject(predefinedColor.value);
+                    const parsedColor = ColorUtils.colorStringToObject(presetColor.value);
                     if (parsedColor) {
                         // 更新currentColor的所有属性
                         currentColor.h = parsedColor.h;
@@ -1370,9 +1396,9 @@
             // 更新显示
             updateColorDisplay();
         });
-        
+
         // 初始化
-        updatePredefinedColorsUI();
+        updatepresetColorsUI();
         updateColorDisplay();
     });
 </script>
