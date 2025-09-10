@@ -589,6 +589,8 @@
                     endColor = 'rgba(128, 128, 128, 1)';
                     gradient.addColorStop(0, startColor);
                     gradient.addColorStop(segment.arcAngle / 360, endColor);
+                    gradient.addColorStop((segment.arcAngle+20) / 360, endColor);
+                    gradient.addColorStop(1, startColor);
                 } else if (segment.type === 'lightness') {
                     // 亮度环弧：从白色到黑色的渐变
                     const lightnessBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, 50)
@@ -597,6 +599,8 @@
                     gradient.addColorStop(0, startColor);
                     gradient.addColorStop(segment.arcAngle / 720, `rgba(${lightnessBaseColor.r}, ${lightnessBaseColor.g}, ${lightnessBaseColor.b}, 1)`);
                     gradient.addColorStop(segment.arcAngle / 360, endColor);
+                    gradient.addColorStop((segment.arcAngle+20) / 360, endColor);
+                    gradient.addColorStop(1, startColor);
                 } else if (segment.type === 'alpha') {
                     // 透明度环弧：从透明到基色的渐变
                     const alphaBaseColor = ColorUtils.hslToRgb(baseColor.h, baseColor.s, baseColor.l);
@@ -604,40 +608,44 @@
                     endColor = `rgba(${alphaBaseColor.r}, ${alphaBaseColor.g}, ${alphaBaseColor.b}, 1)`
                     gradient.addColorStop(0, startColor);
                     gradient.addColorStop(segment.arcAngle / 360, endColor);
+                    gradient.addColorStop((segment.arcAngle+20) / 360, endColor);
+                    gradient.addColorStop(1, startColor);
                 }
 
-                // 在环弧的两个端点绘制相同宽度的圆来实现圆角效果
+                // 创建一个封闭的圆角环弧图形
                 const ringWidth = outerRadius - innerRadius;
                 const circleRadius = ringWidth / 2; // 圆的半径为环宽度的一半
                 const midRadius = innerRadius + circleRadius; // 圆心位于内外半径之间的中点
 
-                // 计算起始点的坐标
+                // 计算起始点和结束点的角度（弧度）
                 const startAngleRad = segment.startAngle * Math.PI / 180;
-                const startX = centerX + midRadius * Math.cos(startAngleRad);
-                const startY = centerY + midRadius * Math.sin(startAngleRad);
-
-                // 计算结束点的坐标
                 const endAngleRad = (segment.startAngle + segment.arcAngle) * Math.PI / 180;
-                const endX = centerX + midRadius * Math.cos(endAngleRad);
-                const endY = centerY + midRadius * Math.sin(endAngleRad);
 
-                // 绘制起始点的圆 - 使用起始颜色
-                ctx.beginPath();
-                ctx.arc(startX, startY, circleRadius, 0, 2 * Math.PI);
-                ctx.fillStyle = startColor;
-                ctx.fill();
+                // 计算起始点和结束点的圆心坐标
+                const startPointX = centerX + midRadius * Math.cos(startAngleRad);
+                const startPointY = centerY + midRadius * Math.sin(startAngleRad);
+                const endPointX = centerX + midRadius * Math.cos(endAngleRad);
+                const endPointY = centerY + midRadius * Math.sin(endAngleRad);
 
-                // 绘制结束点的圆 - 使用结束颜色
+                // 创建一个封闭的路径
                 ctx.beginPath();
-                ctx.arc(endX, endY, circleRadius, 0, 2 * Math.PI);
-                ctx.fillStyle = endColor;
-                ctx.fill();
-
-                // 绘制环弧
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, outerRadius, segment.startAngle * Math.PI / 180, (segment.startAngle + segment.arcAngle) * Math.PI / 180);
-                ctx.arc(centerX, centerY, innerRadius, (segment.startAngle + segment.arcAngle) * Math.PI / 180, segment.startAngle * Math.PI / 180, true);
+                
+                // 1. 绘制外圆弧（顺时针方向）
+                ctx.arc(centerX, centerY, outerRadius, startAngleRad, endAngleRad);
+                
+                // 2. 绘制结束点的圆角（连接外圆和内圆）
+                ctx.arc(endPointX, endPointY, circleRadius, endAngleRad, endAngleRad + Math.PI);
+                
+                // 3. 绘制内圆弧（逆时针方向）
+                ctx.arc(centerX, centerY, innerRadius, endAngleRad, startAngleRad, true);
+                
+                // 4. 绘制起始点的圆角（连接内圆和外圆）
+                ctx.arc(startPointX, startPointY, circleRadius, startAngleRad + Math.PI, startAngleRad);
+                
+                // 封闭路径
                 ctx.closePath();
+                
+                // 应用渐变和模糊效果并填充
                 ctx.fillStyle = gradient;
                 ctx.fill();
 
