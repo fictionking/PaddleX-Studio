@@ -128,7 +128,6 @@
             </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
             <div class="absolute inset-0 flex items-center justify-center  pointer-events-auto z-10">
-
                 <!-- 分段环弧容器 - 位于底层 -->
                 <div id="ring-container" class="absolute w-[220px] h-[220px] rounded-full overflow-hidden shadow-inner">
                     <!-- 分段环弧将通过JS生成 -->
@@ -144,9 +143,7 @@
                     <!-- 颜色圆盘将通过JS生成 -->
                     <!-- 颜色圆盘标记 -->
                     <div id="wheel-marker" class="wheel-marker absolute hidden" title="色相"></div>
-
                 </div>
-
             </div>
             <!-- 圆形颜色预览 - 位于左上角 -->
             <div id="color-preview"
@@ -975,6 +972,7 @@
                 isDraggingWheel = true;
                 handleWheelInteraction(e.clientX, e.clientY);
                 e.preventDefault();
+                e.stopPropagation();
             }
 
         });
@@ -1025,29 +1023,12 @@
 
         // 触摸设备支持 - 色盘
         colorWheel.addEventListener('touchstart', (e) => {
-            isDraggingWheel = true;
-            const touch = e.touches[0];
-            handleWheelInteraction(touch.clientX, touch.clientY);
-            e.preventDefault();
-        });
-
-        // 触摸设备支持 - 环弧
-        document.addEventListener('touchstart', (e) => {
-            // 只有当不是在拖动色盘时，才触发环弧的交互
-            if (!isDraggingWheel) {
+            if (isPositionInColorWheel(e.touches[0].clientX, e.touches[0].clientY)) {
+                isDraggingWheel = true;
                 const touch = e.touches[0];
-                const rect = ringData.canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-
-                // 检查点击位置属于哪个环弧
-                const segmentType = getSegmentTypeAtPosition(x, y);
-
-                if (segmentType) {
-                    isDraggingRing = true;
-                    currentDraggingSegmentType = segmentType;
-                    e.preventDefault();
-                }
+                handleWheelInteraction(touch.clientX, touch.clientY);
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
 
@@ -1196,50 +1177,63 @@
         // 保存当前拖动的环弧类型
         let currentDraggingSegmentType = null;
 
+        /**
+         * 处理环弧交互的函数
+         * @param {number} x - 相对于canvas的x坐标
+         * @param {number} y - 相对于canvas的y坐标
+         * @returns {boolean} - 是否处理了交互
+         */
+        function handleRingInteraction(x, y) {
+            // 检查点击位置属于哪个环弧
+            const segmentType = getSegmentTypeAtPosition(x, y);
+
+            if (segmentType) {
+                isDraggingRing = true;
+                currentDraggingSegmentType = segmentType;
+
+                // 根据点击的环弧类型处理交互
+                const value = getValueFromSegmentPosition(x, y, segmentType);
+                if (value !== null) {
+                    // 获取当前颜色的HSL值
+                    const { h, s, l } = currentColor;
+
+                    if (segmentType === 'saturation') {
+                        currentColor.s = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, value, l);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
+                    } else if (segmentType === 'lightness') {
+                        currentColor.l = value;
+                        // 更新RGB值
+                        const rgb = ColorUtils.hslToRgb(h, s, value);
+                        currentColor.r = rgb.r;
+                        currentColor.g = rgb.g;
+                        currentColor.b = rgb.b;
+                    } else if (segmentType === 'alpha') {
+                        currentColor.a = value;
+                        // 透明度不影响RGB值
+                    }
+                    updateColorDisplay();
+                }
+                return true;
+            }
+            return false;
+        }
+
         // 分段环弧鼠标事件
-        ringContainer.addEventListener('mousedown', (e) => {
+        document.addEventListener('mousedown', (e) => {
             // 只有当不是在拖动色盘时，才触发环弧的交互
             if (!isDraggingWheel) {
                 const rect = ringData.canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
 
-                // 检查点击位置属于哪个环弧
-                const segmentType = getSegmentTypeAtPosition(x, y);
-
-                if (segmentType) {
-                    isDraggingRing = true;
-                    currentDraggingSegmentType = segmentType;
-
-                    // 根据点击的环弧类型处理交互
-                    const value = getValueFromSegmentPosition(x, y, segmentType);
-                    if (value !== null) {
-                        // 获取当前颜色的HSL值
-                        const { h, s, l } = currentColor;
-
-                        if (segmentType === 'saturation') {
-                            currentColor.s = value;
-                            // 更新RGB值
-                            const rgb = ColorUtils.hslToRgb(h, value, l);
-                            currentColor.r = rgb.r;
-                            currentColor.g = rgb.g;
-                            currentColor.b = rgb.b;
-                        } else if (segmentType === 'lightness') {
-                            currentColor.l = value;
-                            // 更新RGB值
-                            const rgb = ColorUtils.hslToRgb(h, s, value);
-                            currentColor.r = rgb.r;
-                            currentColor.g = rgb.g;
-                            currentColor.b = rgb.b;
-                        } else if (segmentType === 'alpha') {
-                            currentColor.a = value;
-                            // 透明度不影响RGB值
-                        }
-                        updateColorDisplay();
-                    }
+                if (handleRingInteraction(x, y)) {
+                    e.preventDefault();
+                    e.stopPropagation(); // 阻止事件冒泡到色盘
                 }
-                e.preventDefault();
-                e.stopPropagation(); // 阻止事件冒泡到色盘
             }
         });
 
@@ -1251,46 +1245,12 @@
                 const x = touch.clientX - rect.left;
                 const y = touch.clientY - rect.top;
 
-                // 检查触摸位置属于哪个环弧
-                const segmentType = getSegmentTypeAtPosition(x, y);
-
-                if (segmentType) {
-                    isDraggingRing = true;
-
-                    // 根据触摸的环弧类型处理交互
-                    const value = getValueFromSegmentPosition(x, y, segmentType);
-                    if (value !== null) {
-                        // 获取当前颜色的HSL值
-                        const { h, s, l } = currentColor;
-
-                        if (segmentType === 'saturation') {
-                            currentColor.s = value;
-                            // 更新RGB值
-                            const rgb = ColorUtils.hslToRgb(h, value, l);
-                            currentColor.r = rgb.r;
-                            currentColor.g = rgb.g;
-                            currentColor.b = rgb.b;
-                        } else if (segmentType === 'lightness') {
-                            currentColor.l = value;
-                            // 更新RGB值
-                            const rgb = ColorUtils.hslToRgb(h, s, value);
-                            currentColor.r = rgb.r;
-                            currentColor.g = rgb.g;
-                            currentColor.b = rgb.b;
-                        } else if (segmentType === 'alpha') {
-                            currentColor.a = value;
-                            // 透明度不影响RGB值
-                        }
-                        updateColorDisplay();
-                    }
-
+                if (handleRingInteraction(x, y)) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
             }
         });
-
-
 
         // 颜色格式选择器事件
         colorFormatSelect.addEventListener('change', () => {
