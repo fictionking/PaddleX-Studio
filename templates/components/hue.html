@@ -1164,7 +1164,7 @@
                     } else {
                         // 普通环弧（不跨越360度边界）
                         ag=angle - segment.startAngle
-                        if(ag>280){
+                        if(ag>280){ //超过半个圆设为反方向
                             ag-=360
                         }
                         relativePosition = ag / segment.arcAngle;
