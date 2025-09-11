@@ -129,7 +129,7 @@
             </button>
         </div>
         <!-- 颜色选择器 -->
-        <div class="relative w-[300px] h-[300px] m-auto overflow-hidden">
+        <div id="color-picker-container" class="relative w-[300px] h-[300px] m-auto overflow-hidden">
             <!-- 网格背景 - 应用于整个颜色选择器 -->
             <div
                 class="absolute inset-0 bg-[repeating-conic-gradient(#000000_0deg_90deg,#FFFFFF_90deg_180deg)] bg-[length:8px_8px] opacity-5 z-0">
@@ -210,9 +210,14 @@
                 <div class="fav-color"></div>
             </div>
 
-            <div id="lockSaturation" title="锁定饱和度" style="top:30px;left:142px;display:flex;align-items:center;justify-content:center;" class="absolute w-4 h-4 bg-gray-800 rounded-full cursor-pointer transform transition hover:scale-150  pointer-events-auto z-10">
+            <div id="lockSaturation" title="锁定饱和度"
+                style="top:30px;left:142px;display:flex;align-items:center;justify-content:center;"
+                class="absolute w-4 h-4 bg-gray-800 rounded-full cursor-pointer transform transition hover:scale-150  pointer-events-auto z-10">
                 <i class="fa fa-unlock text-white" style="font-size:8px;"></i>
             </div>
+            <!-- 背景色切换区域 -->
+            <div id="bgColorSlider" class="h-16 w-4 rounded-full cursor-pointer absolute z-10 hover:opacity-90 transition-opacity"
+                style="top:140px;left:10px;background: linear-gradient(to bottom, #374151 0%, #374151 25%, #FFFFFF 25%, #FFFFFF 50%, #808080 50%, #808080 75%, #000000 75%, #000000 100%);box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.2);"></div>
         </div>
 
 
@@ -235,7 +240,6 @@
                     <i class="fa fa-copy text-gray-300"></i>
                 </button>
             </div>
-
         </div>
 
     </div>
@@ -905,7 +909,7 @@
         let isDraggingWheel = false;
         let isDraggingRing = false;
         let isSaturationLocked = false; // 添加锁定饱和度状态变量
-        
+
         // 为锁定饱和度图标添加点击事件
         const saturationLockBtn = document.getElementById('lockSaturation');
         if (saturationLockBtn) {
@@ -916,6 +920,45 @@
                 lockIcon.style.fontSize = '8px';
             });
         }
+
+        // 背景色切换功能
+        const bgColorSlider = document.getElementById('bgColorSlider');
+        const colorPickerContainer = document.getElementById('color-picker-container');
+
+        // 背景色选项
+        const bgColors = ['transparent', '#ffffff', '#808080', '#000000'];
+
+        // 更新背景色
+        const updateBackgroundColor = (index) => {
+            const bgColor = bgColors[index];
+            colorPickerContainer.style.backgroundColor = bgColor;
+        };
+
+        // 计算点击位置对应的索引
+        const getBgColorIndex = (clientY) => {
+            const rect = bgColorSlider.getBoundingClientRect();
+            const y = clientY - rect.top;
+            const relativeY = Math.max(0, Math.min(1, y / rect.height));
+            return Math.floor(relativeY * bgColors.length);
+        };
+
+        // 点击事件处理
+        bgColorSlider.addEventListener('click', (e) => {
+            const index = getBgColorIndex(e.clientY);
+            updateBackgroundColor(index);
+        });
+
+        // 触摸设备支持
+        bgColorSlider.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                const index = getBgColorIndex(e.touches[0].clientY);
+                updateBackgroundColor(index);
+                e.preventDefault();
+            }
+        });
+
+        // 初始设置为透明背景
+        updateBackgroundColor(0);
 
         const handleWheelInteraction = (clientX, clientY) => {
             const rect = wheelData.canvas.getBoundingClientRect();
