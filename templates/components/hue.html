@@ -36,7 +36,7 @@
         @layer components {
             /* 预定义颜色按钮共性样式 */
             .preset-color {
-                @apply border border-gray-700 cursor-pointer transition-transform hover:scale-110;
+                @apply  cursor-pointer transition-transform hover:scale-110;
             }
         }
         
@@ -112,7 +112,7 @@
 
 <body class="font-inter bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <!-- 主容器 -->
-    <div class="bg-gray-800 rounded-xl shadow-elevation-2 max-w-md overflow-hidden transform-transition">
+    <div class="bg-gray-700 rounded-xl shadow-elevation-2 max-w-md overflow-hidden transform-transition">
         <!-- 标题栏 -->
         <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
             <h1 class="text-sm font-semibold text-white">Color Picker</h1>
@@ -124,7 +124,7 @@
         <div class="relative w-[300px] h-[300px] m-auto overflow-hidden">
             <!-- 网格背景 - 应用于整个颜色选择器 -->
             <div
-                class="absolute inset-0 bg-[repeating-conic-gradient(#000000_0deg_90deg,#FFFFFF_90deg_180deg)] bg-[length:8px_8px] opacity-5">
+                class="absolute inset-0 bg-[repeating-conic-gradient(#000000_0deg_90deg,#FFFFFF_90deg_180deg)] bg-[length:8px_8px] opacity-5 z-0">
             </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
             <div class="absolute inset-0 flex items-center justify-center  pointer-events-auto z-10">
@@ -145,6 +145,14 @@
                     <div id="wheel-marker" class="wheel-marker absolute hidden" title="色相"></div>
                 </div>
             </div>
+            <!-- 葫芦形SVG容器 - 位于底部 -->
+            <svg viewBox="0 0 251 384" class="absolute w-24 h-28 z-1"
+                style="left: -8px;top: 4px;" color="#374151">
+                <path
+                    d="M125.75 3.976C192.92 3.977 247.37 58.425 247.37 125.59 247.37 167.568 226.1 204.579 193.75 226.434L182.35 232.622 166.1 239.278C155.49 245.997 145.87 257.4 139.74 271.91 133.61 286.41 132.15 301.27 134.73 313.56L134.99 318.93 134.77 328.4C128.77 357.72 102.82 379.79 71.72 379.79 36.17 379.79 7.36 350.97 7.36 315.43 7.36 306.54 9.16 298.07 12.42 290.37L15.41 285.94 19.17 281.44C27.91 272.42 34.59 259.08 37.15 243.544 40.99 220.241 33.78 203.552 21.85 187.78L13.7 172.927C7.54 158.378 4.14 142.381 4.14 125.59 4.14 58.425 58.59 3.976 125.75 3.976Z"
+                    fill="none" stroke="rgba(128,128,128, 1)" stroke-width="4" />
+            </svg>
+
             <!-- 圆形颜色预览 - 位于左上角 -->
             <div id="color-preview"
                 class="absolute top-2 left-2 w-16 h-16 rounded-full shadow-lg  relative overflow-hidden z-10"
@@ -211,7 +219,7 @@
                 <input type="text" id="color-value-input" value="#3B82F6"
                     class="flex-1 px-2 py-1.5 border-l-0 border border-gray-700 bg-gray-800 focus:outline-none focus:ring-1.5 focus:ring-primary/50 text-xs text-white" />
                 <button id="copy-color-btn"
-                    class="copy-btn bg-gray-700 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs">
+                    class="copy-btn bg-gray-800 hover:bg-gray-600 px-2 rounded-r-lg color-transition text-xs">
                     <i class="fa fa-copy text-gray-300"></i>
                 </button>
             </div>
@@ -586,7 +594,7 @@
                     endColor = 'rgba(128, 128, 128, 1)';
                     gradient.addColorStop(0, startColor);
                     gradient.addColorStop(segment.arcAngle / 360, endColor);
-                    gradient.addColorStop((segment.arcAngle+20) / 360, endColor);
+                    gradient.addColorStop((segment.arcAngle + 20) / 360, endColor);
                     gradient.addColorStop(1, startColor);
                 } else if (segment.type === 'lightness') {
                     // 亮度环弧：从白色到黑色的渐变
@@ -596,7 +604,7 @@
                     gradient.addColorStop(0, startColor);
                     gradient.addColorStop(segment.arcAngle / 720, `rgba(${lightnessBaseColor.r}, ${lightnessBaseColor.g}, ${lightnessBaseColor.b}, 1)`);
                     gradient.addColorStop(segment.arcAngle / 360, endColor);
-                    gradient.addColorStop((segment.arcAngle+20) / 360, endColor);
+                    gradient.addColorStop((segment.arcAngle + 20) / 360, endColor);
                     gradient.addColorStop(1, startColor);
                 } else if (segment.type === 'alpha') {
                     // 透明度环弧：从透明到基色的渐变
@@ -605,7 +613,7 @@
                     endColor = `rgba(${alphaBaseColor.r}, ${alphaBaseColor.g}, ${alphaBaseColor.b}, 1)`
                     gradient.addColorStop(0, startColor);
                     gradient.addColorStop(segment.arcAngle / 360, endColor);
-                    gradient.addColorStop((segment.arcAngle+20) / 360, endColor);
+                    gradient.addColorStop((segment.arcAngle + 20) / 360, endColor);
                     gradient.addColorStop(1, startColor);
                 }
 
@@ -626,22 +634,22 @@
 
                 // 创建一个封闭的路径
                 ctx.beginPath();
-                
+
                 // 1. 绘制外圆弧（顺时针方向）
                 ctx.arc(centerX, centerY, outerRadius, startAngleRad, endAngleRad);
-                
+
                 // 2. 绘制结束点的圆角（连接外圆和内圆）
                 ctx.arc(endPointX, endPointY, circleRadius, endAngleRad, endAngleRad + Math.PI);
-                
+
                 // 3. 绘制内圆弧（逆时针方向）
                 ctx.arc(centerX, centerY, innerRadius, endAngleRad, startAngleRad, true);
-                
+
                 // 4. 绘制起始点的圆角（连接内圆和外圆）
                 ctx.arc(startPointX, startPointY, circleRadius, startAngleRad + Math.PI, startAngleRad);
-                
+
                 // 封闭路径
                 ctx.closePath();
-                
+
                 // 应用渐变和模糊效果并填充
                 ctx.fillStyle = gradient;
                 ctx.fill();
