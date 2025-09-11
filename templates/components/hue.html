@@ -1163,7 +1163,11 @@
                         }
                     } else {
                         // 普通环弧（不跨越360度边界）
-                        relativePosition = (angle - segment.startAngle) / segment.arcAngle;
+                        ag=angle - segment.startAngle
+                        if(ag>280){
+                            ag-=360
+                        }
+                        relativePosition = ag / segment.arcAngle;
                     }
                     // 确保相对位置在0-1范围内
                     const clampedPosition = Math.max(0, Math.min(1, relativePosition));
