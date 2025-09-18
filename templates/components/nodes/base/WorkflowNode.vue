@@ -6,13 +6,13 @@
                 <span @click="!fixName && startEditName()" :style="!fixName && { cursor: 'text' }" class="node-name">
                     {{ data.name }}
                 </span>
-                <el-popover placement="right" width="320" trigger="hover" :show-after="500">
+                <el-popover placement="right" width="310" trigger="hover" :show-after="500" popper-style="padding:5px;" :persistent="false">
                     <template #reference>
                         <el-icon>
                             <PaletteIcon />
                         </el-icon>
                     </template>
-                    <el-color-picker-panel v-model="data.color" :predefine="predefineColors" :border="false" />
+                    <ChromaWheel v-model="data.color"/>
                 </el-popover>
             </div>
 
@@ -44,17 +44,18 @@
             <div :class="['node-properties', type]">
                 <slot name="properties"></slot>
             </div>
-
         </div>
     </div>
 </template>
 
 <script>
 import { Handle, Position } from '/libs/vue-flow/core/vue-flow-core.mjs';
+import ChromaWheel from './ChromaWheel.vue';
 
 export default {
     components: {
         Handle,
+        ChromaWheel,
     },
     props: {
         id: {

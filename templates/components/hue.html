@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Final Hue Corrected Color Picker</title>
+    <title>ChromaWheel Color Picker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -123,7 +123,7 @@
     <div class="bg-gray-700 rounded-xl shadow-elevation-2 max-w-md overflow-hidden transform-transition">
         <!-- 标题栏 -->
         <div class="px-4 py-3 border-b border-gray-700 flex justify-between items-center">
-            <h1 class="text-sm font-semibold text-white">Color Picker</h1>
+            <h1 class="text-sm font-semibold text-white">ChromaWheel Color Picker</h1>
             <button id="close-btn" class="text-gray-400 hover:text-white color-transition text-xs">
                 <i class="fa fa-times"></i>
             </button>
@@ -135,10 +135,10 @@
                 class="absolute inset-0 bg-[repeating-conic-gradient(#000000_0deg_90deg,#FFFFFF_90deg_180deg)] bg-[length:8px_8px] opacity-5 z-0">
             </div>
             <!-- 颜色选择区域 - 亮度环和色盘叠放 -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-auto z-10"
+            <div id="color-selector" class="absolute inset-0 flex items-center justify-center pointer-events-auto z-10"
                 style="filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));">
                 <!-- 分段环弧容器 - 位于底层 -->
-                <div id="ring-container" class="absolute w-[220px] h-[220px] rounded-full overflow-hidden">
+                <div id="ring-container" class="absolute w-[220px] h-[220px]  overflow-hidden">
                     <!-- 分段环弧将通过JS生成 -->
                     <!-- 饱和度环弧标记 -->
                     <div id="saturation-marker" class="ring-marker absolute hidden" title="饱和度"></div>
@@ -148,7 +148,7 @@
                     <div id="alpha-marker" class="ring-marker absolute hidden" title="透明度"></div>
                 </div>
                 <!-- 彩色圆盘 - 位于上层 -->
-                <div id="color-wheel" class="absolute w-[200px] h-[200px] rounded-full overflow-hidden">
+                <div id="color-wheel" class="absolute w-[200px] h-[200px]  overflow-hidden">
                     <!-- 颜色圆盘将通过JS生成 -->
                     <!-- 颜色圆盘标记 -->
                     <div id="wheel-marker" class="wheel-marker absolute hidden" title="色相"></div>
@@ -216,8 +216,10 @@
                 <i class="fa fa-unlock text-white" style="font-size:8px;"></i>
             </div>
             <!-- 背景色切换区域 -->
-            <div id="bgColorSlider" class="h-16 w-4 rounded-full cursor-pointer absolute z-10 hover:opacity-90 transition-opacity"
-                style="top:140px;left:10px;background: linear-gradient(to bottom, #374151 0%, #374151 25%, #FFFFFF 25%, #FFFFFF 50%, #808080 50%, #808080 75%, #000000 75%, #000000 100%);box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.2);"></div>
+            <div id="bgColorSlider"
+                class="h-16 w-4 rounded-full cursor-pointer absolute z-10 hover:opacity-90 transition-opacity"
+                style="top:140px;left:10px;background: linear-gradient(to bottom, #374151 0%, #374151 25%, #FFFFFF 25%, #FFFFFF 50%, #808080 50%, #808080 75%, #000000 75%, #000000 100%);box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.2);">
+            </div>
         </div>
 
 
@@ -735,6 +737,7 @@
         const wheelData = createColorWheel(colorWheel);
         const wheelMarker = document.getElementById('wheel-marker');
 
+        const colorSelector = document.getElementById('color-selector');
         // 初始化分段环弧
         const ringContainer = document.getElementById('ring-container');
         let ringData = null;
@@ -786,7 +789,7 @@
         ];
 
         // 更新预定义颜色表的UI - 仅支持字符串格式
-        const updatepresetColorsUI = () => {
+        const updatePresetColorsUI = () => {
             presetElements.forEach((el, index) => {
                 if (index < presetColors.length) {
                     const presetColor = presetColors[index];
@@ -806,9 +809,6 @@
         const createRingWithCurrentColor = () => {
             ringData = createRing(ringContainer, currentColor);
         };
-
-        // 初始化创建亮度环
-        createRingWithCurrentColor();
 
         // 更新颜色显示
         const updateColorDisplay = () => {
@@ -957,9 +957,6 @@
             }
         });
 
-        // 初始设置为透明背景
-        updateBackgroundColor(0);
-
         const handleWheelInteraction = (clientX, clientY) => {
             const rect = wheelData.canvas.getBoundingClientRect();
             const x = clientX - rect.left;
@@ -1022,119 +1019,120 @@
             return distance <= wheelData.radius * 1.1; // 添加一些容差范围
         }
 
-        colorWheel.addEventListener('mousedown', (e) => {
+        /**
+         * 处理颜色选择器的交互事件（同时支持鼠标和触摸）
+         * @param {Event} e - 事件对象
+         * @param {boolean} isTouch - 是否为触摸事件
+         */
+        function handleColorSelectorInteraction(e, isTouch) {
+            let clientX, clientY;
+
+            if (isTouch) {
+                if (e.touches.length === 0) return;
+                const touch = e.touches[0];
+                clientX = touch.clientX;
+                clientY = touch.clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
             // 只有当鼠标按下位置在色盘色彩区域内时，才触发交互
-            if (isPositionInColorWheel(e.clientX, e.clientY)) {
+            if (isPositionInColorWheel(clientX, clientY)) {
                 isDraggingWheel = true;
-                handleWheelInteraction(e.clientX, e.clientY);
+                handleWheelInteraction(clientX, clientY);
                 e.preventDefault();
                 e.stopPropagation();
-            }
-
-        });
-
-        // 鼠标移动事件，同时处理色盘和分段环弧
-        document.addEventListener('mousemove', (e) => {
-            if (isDraggingWheel) {
-                handleWheelInteraction(e.clientX, e.clientY);
-            } else if (isDraggingRing && currentDraggingSegmentType) {
+            } else {
+                // 分段环弧交互
                 const rect = ringData.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
 
-                // 根据鼠标按下时确定的环弧类型和当前角度计算值
-                const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
-                if (value !== null) {
-                    // 获取当前颜色的HSL值
-                    const { h, s, l } = currentColor;
-
-                    if (currentDraggingSegmentType === 'saturation') {
-                        currentColor.s = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, value, l);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (currentDraggingSegmentType === 'lightness') {
-                        currentColor.l = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, s, value);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (currentDraggingSegmentType === 'alpha') {
-                        currentColor.a = value;
-                        // 透明度不影响RGB值
-                    }
-                    updateColorDisplay();
-                }
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDraggingWheel = false;
-            isDraggingRing = false;
-            currentDraggingSegmentType = null;
-        });
-
-        // 触摸设备支持 - 色盘
-        colorWheel.addEventListener('touchstart', (e) => {
-            if (isPositionInColorWheel(e.touches[0].clientX, e.touches[0].clientY)) {
-                isDraggingWheel = true;
-                const touch = e.touches[0];
-                handleWheelInteraction(touch.clientX, touch.clientY);
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-
-        // 触摸移动事件，同时处理色盘和分段环弧
-        document.addEventListener('touchmove', (e) => {
-            if (isDraggingWheel) {
-                const touch = e.touches[0];
-                handleWheelInteraction(touch.clientX, touch.clientY);
-                e.preventDefault();
-            } else if (isDraggingRing && currentDraggingSegmentType) {
-                const touch = e.touches[0];
-                const rect = ringData.canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-
-                // 根据触摸按下时确定的环弧类型和当前角度计算值
-                const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
-                if (value !== null) {
-                    // 获取当前颜色的HSL值
-                    const { h, s, l } = currentColor;
-
-                    if (currentDraggingSegmentType === 'saturation') {
-                        currentColor.s = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, value, l);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (currentDraggingSegmentType === 'lightness') {
-                        currentColor.l = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, s, value);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (currentDraggingSegmentType === 'alpha') {
-                        currentColor.a = value;
-                        // 透明度不影响RGB值
-                    }
-                    updateColorDisplay();
+                if (handleRingInteraction(x, y)) {
                     e.preventDefault();
+                    e.stopPropagation(); // 阻止事件冒泡到色盘
                 }
             }
-        });
+        }
 
-        document.addEventListener('touchend', () => {
+        // 同时注册鼠标和触摸事件
+        colorSelector.addEventListener('mousedown', (e) => handleColorSelectorInteraction(e, false));
+        colorSelector.addEventListener('touchstart', (e) => handleColorSelectorInteraction(e, true));
+
+        const updateColorByRingPostion = (x, y, currentDraggingSegmentType) => {
+
+            // 根据鼠标按下时确定的环弧类型和当前角度计算值
+            const value = getValueFromSegmentPosition(x, y, currentDraggingSegmentType);
+            if (value !== null) {
+                // 获取当前颜色的HSL值
+                const { h, s, l } = currentColor;
+
+                if (currentDraggingSegmentType === 'saturation') {
+                    currentColor.s = value;
+                    // 更新RGB值
+                    const rgb = ColorUtils.hslToRgb(h, value, l);
+                    currentColor.r = rgb.r;
+                    currentColor.g = rgb.g;
+                    currentColor.b = rgb.b;
+                } else if (currentDraggingSegmentType === 'lightness') {
+                    currentColor.l = value;
+                    // 更新RGB值
+                    const rgb = ColorUtils.hslToRgb(h, s, value);
+                    currentColor.r = rgb.r;
+                    currentColor.g = rgb.g;
+                    currentColor.b = rgb.b;
+                } else if (currentDraggingSegmentType === 'alpha') {
+                    currentColor.a = value;
+                    // 透明度不影响RGB值
+                }
+                updateColorDisplay();
+            }
+        }
+        /**
+         * 统一处理色盘选择器的移动事件（鼠标和触摸）
+         * @param {Event} e - 事件对象
+         * @param {boolean} isTouch - 是否为触摸事件
+         */
+        const handleColorSelectorMove = (e, isTouch) => {
+
+            // 根据事件类型获取坐标
+            const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+            const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+            if (isDraggingWheel) {
+                // 处理色盘交互
+                handleWheelInteraction(clientX, clientY);
+                e.preventDefault();
+                e.stopPropagation();
+            } else if (isDraggingRing && currentDraggingSegmentType) {
+                // 处理分段环弧交互
+                const rect = ringData.canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+                updateColorByRingPostion(x, y, currentDraggingSegmentType);
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+
+        // 注册鼠标移动事件
+        document.addEventListener('mousemove', (e) => handleColorSelectorMove(e, false));
+        document.addEventListener('touchmove', (e) => handleColorSelectorMove(e, true));
+
+        // 鼠标释放事件
+        /**
+         * 统一处理鼠标/触摸释放事件，重置拖拽状态
+         */
+        const handleColorSelectorRelease = () => {
             isDraggingWheel = false;
             isDraggingRing = false;
             currentDraggingSegmentType = null;
-        });
+        };
+        
+        // 注册释放事件
+        document.addEventListener('mouseup', handleColorSelectorRelease);
+        document.addEventListener('touchend', handleColorSelectorRelease);
 
         // 定义三个分段环弧的起始角度和占用角度
         const segments = [
@@ -1250,67 +1248,12 @@
             if (segmentType) {
                 isDraggingRing = true;
                 currentDraggingSegmentType = segmentType;
-
-                // 根据点击的环弧类型处理交互
-                const value = getValueFromSegmentPosition(x, y, segmentType);
-                if (value !== null) {
-                    // 获取当前颜色的HSL值
-                    const { h, s, l } = currentColor;
-
-                    if (segmentType === 'saturation') {
-                        currentColor.s = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, value, l);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (segmentType === 'lightness') {
-                        currentColor.l = value;
-                        // 更新RGB值
-                        const rgb = ColorUtils.hslToRgb(h, s, value);
-                        currentColor.r = rgb.r;
-                        currentColor.g = rgb.g;
-                        currentColor.b = rgb.b;
-                    } else if (segmentType === 'alpha') {
-                        currentColor.a = value;
-                        // 透明度不影响RGB值
-                    }
-                    updateColorDisplay();
-                }
+                updateColorByRingPostion(x, y, segmentType);
                 return true;
             }
             return false;
         }
 
-        // 分段环弧鼠标事件
-        document.addEventListener('mousedown', (e) => {
-            // 只有当不是在拖动色盘时，才触发环弧的交互
-            if (!isDraggingWheel) {
-                const rect = ringData.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                if (handleRingInteraction(x, y)) {
-                    e.preventDefault();
-                    e.stopPropagation(); // 阻止事件冒泡到色盘
-                }
-            }
-        });
-
-        // 分段环弧触摸事件
-        document.addEventListener('touchstart', (e) => {
-            if (!isDraggingWheel) {
-                const touch = e.touches[0];
-                const rect = ringData.canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-
-                if (handleRingInteraction(x, y)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }
-        });
 
         // 颜色格式选择器事件
         colorFormatSelect.addEventListener('change', () => {
@@ -1396,10 +1339,6 @@
             updateColorDisplay();
         });
 
-        // 初始化
-        updatepresetColorsUI();
-        updateColorDisplay();
-
         // 收藏颜色功能实现
         // 1. 初始化收藏颜色数组，存储HEX格式的颜色值
         const favoriteColors = [];
@@ -1479,7 +1418,7 @@
         favColorElements.forEach((el, index) => {
             if (!el) return;
 
-            el.addEventListener('click', () => {
+            const elementClick = (index) => {
                 if (favoriteColors[index]) {
                     // 点击有收藏色的收藏位，应用该颜色
                     const parsedColor = ColorUtils.colorStringToObject(favoriteColors[index]);
@@ -1504,6 +1443,9 @@
                     updateFavoriteColorsUI();
                     saveFavoriteColorsToStorage(); // 保存到本地存储
                 }
+            };
+            el.addEventListener('click', () => {
+                elementClick(index);
             });
 
             // 5. 添加右键点击删除功能
@@ -1516,7 +1458,7 @@
                 }
             });
 
-            // 6. 添加拖出删除功能
+            // 6. 添加拖出删除功能 - 桌面拖拽
             el.addEventListener('dragstart', (e) => {
                 if (favoriteColors[index]) {
                     e.dataTransfer.setData('text/plain', index.toString());
@@ -1529,9 +1471,78 @@
                 // 恢复元素透明度
                 el.style.opacity = '1';
             });
+
+            // 7. 添加触摸设备拖出删除功能
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isDragging = false;
+            const DRAG_THRESHOLD = 50; // 拖出阈值
+            let draggedColorIndex = null;
+
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (favoriteColors[index]) {
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    isDragging = false;
+                    draggedColorIndex = index;
+                    // 记录当前元素的初始位置
+                    el.dataset.originalTransform = el.style.transform || '';
+                } else {
+                    elementClick(index);
+                }
+            });
+
+            el.addEventListener('touchmove', (e) => {
+                if (draggedColorIndex !== null && favoriteColors[draggedColorIndex]) {
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - touchStartX;
+                    const dy = touch.clientY - touchStartY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance > 10) {
+                        isDragging = true;
+                        // 防止页面滚动
+                        e.preventDefault();
+                        // 跟随手指移动元素
+                        el.style.transform = `translate(${dx}px, ${dy}px)`;
+                        // 提供视觉反馈
+                        el.style.opacity = '0.5';
+                        el.style.zIndex = '100'; // 确保在最上层
+                    }
+                }
+            });
+
+            el.addEventListener('touchend', (e) => {
+                if (draggedColorIndex !== null && favoriteColors[draggedColorIndex]) {
+                    const touch = e.changedTouches[0];
+                    const dx = touch.clientX - touchStartX;
+                    const dy = touch.clientY - touchStartY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // 恢复元素样式
+                    el.style.transform = el.dataset.originalTransform;
+                    el.style.opacity = '1';
+                    el.style.zIndex = '';
+
+                    // 如果拖动距离超过阈值，视为拖出删除
+                    if (isDragging && distance > DRAG_THRESHOLD) {
+                        favoriteColors[draggedColorIndex] = null;
+                        updateFavoriteColorsUI();
+                        saveFavoriteColorsToStorage(); // 保存到本地存储
+                    } else {
+                        elementClick(draggedColorIndex);
+                    }
+
+                    // 重置状态
+                    isDragging = false;
+                    draggedColorIndex = null;
+                }
+            });
         });
 
-        // 7. 添加文档拖拽事件，实现拖出删除
+        // 8. 添加文档拖拽事件，实现拖出删除（桌面端）
         document.addEventListener('dragover', (e) => {
             e.preventDefault(); // 允许放置
         });
@@ -1546,7 +1557,13 @@
                 saveFavoriteColorsToStorage(); // 保存到本地存储
             }
         });
-
+        // 初始化环
+        createRingWithCurrentColor();
+        // 初始设置为透明背景
+        updateBackgroundColor(0);
+        // 初始化预定义色
+        updatePresetColorsUI();
+        updateColorDisplay();
         // 初始化收藏颜色UI
         loadFavoriteColorsFromStorage(); // 先从localStorage加载
         updateFavoriteColorsUI();

@@ -4,7 +4,7 @@
         <div class="header-bar">
             <div style="display: inline-flex;align-items:center;gap: 10px;">
                 <span class="title">{{ workflow?.name }}</span>
-                <el-popover placement="bottom" trigger="click" width="300px" popper-class="workflow-edit-popover">
+                <el-popover placement="bottom" trigger="click" width="300px" popper-class="workflow-edit-popover" :persistent="false">
                     <template #reference>
                         <el-icon>
                             <Edit />
@@ -44,7 +44,7 @@
             </div>
             <!-- 添加节点按钮和菜单 -->
             <div class="node-panel-container">
-                <el-popover placement="right" trigger="click">
+                <el-popover placement="right" trigger="click" :persistent="false">
                     <template #reference>
                         <el-button type="primary" circle plain size="large">
                             <el-icon size="24">
