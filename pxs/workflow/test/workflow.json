@@ -1,0 +1,229 @@
+{
+    "nodes": [
+        {
+            "id": "model_1756950430525",
+            "type": "model",
+            "initialized": false,
+            "position": {
+                "x": 510,
+                "y": 165
+            },
+            "data": {
+                "color": "#003366",
+                "inputs": [
+                    "images"
+                ],
+                "name": "图像分类",
+                "outputs": [
+                    "labels"
+                ],
+                "params": {
+                    "infer_params": {
+                        "topk": {
+                            "config_able": true,
+                            "max": null,
+                            "min": 1,
+                            "step": 1,
+                            "type": "number",
+                            "value": 5
+                        }
+                    },
+                    "model_dir": "weights\\CLIP_vit_base_patch16_224\\inference",
+                    "model_name": "CLIP_vit_base_patch16_224",
+                    "model_params": {
+                        "topk": {
+                            "config_able": true,
+                            "max": null,
+                            "min": 1,
+                            "step": 1,
+                            "type": "number",
+                            "value": 5
+                        }
+                    },
+                    "module_name": "image_classification"
+                }
+            }
+        },
+        {
+            "id": "load_image_1756963641635",
+            "type": "load_image",
+            "initialized": false,
+            "position": {
+                "x": -15,
+                "y": 165
+            },
+            "data": {
+                "color": "#4d281a",
+                "inputs": [
+                    "files"
+                ],
+                "name": "加载图像",
+                "outputs": [
+                    "images",
+                    "count"
+                ],
+                "params": {}
+            }
+        },
+        {
+            "id": "save_image_1756963646628",
+            "type": "save_image",
+            "initialized": false,
+            "position": {
+                "x": 510,
+                "y": 465
+            },
+            "data": {
+                "color": "#2b0066",
+                "inputs": [
+                    "images"
+                ],
+                "name": "保存图像",
+                "outputs": [
+                    "files"
+                ],
+                "params": {
+                    "filename": "image",
+                    "format": "png",
+                    "path": "output/images"
+                }
+            }
+        },
+        {
+            "id": "note_1757056819628",
+            "type": "note",
+            "initialized": false,
+            "position": {
+                "x": -225,
+                "y": 345
+            },
+            "data": {
+                "color": "#FFCC00",
+                "content": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+                "inputs": [],
+                "name": "备注",
+                "outputs": [],
+                "params": {},
+                "width": 374
+            }
+        },
+        {
+            "id": "note_1757297931463",
+            "type": "note",
+            "initialized": false,
+            "position": {
+                "x": 195,
+                "y": 480
+            },
+            "data": {
+                "color": "#0f2c57",
+                "content": "李厚霖压顶无可奈何花落去李厚霖压顶无可奈何花落去李厚霖压顶f李厚霖压顶无可奈何花落去李厚霖压顶",
+                "inputs": [],
+                "name": "备注",
+                "outputs": [],
+                "params": {},
+                "width": 225
+            }
+        },
+        {
+            "id": "model_1757298677083",
+            "type": "model",
+            "initialized": false,
+            "position": {
+                "x": 195,
+                "y": 165
+            },
+            "data": {
+                "color": "#2a4224",
+                "inputs": [
+                    "images"
+                ],
+                "name": "信号灯检测",
+                "outputs": [
+                    "images",
+                    "boxes",
+                    "count"
+                ],
+                "params": {
+                    "infer_params": {
+                        "threshold": {
+                            "config_able": true,
+                            "max": 1,
+                            "min": 0,
+                            "step": 0.01,
+                            "type": "number",
+                            "value": 0.5
+                        }
+                    },
+                    "model_dir": "models\\TrafficLightDet\\best_model\\inference",
+                    "model_name": "PicoDet-S",
+                    "model_params": {
+                        "threshold": {
+                            "config_able": true,
+                            "max": 1,
+                            "min": 0,
+                            "step": 0.01,
+                            "type": "number",
+                            "value": 0.5
+                        }
+                    },
+                    "module_name": "object_detection"
+                }
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "vueflow__edge-load_image_1756963641635outputs.images-model_1757298677083inputs.images",
+            "type": "default",
+            "source": "load_image_1756963641635",
+            "target": "model_1757298677083",
+            "sourceHandle": "outputs.images",
+            "targetHandle": "inputs.images",
+            "data": {},
+            "label": "",
+            "sourceX": 100.99992908361702,
+            "sourceY": 212.3571225730439,
+            "targetX": 201.99994720028607,
+            "targetY": 212.3571225730439
+        },
+        {
+            "id": "vueflow__edge-model_1757298677083outputs.images-model_1756950430525inputs.images",
+            "type": "default",
+            "source": "model_1757298677083",
+            "target": "model_1756950430525",
+            "sourceHandle": "outputs.images",
+            "targetHandle": "inputs.images",
+            "data": {},
+            "label": "",
+            "sourceX": 396.3480548571034,
+            "sourceY": 212.3571225730439,
+            "targetX": 517.0000173112345,
+            "targetY": 212.3571225730439
+        },
+        {
+            "id": "vueflow__edge-model_1757298677083outputs.images-save_image_1756963646628inputs.images",
+            "type": "default",
+            "source": "model_1757298677083",
+            "target": "save_image_1756963646628",
+            "sourceHandle": "outputs.images",
+            "targetHandle": "inputs.images",
+            "data": {},
+            "label": "",
+            "sourceX": 396.3480548571034,
+            "sourceY": 212.3571225730439,
+            "targetX": 517.0000173112345,
+            "targetY": 512.357140100781
+        }
+    ],
+    "position": [
+        455.41224423652807,
+        -109.10134233788085
+    ],
+    "zoom": 0.8705505632961248,
+    "viewport": {
+        "x": 455.41224423652807,
+        "y": -109.10134233788085,
+        "zoom": 0.8705505632961248
+    }
+}
