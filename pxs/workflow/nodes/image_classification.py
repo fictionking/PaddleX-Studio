@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 from typing import Any, Dict, Optional
-from .model_node import BaseModelNode
+from .model import BaseModelNode
 import cv2
 import numpy as np
 

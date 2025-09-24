@@ -30,7 +30,7 @@ def run_workflow():
     print("运行工作流...")
 
     # 运行工作流并输出状态信息
-    for result in workflow.predict(**run_params):
+    for result in workflow.predict():
         print(f"状态: {result.get('status', '未知')}")
         print(f"已运行时间: {result.get('elapsed_time', 0):.4f}秒")
         
@@ -41,14 +41,19 @@ def run_workflow():
             print(f"当前节点: {current_node}, 节点状态: {node_status}")
         
         # 输出正在运行的节点
-        running_nodes = result.get('running_nodes', [])
-        if running_nodes:
-            print(f"正在运行的节点: {', '.join(running_nodes)}")
+        ran_nodes = result.get('ran_nodes', [])
+        if ran_nodes:
+            print(f"已运行的节点: {', '.join(ran_nodes)}")
         
         # 输出完成状态时的结果
         if result.get('status') == '完成' and 'result' in result:
             print("工作流运行完成，最终结果:")
             print(result.get('result'))
+        
+        # 输出失败状态时的错误信息
+        if result.get('status') == '失败' and 'error' in result:
+            print("工作流运行失败:")
+            print(result.get('error'))
         
         print("-----------------")
 

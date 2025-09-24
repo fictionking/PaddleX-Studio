@@ -328,6 +328,7 @@ def preview_dataset_file(dataset_id, file_path):
         'supported_types': 'text/*, application/json, application/javascript, image/*'
     }), 415
 
+@dataset_bp.route('/file/datasets/<dataset_id>/<path:file_path>', methods=['GET'])
 @dataset_bp.route('/datasets/<dataset_id>/files/dl/<path:file_path>', methods=['GET'])
 def download_dataset_file(dataset_id, file_path):
     # 检查数据集是否存在

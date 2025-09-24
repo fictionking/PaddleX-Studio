@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, jsonify, request
+from flask import Blueprint, make_response, jsonify, request, Response
 import os
 import json
 import logging
@@ -6,6 +6,7 @@ import uuid
 import threading
 import re
 from datetime import datetime
+from queue import Queue
 
 import pxs.paddlexCfg as cfg
 from pxs.workflow.pipeline import WorkflowPipeline
@@ -22,6 +23,9 @@ workflow_lock = threading.Lock()
 # 当前运行的工作流
 current_workflow_id = None
 current_workflow_thread = None
+
+# 用于缓存工作流运行状态的队列，限制长度为1
+workflow_status_queue = Queue(maxsize=1)
 
 
 def init():
@@ -252,14 +256,73 @@ def run_workflow(workflow_id):
         def workflow_thread_func():
             """工作流执行线程函数"""
             global current_workflow_id
+            # 定义日志文件路径
+            log_file_path = os.path.join(workflow_dir, 'log.txt')
+               
             try:
-                # 创建工作流实例（仅初始化，不执行推理）
+                # 创建工作流实例并执行推理
                 workflow = WorkflowPipeline(workflow_definition)
                 
                 logging.info(f'工作流 {workflow_id} 已启动')
-                # 这里移除了推理部分，仅保留基本的工作流初始化和状态管理
+                
+                # 执行工作流并获取状态
+                last_status = None
+                try:
+                    for result in workflow.predict():
+                        # 缓存最后一条运行状态到队列中
+                        last_status = result
+                        # 如果队列已满，则移除最早的元素
+                        if workflow_status_queue.full():
+                            workflow_status_queue.get_nowait()
+                        status_data = {'workflow_id': workflow_id, 'status': 'running', 'data': result}
+                        workflow_status_queue.put(status_data)
+                        
+                        # 将状态数据写入日志文件
+                        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                        log_entry = f'[{timestamp}] {json.dumps(status_data, ensure_ascii=False)}\n'
+                        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                            log_file.write(log_entry)
+                except Exception as inner_e:
+                    logging.error(f'工作流 {workflow_id} 执行过程中出错：{str(inner_e)}')
+                    # 发送错误状态
+                    if workflow_status_queue.full():
+                        workflow_status_queue.get_nowait()
+                    error_status = {'workflow_id': workflow_id, 'status': 'error', 'error': str(inner_e)}
+                    workflow_status_queue.put(error_status)
+                    
+                    # 将错误状态写入日志文件
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                    log_entry = f'[{timestamp}] {json.dumps(error_status, ensure_ascii=False)}\n'
+                    with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                        log_file.write(log_entry)
+                
+                # 工作流执行完成
+                if workflow_status_queue.full():
+                    workflow_status_queue.get_nowait()
+                complete_status = {'workflow_id': workflow_id, 'status': 'completed', 'last_result': last_status}
+                workflow_status_queue.put(complete_status)
+                
+                # 将完成状态写入日志文件
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                log_entry = f'[{timestamp}] {json.dumps(complete_status, ensure_ascii=False)}\n'
+                with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                    log_file.write(log_entry)
+                
+                logging.info(f'工作流 {workflow_id} 已完成')
             except Exception as e:
                 logging.error(f'工作流 {workflow_id} 执行出错：{str(e)}')
+                # 发送错误状态
+                if workflow_status_queue.full():
+                    workflow_status_queue.get_nowait()
+                error_status = {'workflow_id': workflow_id, 'status': 'error', 'error': str(e)}
+                workflow_status_queue.put(error_status)
+                
+                # 将错误状态写入日志文件
+                log_file_path = os.path.join(workflow_dir, 'log.txt')
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                log_entry = f'[{timestamp}] {json.dumps(error_status, ensure_ascii=False)}\n'
+                with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                    log_file.write(log_entry)
             finally:
                 current_workflow_id = None
         # 启动工作流线程
@@ -270,61 +333,6 @@ def run_workflow(workflow_id):
     except Exception as e:
         current_workflow_id = None
         return jsonify({'success': False, 'error': f'启动工作流失败：{str(e)}'}), 500
-
-
-@workflow_mgr.route('/workflows/<workflow_id>/infer', methods=['POST'])
-def infer_workflow(workflow_id):
-    """
-    执行工作流推理并直接返回结果
-    :param workflow_id: 工作流ID
-    :return: JSON格式的推理结果
-    """
-    # 检查工作流是否存在
-    workflow = next((w for w in workflows if w['id'] == workflow_id), None)
-    if not workflow:
-        return jsonify({'success': False, 'error': f'工作流 ID {workflow_id} 不存在'}), 404
-    
-    # 检查工作流定义文件是否存在
-    workflow_dir = os.path.join(workflows_root, workflow_id)
-    workflow_config_path = os.path.join(workflow_dir, 'workflow.json')
-    if not os.path.exists(workflow_config_path):
-        return jsonify({'success': False, 'error': f'工作流定义文件不存在'}), 404
-    
-    # 加载工作流定义
-    try:
-        with open(workflow_config_path, 'r', encoding='utf-8') as f:
-            workflow_definition = json.load(f)
-        
-        # 解析请求中的输入参数
-        input_data = request.get_json() or {}
-        
-        # 创建工作流实例
-        workflow = WorkflowPipeline(workflow_definition)
-        
-        # 准备输入数据
-        input_value = input_data.get('input')
-        kwargs = {k: v for k, v in input_data.items() if k != 'input'}
-        
-        # 执行工作流并收集结果（同步执行）
-        results = []
-        for result in workflow.predict(input_value, **kwargs):
-            results.append(result)
-        
-        # 创建结果文件（同时保存结果以便后续查看）
-        result_dir = os.path.join(workflow_dir, 'results')
-        os.makedirs(result_dir, exist_ok=True)
-        result_path = os.path.join(result_dir, f'result_{datetime.now().strftime("%Y%m%d%H%M%S")}_infer.json')
-        
-        with open(result_path, 'w', encoding='utf-8') as f:
-            json.dump(results, f, ensure_ascii=False, indent=4)
-        
-        logging.info(f'工作流 {workflow_id} 推理完成，结果已保存到 {result_path}')
-        
-        # 直接返回推理结果
-        return jsonify({'success': True, 'results': results}), 200
-    except Exception as e:
-        logging.error(f'工作流 {workflow_id} 推理出错：{str(e)}')
-        return jsonify({'success': False, 'error': f'推理失败：{str(e)}'}), 500
 
 
 @workflow_mgr.route('/workflows/<workflow_id>/stop', methods=['POST'])
@@ -390,3 +398,63 @@ def get_workflows_status():
             'status': 'running' if workflow['id'] == current_workflow_id else 'stopped'
         }
     return status
+
+
+@workflow_mgr.route('/workflows/status/stream')
+def get_workflow_status_stream():
+    """
+    提供工作流状态的SSE流，持续从队列中获取运行状态并推送给前端
+    :return: SSE响应流
+    """
+    def event_stream():
+        """生成SSE事件流"""
+        last_status = None
+        
+        # 首先发送当前工作流的基本状态
+        base_status = {
+            'current_workflow_id': current_workflow_id,
+            'status': 'running' if current_workflow_id is not None else 'idle'
+        }
+        yield "data: " + json.dumps(base_status) + "\n\n"
+        
+        # 持续检查队列中的最新状态
+        while True:
+            try:
+                # 非阻塞方式检查队列中是否有新状态
+                if not workflow_status_queue.empty():
+                    # 获取队列中的最后一个状态
+                    # 由于我们限制队列长度为1，所以只需要获取一次
+                    current_status = workflow_status_queue.get_nowait()
+                    
+                    # 直接发送从队列中获取的状态，不再进行比较
+                    # 工作流运行时已经确保只有变化时才输出状态
+                    yield "data: " + json.dumps(current_status) + "\n\n"
+                    last_status = current_status
+                else:
+                    # 如果队列为空，发送当前工作流的基础状态
+                    current_base_status = {
+                        'current_workflow_id': current_workflow_id,
+                        'status': 'running' if current_workflow_id is not None else 'idle'
+                    }
+                    # 直接发送基础状态，不再进行比较
+                    # 每秒定期更新前端显示的工作流运行状态
+                    yield "data: " + json.dumps(current_base_status) + "\n\n"
+                    base_status = current_base_status
+                
+                # 每秒检查一次更新
+                import time
+                time.sleep(1)
+            except GeneratorExit:
+                # 客户端断开连接
+                break
+            except Exception as e:
+                logging.error(f"SSE流错误: {str(e)}")
+                # 发生错误时，尝试继续运行
+                import time
+                time.sleep(1)
+    
+    # 设置SSE响应头
+    return Response(event_stream(), mimetype='text/event-stream', headers={
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    })

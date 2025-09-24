@@ -8,6 +8,7 @@ import TextProperty from "./TextProperty.vue";
 import BoolProperty from "./BoolProperty.vue";
 import PropertyList from "./PropertyList.vue";
 import NoteNode from "./NoteNode.vue";
+import InputWithButtonProperty from "./InputWithButtonProperty.vue";
 
 export {
     ValueProperty,
@@ -20,4 +21,5 @@ export {
     BoolProperty,
     PropertyList,
     NoteNode,
+    InputWithButtonProperty,
 };

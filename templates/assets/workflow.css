@@ -1,4 +1,3 @@
-
 /*节点标题颜色*/
 /* .node-header.request,
 .node-header.response {
@@ -26,20 +25,12 @@
     background-color: hsl(300, 90%, 60%) !important;
 }
 
-.io-port.boxes {
-    background-color: hsl(275, 90%, 60%) !important;
-}
-
-.io-port.labels {
-    background-color: hsl(250, 90%, 60%) !important;
-}
-
-.io-port.files {
-    background-color: hsl(225, 90%, 60%) !important;    
-}
-
-.io-port.count {
-    background-color: hsl(200, 90%, 60%) !important;
+.io-port.labels,
+.io-port.paths,
+.io-port.boxes,
+.io-port.count,
+.io-port.object {
+    background-color: hsl(175, 90%, 60%) !important;
 }
 
 /* 参数端口样式 */

@@ -1,8 +1,8 @@
 <template>
     <WorkflowNode v-bind="$props">
         <template #properties>
-            <SelectProperty label="图片格式" v-model="data.params.format"
-                :options="[{ label: 'png', value: 'png' }, { label: 'jpg', value: 'jpg' }]"  />
+            <SelectProperty label="文件格式" v-model="data.params.format"
+                :options="[{ label: 'json', value: 'json' }, { label: 'json lines', value: 'jsonl' }, { label: 'yaml', value: 'yaml' }, { label: 'csv', value: 'csv' }, { label: 'txt', value: 'txt' }]"  />
             <InputWithButtonProperty label="输出目录" v-model="data.params.path"
                 buttonIcon="Files" @buttonClick="handleClick" />
             <InputProperty label="保存文件名" v-model="data.params.filename" handleId="params.filename"

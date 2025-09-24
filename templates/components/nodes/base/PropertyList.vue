@@ -2,24 +2,26 @@
     <template v-for="(value, key) in parameters" :key="key">
         <InputNumberProperty v-if="value.type === 'number'" :label="key" v-model="parameters[key].value"
             :min="value.min" :max="value.max" :step="value.step" :readonly="!value.config_able"
-            :handleId="`${handlePrefix}${key}`" :handleClass="`${handleClassPrefix}_${key}`" />
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}" />
         <SelectProperty v-else-if="value.type === 'enum' && value.enum" :label="key" v-model="parameters[key].value"
-            :options="value.enum" :readonly="!value.config_able" :handleId="`${handlePrefix}${key}`"
-            :handleClass="`${handleClassPrefix}_${key}`" />
+            :options="value.enum" :readonly="!value.config_able"
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}" />
         <TextProperty v-else-if="value.type === 'text'" :label="key" v-model="parameters[key].value"
-            :readonly="!value.config_able" :handleId="`${handlePrefix}${key}`"
-            :handleClass="`${handleClassPrefix}_${key}`" />
+            :readonly="!value.config_able"
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}" />
         <TextProperty v-else-if="value.type === 'dict'" v-model="parameters[key].value"
             placeholder="请输入JSON格式的字典，例如: {&quot;key&quot;: &quot;value&quot;}" :readonly="!value.config_able"
-            :handleId="`${handlePrefix}${key}`" :handleClass="`${handleClassPrefix}_${key}`"></TextProperty>
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}">
+        </TextProperty>
         <TextProperty v-else-if="value.type === 'list'" v-model="parameters[key].value"
             placeholder="请输入JSON格式的列表，例如: [&quot;value1&quot;, &quot;value2&quot;]" :readonly="!value.config_able"
-            :handleId="`${handlePrefix}${key}`" :handleClass="`${handleClassPrefix}_${key}`"></TextProperty>
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}">
+        </TextProperty>
         <BoolProperty v-else-if="value.type === 'bool'" :label="key" v-model="parameters[key].value"
             :trueLabel="value.trueLabel" :falseLabel="value.falseLabel" :readonly="!value.config_able"
-            :handleId="`${handlePrefix}${key}`" :handleClass="`${handleClassPrefix}_${key}`" />
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}" />
         <InputProperty v-else :label="key" v-model="parameters[key].value" :readonly="!value.config_able"
-            :handleId="`${handlePrefix}${key}`" :handleClass="`${handleClassPrefix}_${key}`" />
+            v-bind="handlePrefix ? { handleId: `${handlePrefix}${key}`, handleClass: `${handleClassPrefix}${key}` } : {}" />
     </template>
 </template>
 
@@ -58,7 +60,7 @@ export default {
          */
         handlePrefix: {
             type: String,
-            default: '',
+            default: null,
             description: '连接点ID前缀'
         },
         /**
@@ -66,7 +68,7 @@ export default {
          */
         handleClassPrefix: {
             type: String,
-            default: 'params',
+            default: '',
             description: '连接点样式类前缀'
         }
     }

@@ -1,144 +1,78 @@
 {
     "nodes": [
         {
-            "id": "model_1756950430525",
-            "type": "model",
-            "initialized": false,
-            "position": {
-                "x": 510,
-                "y": 165
-            },
-            "data": {
-                "color": "#003366",
-                "inputs": [
-                    "images"
-                ],
-                "name": "图像分类",
-                "outputs": [
-                    "labels"
-                ],
-                "params": {
-                    "infer_params": {
-                        "topk": {
-                            "config_able": true,
-                            "max": null,
-                            "min": 1,
-                            "step": 1,
-                            "type": "number",
-                            "value": 5
-                        }
-                    },
-                    "model_dir": "weights\\CLIP_vit_base_patch16_224\\inference",
-                    "model_name": "CLIP_vit_base_patch16_224",
-                    "model_params": {
-                        "topk": {
-                            "config_able": true,
-                            "max": null,
-                            "min": 1,
-                            "step": 1,
-                            "type": "number",
-                            "value": 5
-                        }
-                    },
-                    "module_name": "image_classification"
-                }
-            }
-        },
-        {
-            "id": "load_image_1756963641635",
+            "id": "load_image_1",
             "type": "load_image",
             "initialized": false,
             "position": {
-                "x": -15,
-                "y": 165
+                "x": 225,
+                "y": 135
             },
             "data": {
-                "color": "#4d281a",
-                "inputs": [
-                    "files"
-                ],
+                "inputs": [],
                 "name": "加载图像",
                 "outputs": [
                     "images",
                     "count"
                 ],
-                "params": {}
-            }
-        },
-        {
-            "id": "save_image_1756963646628",
-            "type": "save_image",
-            "initialized": false,
-            "position": {
-                "x": 510,
-                "y": 465
-            },
-            "data": {
-                "color": "#2b0066",
-                "inputs": [
-                    "images"
-                ],
-                "name": "保存图像",
-                "outputs": [
-                    "files"
-                ],
                 "params": {
-                    "filename": "image",
-                    "format": "png",
-                    "path": "output/images"
+                    "path": "datasets/test/img_without_anno"
                 }
             }
         },
         {
-            "id": "note_1757056819628",
-            "type": "note",
+            "id": "load_image_2",
+            "type": "load_image",
             "initialized": false,
             "position": {
-                "x": -225,
-                "y": 345
+                "x": 225,
+                "y": 285
             },
             "data": {
-                "color": "#FFCC00",
-                "content": "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
                 "inputs": [],
-                "name": "备注",
-                "outputs": [],
-                "params": {},
-                "width": 374
+                "name": "加载图像",
+                "outputs": [
+                    "images",
+                    "count"
+                ],
+                "params": {
+                    "path": "datasets/testtest/测试"
+                }
             }
         },
         {
-            "id": "note_1757297931463",
-            "type": "note",
+            "id": "text_const_1",
+            "type": "text_const",
             "initialized": false,
             "position": {
-                "x": 195,
-                "y": 480
+                "x": 675,
+                "y": 450
             },
             "data": {
-                "color": "#0f2c57",
-                "content": "李厚霖压顶无可奈何花落去李厚霖压顶无可奈何花落去李厚霖压顶f李厚霖压顶无可奈何花落去李厚霖压顶",
                 "inputs": [],
-                "name": "备注",
-                "outputs": [],
-                "params": {},
-                "width": 225
+                "name": "文本常量",
+                "outputs": [
+                    "value"
+                ],
+                "params": {
+                    "type": "text",
+                    "value": "img"
+                }
             }
         },
         {
-            "id": "model_1757298677083",
+            "id": "model_1",
             "type": "model",
             "initialized": false,
             "position": {
-                "x": 195,
-                "y": 165
+                "x": 660,
+                "y": 135
             },
             "data": {
-                "color": "#2a4224",
                 "inputs": [
                     "images"
                 ],
-                "name": "信号灯检测",
+                "name": "目标检测",
                 "outputs": [
                     "images",
                     "boxes",
@@ -155,8 +89,8 @@
                             "value": 0.5
                         }
                     },
-                    "model_dir": "models\\TrafficLightDet\\best_model\\inference",
-                    "model_name": "PicoDet-S",
+                    "model_dir": "weights\\PP-YOLOE_plus-L\\inference",
+                    "model_name": "PP-YOLOE_plus-L",
                     "model_params": {
                         "threshold": {
                             "config_able": true,
@@ -170,60 +104,150 @@
                     "module_name": "object_detection"
                 }
             }
+        },
+        {
+            "id": "save_image_3",
+            "type": "save_image",
+            "initialized": false,
+            "position": {
+                "x": 975,
+                "y": 135
+            },
+            "data": {
+                "inputs": [
+                    "images"
+                ],
+                "name": "保存图像",
+                "outputs": [
+                    "paths"
+                ],
+                "params": {
+                    "clear_dir": false,
+                    "filename": "image",
+                    "format": "png",
+                    "path": "datasets/workflow"
+                }
+            }
+        },
+        {
+            "id": "save_textfile_2",
+            "type": "save_textfile",
+            "initialized": false,
+            "position": {
+                "x": 975,
+                "y": 390
+            },
+            "data": {
+                "name": "保存文本文件",
+                "params": {
+                    "format": "jsonl",
+                    "path": "datasets/workflow",
+                    "filename": "file",
+                    "clear_dir": true
+                },
+                "inputs": [
+                    "object"
+                ],
+                "outputs": [
+                    "paths"
+                ]
+            }
         }
     ],
     "edges": [
         {
-            "id": "vueflow__edge-load_image_1756963641635outputs.images-model_1757298677083inputs.images",
+            "id": "vueflow__edge-load_image_1outputs.images-model_1inputs.images",
             "type": "default",
-            "source": "load_image_1756963641635",
-            "target": "model_1757298677083",
+            "source": "load_image_1",
+            "target": "model_1",
             "sourceHandle": "outputs.images",
             "targetHandle": "inputs.images",
             "data": {},
             "label": "",
-            "sourceX": 100.99992908361702,
-            "sourceY": 212.3571225730439,
-            "targetX": 201.99994720028607,
-            "targetY": 212.3571225730439
+            "sourceX": 510.91075134277344,
+            "sourceY": 182.35714721679688,
+            "targetX": 667,
+            "targetY": 182.35714721679688
         },
         {
-            "id": "vueflow__edge-model_1757298677083outputs.images-model_1756950430525inputs.images",
+            "id": "vueflow__edge-load_image_2outputs.images-model_1inputs.images",
             "type": "default",
-            "source": "model_1757298677083",
-            "target": "model_1756950430525",
+            "source": "load_image_2",
+            "target": "model_1",
             "sourceHandle": "outputs.images",
             "targetHandle": "inputs.images",
             "data": {},
             "label": "",
-            "sourceX": 396.3480548571034,
-            "sourceY": 212.3571225730439,
-            "targetX": 517.0000173112345,
-            "targetY": 212.3571225730439
+            "sourceX": 510.91075134277344,
+            "sourceY": 332.3571472167969,
+            "targetX": 667,
+            "targetY": 182.35714721679688
         },
         {
-            "id": "vueflow__edge-model_1757298677083outputs.images-save_image_1756963646628inputs.images",
+            "id": "vueflow__edge-model_1outputs.images-save_image_3inputs.images",
             "type": "default",
-            "source": "model_1757298677083",
-            "target": "save_image_1756963646628",
+            "source": "model_1",
+            "target": "save_image_3",
             "sourceHandle": "outputs.images",
             "targetHandle": "inputs.images",
             "data": {},
             "label": "",
-            "sourceX": 396.3480548571034,
-            "sourceY": 212.3571225730439,
-            "targetX": 517.0000173112345,
-            "targetY": 512.357140100781
+            "sourceX": 861.3482055664062,
+            "sourceY": 182.35714721679688,
+            "targetX": 982,
+            "targetY": 182.35714721679688
+        },
+        {
+            "id": "vueflow__edge-text_const_1outputs.value-save_image_3params.filename",
+            "type": "default",
+            "source": "text_const_1",
+            "target": "save_image_3",
+            "sourceHandle": "outputs.value",
+            "targetHandle": "params.filename",
+            "data": {},
+            "label": "",
+            "sourceX": 861,
+            "sourceY": 497.357177734375,
+            "targetX": 982,
+            "targetY": 268.3571472167969
+        },
+        {
+            "id": "vueflow__edge-model_1outputs.boxes-save_textfile_2inputs.object",
+            "type": "default",
+            "source": "model_1",
+            "target": "save_textfile_2",
+            "sourceHandle": "outputs.boxes",
+            "targetHandle": "inputs.object",
+            "data": {},
+            "label": "",
+            "sourceX": 861.3482055664062,
+            "sourceY": 199.35714721679688,
+            "targetX": 982,
+            "targetY": 437.3571472167969
+        },
+        {
+            "id": "vueflow__edge-text_const_1outputs.value-save_textfile_2params.filename",
+            "type": "default",
+            "source": "text_const_1",
+            "target": "save_textfile_2",
+            "sourceHandle": "outputs.value",
+            "targetHandle": "params.filename",
+            "data": {},
+            "label": "",
+            "sourceX": 861,
+            "sourceY": 497.357177734375,
+            "targetX": 982,
+            "targetY": 523.357177734375
         }
     ],
     "position": [
-        455.41224423652807,
-        -109.10134233788085
+        0,
+        -2
     ],
-    "zoom": 0.8705505632961248,
+    "zoom": 1,
     "viewport": {
-        "x": 455.41224423652807,
-        "y": -109.10134233788085,
-        "zoom": 0.8705505632961248
+        "x": 0,
+        "y": -2,
+        "zoom": 1
     }
 }

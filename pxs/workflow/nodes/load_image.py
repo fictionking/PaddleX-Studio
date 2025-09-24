@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Dict, Optional, Any
 from .base_node import ComputeNode, NodeResult
 import os
 import cv2
@@ -15,14 +15,14 @@ class LoadImageNode(ComputeNode):
         运行加载图像节点，读取图像文件
 
         Args:
-            input_data (Any): 输入数据
+            port: 端口名称
+            data: 输入数据
 
         Returns:
             NodeResult: 包含图像数据的结果对象
         """
-        assert port=="path",f"图像输入节点输入端口必须是path，当前端口是{port}"
-        # 如果输入数据不为空，优先使用输入数据
-        image_path = data
+        # 从params字典中读取图像访问路径
+        image_path = self.params.get('path', None)
 
         # 确保图像路径有效
         if not image_path:
@@ -43,7 +43,7 @@ class LoadImageNode(ComputeNode):
                 image = self._read_image(image_path)
                 images.append(image)
             else:
-                raise ValueError(f"图像输入节点 {self.id} 路径无效: {self.image_path}")
+                raise ValueError(f"图像输入节点 {self.id} 路径无效: {image_path}")
         elif isinstance(image_path, list):
             # 如果是列表，读取每个路径的图像
             for path in image_path:
@@ -51,7 +51,7 @@ class LoadImageNode(ComputeNode):
                     image = self._read_image(path)
                     images.append(image)
         else:
-            raise ValueError(f"图像输入节点 {self.id} 路径类型无效: {type(self.image_path)}")
+            raise ValueError(f"图像输入节点 {self.id} 路径类型无效: {type(image_path)}")
 
         if not images:
             raise ValueError(f"图像输入节点 {self.id} 未找到有效图像")
@@ -97,7 +97,7 @@ class LoadImageNode(ComputeNode):
 
     def _read_image(self, file_path: str) -> np.ndarray:
         """
-        读取图像文件
+        读取图像文件，支持中文路径
 
         Args:
             file_path (str): 图像文件路径
@@ -109,9 +109,17 @@ class LoadImageNode(ComputeNode):
             RuntimeError: 当图像读取失败时抛出异常
         """
         try:
-            image = cv2.imread(file_path)
+            # 使用numpy和cv2.imdecode读取图像，支持中文路径
+            with open(file_path, 'rb') as f:
+                img_data = f.read()
+            # 将二进制数据转换为numpy数组
+            img_array = np.frombuffer(img_data, np.uint8)
+            # 解码图像
+            image = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+            
             if image is None:
                 raise RuntimeError(f"无法读取图像 {file_path}")
+            
             # 转换为RGB格式
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             return image

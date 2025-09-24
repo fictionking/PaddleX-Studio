@@ -149,7 +149,7 @@
 <script>
 const { markRaw, defineComponent } = Vue
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
-import nodeTypes, { createNodeData, menuItems } from '/components/nodes/nodes.mjs';
+import nodeTypes, { createNodeData, menuItems, initializeNodeCounters } from '/components/nodes/nodes.mjs';
 
 export default {
     props: ['workflowId'],
@@ -177,7 +177,10 @@ export default {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             this.workflow = await response.json();
-            this.fromObject(this.workflow.definition)
+            // 先使用fromObject加载工作流定义到Vue Flow
+            this.fromObject(this.workflow.definition);
+            // 初始化节点计数器，确保新生成的ID不会与现有节点ID冲突
+            initializeNodeCounters(this.workflow.definition?.nodes || []);
             const modelResponse = await fetch('/define/modules');
             if (!modelResponse.ok) {
                 throw new Error(`HTTP error! status: ${modelResponse.status}`);
@@ -245,7 +248,7 @@ export default {
                     params: {
                         module_name: module.id,
                         model_name: model.pretrained,
-                        model_dir: 'models\\' + model.id + '\\best_model\\inference',
+                        model_dir: 'models\\' + model.id + '\\train\\best_model\\inference',
                         model_params: module.infer_params?.model_params || {},
                         infer_params: module.infer_params?.predict_params || {},
                     },

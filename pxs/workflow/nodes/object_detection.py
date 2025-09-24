@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional,List
 from pxs.workflow.nodes.base_node import NodeResult
-from .model_node import BaseModelNode
+from .model import BaseModelNode
 import numpy as np
 
 class ObjectDetectionNode(BaseModelNode):

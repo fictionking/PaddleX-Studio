@@ -106,7 +106,7 @@ def ModelNode(config:Dict, pipeline:Any)->BaseModelNode:
         class_name = f"{''.join(word.capitalize() for word in module_name.split('_'))}Node"
 
         # 动态导入模块
-        module = importlib.import_module(f".{module_name}_node", package="pxs.workflow.nodes")
+        module = importlib.import_module(f".{module_name}", package="pxs.workflow.nodes")
 
         # 获取模型节点类
         model_node_class = getattr(module, class_name, None)

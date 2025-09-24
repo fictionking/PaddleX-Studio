@@ -1,18 +1,12 @@
 <template>
     <WorkflowNode v-bind="$props">
         <template #properties>
-            <SelectProperty label="图片格式" v-model="data.params.format"
-                :options="[{ label: 'png', value: 'png' }, { label: 'jpg', value: 'jpg' }]"  />
-            <InputWithButtonProperty label="输出目录" v-model="data.params.path"
+            <InputWithButtonProperty label="目录或文件" v-model="data.params.path" 
                 buttonIcon="Files" @buttonClick="handleClick" />
-            <InputProperty label="保存文件名" v-model="data.params.filename" handleId="params.filename"
-                handleClass="filename" />
-            <BoolProperty label="清空文件夹" v-model="data.params.clear_dir" />
-            <el-dialog v-model="dialogShow" title="选择数据集中的目录" width="500" append-to-body>
+            <el-dialog v-model="dialogShow" title="选择数据集中的目录或文件" width="500" append-to-body>
                 <div class="file-tree">
-<el-tree accordion highlight-current :expand-on-click-node="false"
-                    :props="props" :load="loadNode" lazy
-                    @node-click="handleNodeClick" />
+                    <el-tree accordion highlight-current :expand-on-click-node="false" :props="props" :load="loadNode"
+                        lazy @node-click="handleNodeClick" />
                 </div>
             </el-dialog>
         </template>
@@ -20,7 +14,7 @@
 </template>
 
 <script>
-import { WorkflowNode, InputProperty, SelectProperty, InputWithButtonProperty, BoolProperty } from './base/WorkflowNode.mjs';
+import { WorkflowNode, InputWithButtonProperty } from './base/WorkflowNode.mjs';
 
 /**
  * 图像文件输出节点组件
@@ -29,10 +23,7 @@ import { WorkflowNode, InputProperty, SelectProperty, InputWithButtonProperty, B
 export default {
     components: {
         WorkflowNode,
-        InputProperty,
-        SelectProperty,
-        InputWithButtonProperty,
-        BoolProperty
+        InputWithButtonProperty
     },
     props: {
         id: {
@@ -86,10 +77,10 @@ export default {
                 const response = await fetch(`/datasets/${datasetId}/files`);
                 const data = await response.json();
                 const fileTree = data.children;
-                // 递归修改所有树结构数据的路径，并且只保留目录类型
-                const filteredTree = this.recursivelyUpdatePaths(fileTree, datasetId);
+                // 递归修改所有树结构数据的路径
+                this.recursivelyUpdatePaths(fileTree, datasetId);
 
-                return filteredTree;
+                return fileTree;
             } catch (error) {
                 console.error('获取目录/文件数据失败:', error);
             }
@@ -97,27 +88,21 @@ export default {
         },
 
         /**
-         * 递归更新树结构中所有节点的路径，并只保留目录类型的节点
+         * 递归更新树结构中所有节点的路径
          * @param {Array} data - 树结构数据数组
          * @param {string} datasetId - 数据集ID
-         * @returns {Array} 过滤后的目录树结构
          */
         recursivelyUpdatePaths(data, datasetId) {
-            if (!Array.isArray(data)) return [];
+            if (!Array.isArray(data)) return;
 
-            // 过滤出目录类型的节点
-            const filteredData = data.filter(item => item.type === 'directory');
-
-            for (const item of filteredData) {
+            for (const item of data) {
                 item.path = 'datasets/' + datasetId + '/' + item.path;
-                item.leaf = false; // 目录节点永远不是叶子节点
-                // 如果有子节点，递归处理并只保留目录类型
+                item.leaf = item.type !== 'directory' || false;
+                // 如果有子节点，递归处理
                 if (item.children && Array.isArray(item.children)) {
-                    item.children = this.recursivelyUpdatePaths(item.children, datasetId);
+                    this.recursivelyUpdatePaths(item.children, datasetId);
                 }
             }
-
-            return filteredData;
         },
 
         handleClick() {
@@ -150,11 +135,10 @@ export default {
             }
         },
         /**
-         * 处理节点点击事件，选择目录
+         * 处理节点点击事件，预览文件
          * @param {Object} data - 节点数据
          */
         handleNodeClick(data) {
-            // 由于已经过滤掉了非目录类型，这里可以直接设置路径
             this.data.params.path = data.path;
             this.dialogShow = false;
         },
@@ -163,11 +147,11 @@ export default {
 </script>
 <style scoped>
 .file-tree {
-  height: 500px;
-  overflow-y: scroll;
-  flex: 1;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  padding: 10px;
+    height: 500px;
+    overflow-y: scroll;
+    flex: 1;
+    border: 1px solid var(--el-border-color);
+    border-radius: 4px;
+    padding: 10px;
 }
 </style>
