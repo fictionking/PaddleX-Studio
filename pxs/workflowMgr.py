@@ -3,10 +3,11 @@ import os
 import json
 import logging
 import uuid
-import threading
+import multiprocessing
 import re
 from datetime import datetime
-from queue import Queue
+import threading
+import signal
 
 import pxs.paddlexCfg as cfg
 from pxs.workflow.pipeline import WorkflowPipeline
@@ -18,14 +19,160 @@ workflow_mgr = Blueprint('workflow_mgr', __name__)
 workflows_root = None
 workflows_config_path = None
 workflows = []  # 数组类型
-workflow_lock = threading.Lock()
+# workflow_lock = threading.Lock() - 这个变量没有被使用
 
 # 当前运行的工作流
 current_workflow_id = None
-current_workflow_thread = None
+current_workflow_process = None
 
-# 用于缓存工作流运行状态的队列，限制长度为1
-workflow_status_queue = Queue(maxsize=1)
+# 用于进程间通信的队列
+workflow_status_queue = multiprocessing.Queue(maxsize=1)
+
+# 用于通知工作流进程退出的事件标志
+exit_event = multiprocessing.Event()
+
+# 当前运行的工作流
+current_workflow_id = None
+current_workflow_process = None
+
+# 用于进程间通信的队列
+workflow_status_queue = multiprocessing.Queue(maxsize=100)
+
+def workflow_process_func(workflow_id, workflow_definition, workflow_dir, status_queue, exit_event):
+    """工作流执行进程函数
+    
+    Args:
+        workflow_id: 工作流ID
+        workflow_definition: 工作流定义
+        workflow_dir: 工作流目录
+        status_queue: 状态队列
+        exit_event: 退出事件标志
+    """
+    # 定义日志文件路径
+    log_file_path = os.path.join(workflow_dir, 'log.txt')
+    log_file = None
+    
+    try:
+        # 打开日志文件，使用写入模式
+        log_file = open(log_file_path, 'w', encoding='utf-8')
+        
+        # 创建工作流实例并执行推理
+        workflow = WorkflowPipeline(workflow_definition)
+        
+        logging.info(f'工作流 {workflow_id} 已启动')
+        
+        # 执行工作流并获取状态
+        last_status = None
+        try:
+            for result in workflow.predict():
+                # 检查是否收到退出信号
+                if exit_event.is_set():
+                    logging.info(f'工作流 {workflow_id} 收到退出信号')
+                    break
+                
+                # 缓存最后一条运行状态到队列中
+                last_status = result
+                # 如果队列已满，则移除最早的元素
+                if status_queue.full():
+                    try:
+                        status_queue.get_nowait()
+                    except:
+                        pass
+                status_data = {'workflow_id': workflow_id, 'status': 'running', 'data': result}
+                status_queue.put(status_data)
+                
+                # 将状态数据写入日志文件
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                log_entry = f'[{timestamp}] {json.dumps(status_data, ensure_ascii=False)}\n'
+                
+                try:
+                    if log_file and not log_file.closed:
+                        log_file.write(log_entry)
+                        log_file.flush()  # 确保数据写入磁盘
+                except Exception as log_e:
+                    logging.error(f'写入日志失败：{str(log_e)}')
+        except Exception as inner_e:
+            logging.error(f'工作流 {workflow_id} 执行过程中出错：{str(inner_e)}')
+            # 发送错误状态
+            if status_queue.full():
+                try:
+                    status_queue.get_nowait()
+                except:
+                    pass
+            error_status = {'workflow_id': workflow_id, 'status': 'error', 'error': str(inner_e)}
+            status_queue.put(error_status)
+            
+            # 将错误状态写入日志文件
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+            log_entry = f'[{timestamp}] {json.dumps(error_status, ensure_ascii=False)}\n'
+            try:
+                if log_file and not log_file.closed:
+                    log_file.write(log_entry)
+                    log_file.flush()
+            except Exception as log_e:
+                logging.error(f'写入错误日志失败：{str(log_e)}')
+        
+        # 工作流执行完成或被中断
+        if status_queue.full():
+            try:
+                status_queue.get_nowait()
+            except:
+                pass
+        
+        if exit_event.is_set():
+            # 工作流被中断
+            complete_status = {'workflow_id': workflow_id, 'status': 'stopped', 'message': '工作流已被停止'}
+        else:
+            # 工作流正常完成
+            complete_status = {'workflow_id': workflow_id, 'status': 'completed', 'last_result': last_status}
+        
+        status_queue.put(complete_status)
+        
+        # 将完成状态写入日志文件
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        log_entry = f'[{timestamp}] {json.dumps(complete_status, ensure_ascii=False)}\n'
+        try:
+            if log_file and not log_file.closed:
+                log_file.write(log_entry)
+                log_file.flush()
+        except Exception as log_e:
+            logging.error(f'写入完成日志失败：{str(log_e)}')
+        
+        logging.info(f'工作流 {workflow_id} 已完成')
+    except Exception as e:
+        logging.error(f'工作流 {workflow_id} 执行出错：{str(e)}')
+        # 发送错误状态
+        if status_queue.full():
+            try:
+                status_queue.get_nowait()
+            except:
+                pass
+        error_status = {'workflow_id': workflow_id, 'status': 'error', 'error': str(e)}
+        status_queue.put(error_status)
+        
+        # 将错误状态写入日志文件
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        log_entry = f'[{timestamp}] {json.dumps(error_status, ensure_ascii=False)}\n'
+        try:
+            with open(log_file_path, 'a', encoding='utf-8') as temp_log_file:
+                temp_log_file.write(log_entry)
+        except Exception as log_e:
+            logging.error(f'写入错误日志失败：{str(log_e)}')
+    finally:
+        # 确保关闭日志文件
+        try:
+            if log_file and not log_file.closed:
+                log_file.close()
+        except Exception as close_e:
+            logging.warning(f'关闭日志文件时出错：{str(close_e)}')
+        
+        # 在进程中无法直接修改主进程的全局变量，需要通过队列通知
+        if status_queue.full():
+            try:
+                status_queue.get_nowait()
+            except:
+                pass
+        status_queue.put({'workflow_id': workflow_id, 'status': 'stopped', 'process_completed': True})
 
 
 def init():
@@ -113,7 +260,7 @@ def get_workflow(workflow_id):
     else:
         return jsonify({'success': False, 'error': f'工作流 ID {workflow_id} 不存在'}), 404
 
-@workflow_mgr.route('/workflows/<workflow_id>', methods=['POST'])
+@workflow_mgr.route('/workflows/<workflow_id>', methods=['PUT'])
 def save_workflow(workflow_id):
     """
     保存工作流定义
@@ -231,7 +378,7 @@ def run_workflow(workflow_id):
     :param workflow_id: 工作流ID
     :return: JSON格式的运行结果
     """
-    global current_workflow_id, current_workflow_thread
+    global current_workflow_id, current_workflow_process
     
     # 检查工作流是否存在
     workflow = next((w for w in workflows if w['id'] == workflow_id), None)
@@ -253,82 +400,21 @@ def run_workflow(workflow_id):
             return jsonify({'success': False, 'error': f'工作流 {current_workflow_id} 正在运行，请先停止'}), 400
         # 在线程中运行工作流
         current_workflow_id = workflow_id
-        def workflow_thread_func():
-            """工作流执行线程函数"""
-            global current_workflow_id
-            # 定义日志文件路径
-            log_file_path = os.path.join(workflow_dir, 'log.txt')
-               
-            try:
-                # 创建工作流实例并执行推理
-                workflow = WorkflowPipeline(workflow_definition)
-                
-                logging.info(f'工作流 {workflow_id} 已启动')
-                
-                # 执行工作流并获取状态
-                last_status = None
-                try:
-                    for result in workflow.predict():
-                        # 缓存最后一条运行状态到队列中
-                        last_status = result
-                        # 如果队列已满，则移除最早的元素
-                        if workflow_status_queue.full():
-                            workflow_status_queue.get_nowait()
-                        status_data = {'workflow_id': workflow_id, 'status': 'running', 'data': result}
-                        workflow_status_queue.put(status_data)
-                        
-                        # 将状态数据写入日志文件
-                        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-                        log_entry = f'[{timestamp}] {json.dumps(status_data, ensure_ascii=False)}\n'
-                        with open(log_file_path, 'a', encoding='utf-8') as log_file:
-                            log_file.write(log_entry)
-                except Exception as inner_e:
-                    logging.error(f'工作流 {workflow_id} 执行过程中出错：{str(inner_e)}')
-                    # 发送错误状态
-                    if workflow_status_queue.full():
-                        workflow_status_queue.get_nowait()
-                    error_status = {'workflow_id': workflow_id, 'status': 'error', 'error': str(inner_e)}
-                    workflow_status_queue.put(error_status)
-                    
-                    # 将错误状态写入日志文件
-                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-                    log_entry = f'[{timestamp}] {json.dumps(error_status, ensure_ascii=False)}\n'
-                    with open(log_file_path, 'a', encoding='utf-8') as log_file:
-                        log_file.write(log_entry)
-                
-                # 工作流执行完成
-                if workflow_status_queue.full():
-                    workflow_status_queue.get_nowait()
-                complete_status = {'workflow_id': workflow_id, 'status': 'completed', 'last_result': last_status}
-                workflow_status_queue.put(complete_status)
-                
-                # 将完成状态写入日志文件
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-                log_entry = f'[{timestamp}] {json.dumps(complete_status, ensure_ascii=False)}\n'
-                with open(log_file_path, 'a', encoding='utf-8') as log_file:
-                    log_file.write(log_entry)
-                
-                logging.info(f'工作流 {workflow_id} 已完成')
-            except Exception as e:
-                logging.error(f'工作流 {workflow_id} 执行出错：{str(e)}')
-                # 发送错误状态
-                if workflow_status_queue.full():
-                    workflow_status_queue.get_nowait()
-                error_status = {'workflow_id': workflow_id, 'status': 'error', 'error': str(e)}
-                workflow_status_queue.put(error_status)
-                
-                # 将错误状态写入日志文件
-                log_file_path = os.path.join(workflow_dir, 'log.txt')
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-                log_entry = f'[{timestamp}] {json.dumps(error_status, ensure_ascii=False)}\n'
-                with open(log_file_path, 'a', encoding='utf-8') as log_file:
-                    log_file.write(log_entry)
-            finally:
-                current_workflow_id = None
-        # 启动工作流线程
-        current_workflow_thread = threading.Thread(target=workflow_thread_func)
-        current_workflow_thread.daemon = True
-        current_workflow_thread.start()
+        
+        # 重置退出事件标志
+        exit_event.clear()
+        # 清空队列
+        while not workflow_status_queue.empty():
+            workflow_status_queue.get()
+        # 启动工作流进程
+        global current_workflow_process
+        current_workflow_process = multiprocessing.Process(
+            target=workflow_process_func,
+            args=(workflow_id, workflow_definition, workflow_dir, workflow_status_queue, exit_event)
+        )
+        # 在Windows上，设置daemon=True可能会导致进程无法正确终止
+        current_workflow_process.daemon = False
+        current_workflow_process.start()
         return jsonify({'success': True, 'message': f'工作流 {workflow_id} 已开始运行'}), 200
     except Exception as e:
         current_workflow_id = None
@@ -338,20 +424,74 @@ def run_workflow(workflow_id):
 @workflow_mgr.route('/workflows/<workflow_id>/stop', methods=['POST'])
 def stop_workflow(workflow_id):
     """
-    停止正在运行的工作流
+    停止正在运行的工作流（优先使用优雅退出，失败时再强制终止）
     :param workflow_id: 工作流ID
     :return: JSON格式的停止结果
     """
-    global current_workflow_id, current_workflow_thread
+    global current_workflow_id, current_workflow_process
     
     if current_workflow_id != workflow_id:
         return jsonify({'success': False, 'error': f'工作流 {workflow_id} 未在运行'}), 400
     
-    # 目前只能等待线程自然结束，因为没有简单的方法强制终止线程
-    # 这里我们仅设置current_workflow_id为None，表示工作流不再标记为运行中
-    current_workflow_id = None
-    
-    return jsonify({'success': True, 'message': f'工作流 {workflow_id} 已停止'}), 200
+    try:
+        # 首先尝试优雅地通知工作流进程退出
+        exit_event.set()
+        
+        # 给工作流进程一些时间来清理资源并退出
+        graceful_timeout = 3  # 优雅退出等待时间（秒）
+        if current_workflow_process and current_workflow_process.is_alive():
+            logging.info(f'等待工作流 {workflow_id} 优雅退出...')
+            current_workflow_process.join(timeout=graceful_timeout)
+        
+        # 如果进程仍然存活，尝试强制终止
+        force_terminated = False
+        if current_workflow_process and current_workflow_process.is_alive():
+            try:
+                logging.warning(f'工作流 {workflow_id} 未能优雅退出，尝试强制终止...')
+                current_workflow_process.terminate()
+                # 等待进程终止（最多等待5秒）
+                current_workflow_process.join(timeout=5)
+                force_terminated = True
+                
+                # 如果进程仍然存活，再次尝试
+                if current_workflow_process.is_alive():
+                    try:
+                        logging.warning(f'工作流 {workflow_id} 强制终止失败，再次尝试...')
+                        current_workflow_process.kill()
+                    except Exception as kill_e:
+                        logging.warning(f'强制终止工作流进程失败：{str(kill_e)}')
+            except Exception as term_e:
+                logging.warning(f'终止工作流进程时出错：{str(term_e)}')
+        
+        # 清空状态队列并添加停止状态
+        while not workflow_status_queue.empty():
+            try:
+                workflow_status_queue.get_nowait()
+            except:
+                break
+        
+        # 添加停止状态到队列
+        if force_terminated:
+            stop_status = {'workflow_id': workflow_id, 'status': 'stopped', 'message': '工作流已被强制停止'}
+        else:
+            stop_status = {'workflow_id': workflow_id, 'status': 'stopped', 'message': '工作流已停止'}
+        workflow_status_queue.put(stop_status)
+        
+        # 重置全局变量
+        current_workflow_id = None
+        current_workflow_process = None
+        
+        logging.info(f'工作流 {workflow_id} 已停止')
+        return jsonify({'success': True, 'message': f'工作流 {workflow_id} 已停止'}), 200
+    except Exception as e:
+        logging.error(f'停止工作流 {workflow_id} 时发生错误：{str(e)}')
+        # 尝试重置全局变量
+        try:
+            current_workflow_id = None
+            current_workflow_process = None
+        except:
+            pass
+        return jsonify({'success': False, 'error': f'停止工作流时发生错误：{str(e)}'}), 500
 
 
 @workflow_mgr.route('/workflows/<workflow_id>', methods=['DELETE'])
@@ -387,20 +527,13 @@ def delete_workflow(workflow_id):
         return jsonify({'success': False, 'error': f'删除工作流失败：{str(e)}'}), 500
 
 def get_workflows_status():
-    """
-    获取所有工作流的状态信息
-    :return: 工作流状态字典
-    """
-    status = {}
-    for workflow in workflows:
-        status[workflow['id']] = {
-            'name': workflow['name'],
-            'status': 'running' if workflow['id'] == current_workflow_id else 'stopped'
-        }
-    return status
+    global current_workflow_id
+    if current_workflow_id:
+        return '运行中'
+    return '未运行'
 
 
-@workflow_mgr.route('/workflows/status/stream')
+@workflow_mgr.route('/workflow-status/stream')
 def get_workflow_status_stream():
     """
     提供工作流状态的SSE流，持续从队列中获取运行状态并推送给前端
@@ -408,15 +541,17 @@ def get_workflow_status_stream():
     """
     def event_stream():
         """生成SSE事件流"""
-        last_status = None
+        # 声明全局变量
+        global current_workflow_id, current_workflow_process
         
         # 首先发送当前工作流的基本状态
         base_status = {
             'current_workflow_id': current_workflow_id,
             'status': 'running' if current_workflow_id is not None else 'idle'
         }
-        yield "data: " + json.dumps(base_status) + "\n\n"
+        yield 'data: ' + json.dumps(base_status) + "\n\n"
         
+        last_status = None
         # 持续检查队列中的最新状态
         while True:
             try:
@@ -425,21 +560,20 @@ def get_workflow_status_stream():
                     # 获取队列中的最后一个状态
                     # 由于我们限制队列长度为1，所以只需要获取一次
                     current_status = workflow_status_queue.get_nowait()
-                    
-                    # 直接发送从队列中获取的状态，不再进行比较
-                    # 工作流运行时已经确保只有变化时才输出状态
-                    yield "data: " + json.dumps(current_status) + "\n\n"
+                    yield 'data: ' + json.dumps(current_status) + "\n\n"
                     last_status = current_status
+                    # 检查工作流是否已完成，如已完成则重置全局变量
+                    if current_status.get('process_completed'):
+                        current_workflow_id = None
+                        current_workflow_process = None
+                        logging.info(f'工作流 {current_status.get("workflow_id")} 完成，已重置全局状态')
+                        return
                 else:
                     # 如果队列为空，发送当前工作流的基础状态
-                    current_base_status = {
-                        'current_workflow_id': current_workflow_id,
-                        'status': 'running' if current_workflow_id is not None else 'idle'
-                    }
-                    # 直接发送基础状态，不再进行比较
-                    # 每秒定期更新前端显示的工作流运行状态
-                    yield "data: " + json.dumps(current_base_status) + "\n\n"
-                    base_status = current_base_status
+                    if last_status:
+                        yield 'data: ' + json.dumps(last_status) + "\n\n"
+                    else:
+                        yield 'data: ' + json.dumps(base_status) + "\n\n"
                 
                 # 每秒检查一次更新
                 import time
@@ -458,3 +592,49 @@ def get_workflow_status_stream():
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive'
     })
+
+
+@workflow_mgr.route('/workflow-status/current', methods=['GET'])
+def get_current_workflow():
+    """
+    获取当前正在运行的工作流ID
+    :return: JSON格式的当前工作流ID信息
+    """
+    return jsonify({
+        'current_workflow_id': current_workflow_id,
+        'status': 'running' if current_workflow_id is not None else 'idle'
+    }), 200
+
+
+@workflow_mgr.route('/workflows/<workflow_id>/logs', methods=['GET'])
+def get_workflow_logs(workflow_id):
+    """
+    获取指定工作流的运行日志
+    :param workflow_id: 工作流ID
+    :return: JSON格式的日志内容或错误信息
+    """
+    try:
+        # 构建日志文件路径
+        workflow_dir = os.path.join(workflows_root, workflow_id)
+        log_file_path = os.path.join(workflow_dir, 'log.txt')
+        
+        # 检查工作流目录是否存在
+        if not os.path.exists(workflow_dir):
+            return jsonify({'success': False, 'error': f'工作流 {workflow_id} 不存在'}), 404
+        
+        # 检查日志文件是否存在
+        if not os.path.exists(log_file_path):
+            return jsonify({'success': True, 'logs': '', 'message': '日志文件不存在'}), 200
+        
+        # 读取日志文件内容
+        with open(log_file_path, 'r', encoding='utf-8') as log_file:
+            logs_content = log_file.read()
+        
+        return jsonify({
+            'success': True,
+            'logs': logs_content,
+            'workflow_id': workflow_id
+        }), 200
+    except Exception as e:
+        logging.error(f"读取工作流日志失败: {str(e)}")
+        return jsonify({'success': False, 'error': f'读取日志文件失败：{str(e)}'}), 500

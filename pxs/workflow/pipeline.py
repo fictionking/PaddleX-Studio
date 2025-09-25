@@ -44,8 +44,6 @@ class WorkflowPipeline(BasePipeline):
         self.nodes = {}
         self.connections = {}
         self.max_executions = max_executions
-        self.initialize_nodes()
-        self.initialize_connections()
 
     def initialize_nodes(self):
         """初始化工作流中的所有节点"""
@@ -147,6 +145,9 @@ class WorkflowPipeline(BasePipeline):
                 'status': '准备中',
                 'elapsed_time': elapsed_time
             }
+            self.initialize_nodes()
+            self.initialize_connections()
+
             # 记录节点被执行的次数，防止无限循环
             execution_count = {node_id: 0 for node_id, node in self.nodes.items()}
 

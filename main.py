@@ -29,7 +29,7 @@ mainapp.register_blueprint(doc_bp)
 from pxs.appMgr import app_mgr,get_apps_status,init as appMgr_init
 mainapp.register_blueprint(app_mgr)
 
-from pxs.workflowMgr import workflow_mgr,init as workflowMgr_init
+from pxs.workflowMgr import workflow_mgr,init as workflowMgr_init,get_workflows_status
 mainapp.register_blueprint(workflow_mgr)
 
 @mainapp.route('/')
@@ -92,6 +92,7 @@ def system_usage():
 
                 queue_size = get_queue_size()
                 apps_status = get_apps_status()
+                workflow_status = get_workflows_status()
                 
                 # SSE格式: data: {json}
                 data = json.dumps({
@@ -101,7 +102,8 @@ def system_usage():
                     'vram': vram_usage,
                     'temp': temp_usage,
                     'queue_size': queue_size,
-                    'apps_status': apps_status
+                    'apps_status': apps_status,
+                    'workflow_status': workflow_status
                 })
                 yield f'data: {data}\n\n'
                 

@@ -5,10 +5,10 @@
             <ValueProperty label="模型名称" :value="data.params.model_name" />
             <ValueProperty label="模型路径" :value="data.params.model_dir" />
             <GroupProperty label="模型参数" v-if="data.params?.model_params">
-                <PropertyList :parameters="data.params.model_params" />
+                <PropertyList :parameters_def="data.params.model_params_def" :parameters_value="data.params.model_params" />
             </GroupProperty>
             <GroupProperty label="推理参数" v-if="data.params?.infer_params">
-                <PropertyList :parameters="data.params.infer_params" :handle-prefix="'params.infer_params.'"
+                <PropertyList :parameters_def="data.params.infer_params_def" :parameters_value="data.params.infer_params" :handle-prefix="'params.infer_params.'"
                     :handle-class-prefix="'infer_params_'" />
             </GroupProperty>
         </template>

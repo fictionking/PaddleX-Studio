@@ -186,8 +186,10 @@ export function createNodeData(type, data = {}) {
                     module_name: data.params.module_name,
                     model_name: data.params.model_name,
                     model_dir: data.params.model_dir,
-                    model_params: data.params.model_params ? deepClone(data.params.model_params) : {},
-                    infer_params: data.params.infer_params ? deepClone(data.params.infer_params) : {},
+                    model_params_def: data.params.model_params ? deepClone(data.params.model_params) : {},
+                    infer_params_def: data.params.infer_params ? deepClone(data.params.infer_params) : {},
+                    model_params:{},
+                    infer_params:{},
                 },
                 inputs: data.inputs,
                 outputs: data.outputs

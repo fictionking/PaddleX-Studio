@@ -16,7 +16,7 @@ const iconDefinitions = {
         points="28.66 7.58 28.66 9.96 24.8 9.96 24.8 13.86 22.43 13.86 22.43 9.96 18.57 9.96 18.57 7.58 22.43 7.58 22.43 3.68 24.8 3.68 24.8 7.58 28.66 7.58" />
     </symbol>`
   },
-  
+
   'disk-icon': {
     viewBox: '0 0 256 256',
     content: `<symbol id="disk-icon" viewBox="0 0 256 256">
@@ -28,21 +28,21 @@ const iconDefinitions = {
       </path>
     </symbol>`
   },
-  
+
   'sun-icon': {
     viewBox: '0 0 24 24',
     content: `<symbol id="sun-icon" viewBox="0 0 24 24">
       <path d="M6.05 4.14l-.39-.39a.993.993 0 0 0-1.4 0l-.01.01a.984.984 0 0 0 0 1.4l.39.39c.39.39 1.01.39 1.4 0l.01-.01a.984.984 0 0 0 0-1.4zM3.01 10.5H1.99c-.55 0-.99.44-.99.99v.01c0 .55.44.99.99.99H3c.56.01 1-.43 1-.98v-.01c0-.56-.44-1-.99-1zm9-9.95H12c-.56 0-1 .44-1 .99v.96c0 .55.44.99.99.99H12c.56.01 1-.43 1-.98v-.97c0-.55-.44-.99-.99-.99zm7.74 3.21c-.39-.39-1.02-.39-1.41-.01l-.39.39a.984.984 0 0 0 0 1.4l.01.01c.39.39 1.02.39 1.4 0l.39-.39a.984.984 0 0 0 0-1.4zm-1.81 15.1l.39.39a.996.996 0 1 0 1.41-1.41l-.39-.39a.993.993 0 0 0-1.4 0c-.4.4-.4 1.02-.01 1.41zM20 11.49v.01c0 .55.44.99.99.99H22c.55 0 .99-.44.99-.99v-.01c0-.55-.44-.99-.99-.99h-1.01c-.55 0-.99.44-.99.99zM12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6s6-2.69 6-6s-2.69-6-6-6zm-.01 16.95H12c.55 0 .99-.44.99-.99v-.96c0-.55-.44-.99-.99-.99h-.01c-.55 0-.99.44-.99.99v.96c0 .55.44.99.99.99zm-7.74-3.21c.39.39 1.02.39 1.41 0l.39-.39a.993.993 0 0 0 0-1.4l-.01-.01a.996.996 0 0 0-1.41 0l-.39.39c-.38.4-.38 1.02.01 1.41z" fill="currentColor"></path>
     </symbol>`
   },
-  
+
   'moon-icon': {
     viewBox: '0 0 24 24',
     content: `<symbol id="moon-icon" viewBox="0 0 24 24">
       <path d="M11.01 3.05C6.51 3.54 3 7.36 3 12a9 9 0 0 0 9 9c4.63 0 8.45-3.5 8.95-8c.09-.79-.78-1.42-1.54-.95A5.403 5.403 0 0 1 11.1 7.5c0-1.06.31-2.06.84-2.89c.45-.67-.04-1.63-.93-1.56z" fill="currentColor"></path>
     </symbol>`
   },
-  
+
   'thermo-icon': {
     viewBox: '0 0 256 256',
     content: `<symbol id="thermo-icon" viewBox="0 0 256 256">
@@ -55,7 +55,7 @@ const iconDefinitions = {
       <path fill="currentColor" d="M111,58.93H94.75a8.56,8.56,0,0,1,0-17.11H111a8.56,8.56,0,0,1,0,17.11Z"></path>
     </symbol>`
   },
-  
+
   'palette-icon': {
     viewBox: '0 0 256 256',
     content: `<symbol id="palette-icon" viewBox="0 0 256 256">
@@ -88,6 +88,13 @@ const iconDefinitions = {
         </g>
       </g>
     </symbol>`
+  },
+
+  'stop-icon': {
+    viewBox: '0 0 256 256',
+    content: `<symbol id="stop-icon" viewBox="0 0 128 128">
+      <path  fill="currentColor" d="M64.084 128C28.3512 128 0 99.481 0 64.755C0 28.8545 28.3512 0 64.084 0C99.8165 0 128 28.8545 128 64.755C128 99.481 99.8165 128 64.084 128ZM64.084 12.2464C35.9005 12.2464 12.0787 36.236 12.0787 64.755C12.0787 93.6095 35.9005 116.09 64.084 116.09C92.2675 116.09 116.09 93.6095 116.09 64.755C116.09 36.236 92.2675 12.2464 64.084 12.2464ZM80.524 85.8925C58.604 85.8925 47.6437 85.8925 47.6437 85.8925C44.6239 85.8925 41.7719 84.383 41.7719 79.8535C41.7719 58.9395 41.7719 48.4826 41.7719 48.4826C41.7719 45.4627 44.6239 42.2754 47.6437 42.2754C69.564 42.2754 80.524 42.2754 80.524 42.2754C83.376 42.2754 86.396 45.4627 86.396 48.4826C86.396 69.3965 86.396 79.8535 86.396 79.8535C86.396 84.383 83.376 85.8925 80.524 85.8925Z" fill-rule="evenodd" />
+    </symbol>`
   }
 };
 
@@ -103,7 +110,7 @@ function createGlobalSvgDefs() {
   if (document.getElementById('global-svg-icons')) {
     return;
   }
-  
+
   // 创建隐藏的SVG容器，用于存放所有图标定义
   const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svgContainer.id = 'global-svg-icons';
@@ -112,7 +119,7 @@ function createGlobalSvgDefs() {
   svgContainer.style.height = '0';
   svgContainer.style.overflow = 'hidden';
   svgContainer.style.display = 'none';
-  
+
   // 添加渐变定义
   const defsContent = `
     <defs>
@@ -123,9 +130,9 @@ function createGlobalSvgDefs() {
       </linearGradient>
     </defs>
   `;
-  
+
   svgContainer.innerHTML = defsContent;
-  
+
   // 将SVG容器添加到文档中
   document.body.appendChild(svgContainer);
 }
@@ -139,28 +146,28 @@ function addIconToGlobalDefs(iconId) {
   if (loadedIcons.has(iconId)) {
     return;
   }
-  
+
   // 确保全局SVG容器已创建
   createGlobalSvgDefs();
-  
+
   // 获取图标定义
   const iconDef = iconDefinitions[iconId];
   if (!iconDef) {
     console.warn(`图标 ${iconId} 未找到定义`);
     return;
   }
-  
+
   // 获取SVG容器
   const svgContainer = document.getElementById('global-svg-icons');
-  
+
   // 创建临时容器来解析图标内容
   const tempContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   tempContainer.innerHTML = iconDef.content;
-  
+
   // 将图标添加到SVG容器
   const symbolElement = tempContainer.firstElementChild;
   svgContainer.appendChild(symbolElement);
-  
+
   // 标记为已加载
   loadedIcons.add(iconId);
 }
@@ -203,31 +210,36 @@ export const SvgIcons = {
    * 添加节点图标
    */
   AddNodeIcon: createIconComponent('add-node-icon', '0 0 32 32'),
-  
+
   /**
    * 磁盘图标
    */
   DiskIcon: createIconComponent('disk-icon', '0 0 256 256'),
-  
+
   /**
    * 太阳图标
    */
   SunIcon: createIconComponent('sun-icon', '0 0 24 24'),
-  
+
   /**
    * 月亮图标
    */
   MoonIcon: createIconComponent('moon-icon', '0 0 24 24'),
-  
+
   /**
    * 温度计图标
    */
   ThermoIcon: createIconComponent('thermo-icon', '0 0 256 256'),
-  
+
   /**
    * 调色板图标(彩色)
    */
-  PaletteIcon: createIconComponent('palette-icon', '0 0 256 256')
+  PaletteIcon: createIconComponent('palette-icon', '0 0 256 256'),
+
+  /**
+   * 停止图标
+   */
+  StopIcon: createIconComponent('stop-icon', '0 0 256 256')
 };
 
 export default SvgIcons;

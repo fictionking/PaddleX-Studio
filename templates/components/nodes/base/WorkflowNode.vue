@@ -1,18 +1,28 @@
 <template>
     <div :class="['custom-node', 'node-color', type, { 'selected': selected }]"
         :style="{ 'background-color': data.color }">
-        <div :class="['node-header', type]">
+        <div :class="['node-header', type, { 'stripe-bg': data.runStatus === 'running' }]">
             <div v-if="!nameEditing || fixName" class="name-bar">
                 <span @click="!fixName && startEditName()" :style="!fixName && { cursor: 'text' }" class="node-name">
                     {{ data.name }}
                 </span>
-                <el-popover placement="right" width="310" trigger="hover" :show-after="500" popper-style="padding:5px;" :persistent="false">
+                <el-icon v-if="data.runStatus === 'running'">
+                    <VideoPlay />
+                </el-icon>
+                <el-icon v-if="data.runStatus === 'ran'">
+                    <CircleCheck />
+                </el-icon>
+                <el-icon v-if="data.runStatus === 'wait'">
+                    <VideoPause />
+                </el-icon>
+                <el-popover v-if="!data.runStatus" placement="right" width="310" trigger="hover" :show-after="500"
+                    popper-style="padding:5px;" :persistent="false">
                     <template #reference>
                         <el-icon>
                             <PaletteIcon />
                         </el-icon>
                     </template>
-                    <ChromaWheel v-model="data.color"/>
+                    <ChromaWheel v-model="data.color" />
                 </el-popover>
             </div>
 
@@ -250,5 +260,52 @@ export default {
     font-size: var(--el-font-size-small);
     width: 100%;
     outline: none;
+}
+
+.stripe-bg {
+    background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.3) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.3) 50%,
+            rgba(255, 255, 255, 0.3) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 40px 40px;
+    /* 修复动画：添加浏览器前缀并确保动画属性完整 */
+    -webkit-animation: stripe-scroll 1.5s linear infinite;
+    -moz-animation: stripe-scroll 1.5s linear infinite;
+    animation: stripe-scroll 1.5s linear infinite;
+    animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes stripe-scroll {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 40px 0px;
+    }
+}
+
+@-moz-keyframes stripe-scroll {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 40px 0px;
+    }
+}
+
+@keyframes stripe-scroll {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 40px 0px;
+    }
 }
 </style>

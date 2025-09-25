@@ -4,7 +4,8 @@
         <div class="header-bar">
             <div style="display: inline-flex;align-items:center;gap: 10px;">
                 <span class="title">{{ workflow?.name }}</span>
-                <el-popover placement="bottom" trigger="click" width="300px" popper-class="workflow-edit-popover" :persistent="false">
+                <el-popover placement="bottom" trigger="click" width="300px" popper-class="workflow-edit-popover"
+                    :persistent="false">
                     <template #reference>
                         <el-icon>
                             <Edit />
@@ -23,7 +24,9 @@
             </div>
 
             <div class="header-buttons">
-                <el-button type="success" @click="runWorkflow()" icon="Promotion">运行</el-button>
+                <el-button v-if="currentRunningWorkflowId !== workflow.id" type="success" @click="runWorkflow()"
+                    icon="Promotion">运行</el-button>
+                <el-button v-else type="danger" @click="stopWorkflow()" :icon="StopIcon">停止</el-button>
                 <el-button type="primary" @click="saveWorkflow()" :icon="SaveIcon">保存</el-button>
                 <el-button type="primary" plain @click="$router.push('/workflow')">退出</el-button>
             </div>
@@ -37,9 +40,11 @@
                     • 按住Shift键可以框选多个节点<br>
                     • 按住Ctrl键可以点击选择多个节点<br>
                 </div>
-                <VueFlow :nodes="nodes" :edges="edges" :nodeTypes="nodeTypes" :edgesUpdatable="true"
-                    :snap-to-grid="true" :connect-on-click="false" @edge-update="updateConnect" @connect="newConnect"
-                    @nodesChange="applyNodeChanges" class="vue-flow">
+                <div class="lastlog">
+                    <span>{{ workflowLog }}</span>
+                </div>
+                <VueFlow :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true" :connect-on-click="false"
+                    @edge-update="updateConnect" @connect="newConnect" @nodesChange="applyNodeChanges" class="vue-flow">
                 </VueFlow>
             </div>
             <!-- 添加节点按钮和菜单 -->
@@ -57,7 +62,7 @@
                             <el-button icon="Tickets" @click="addNode('note')" round />
                         </el-tooltip>
                         <el-tooltip content="分组框" placement="top">
-                            <el-button icon="Files"  round />
+                            <el-button icon="Files" round />
                         </el-tooltip>
                     </el-button-group>
                     <el-menu mode="vertical" collapse class="node-menu">
@@ -160,12 +165,16 @@ export default {
         return {
             nodeTypes,
             menuItems,
-            nodes: [],
-            edges: [],
             models: [],
             trains: [],
             workflow: {},
             SaveIcon: SvgIcons.DiskIcon,
+            StopIcon: SvgIcons.StopIcon,
+            currentRunningWorkflowId: null, // 当前运行的工作流ID
+            workflowRunningStatus: false,  // 当前工作流的运行状态
+            statusPollingInterval: null,   // 状态轮询的定时器ID
+            workflowLog: '',               // 最新的工作流日志
+            eventSource: null,             // SSE连接对象
         }
     },
     /** 组件挂载时加载工作流配置 */
@@ -191,22 +200,25 @@ export default {
                 throw new Error(`HTTP error! status: ${trainResponse.status}`);
             }
             this.trains = await trainResponse.json();
+
+            // 检查当前是否有工作流正在运行
+            this.checkWorkflowStatus();
+
+            // 启动轮询检查工作流状态
+            this.startStatusPolling();
         } catch (error) {
             console.error('Failed to load workflow configuration:', error);
         }
     },
-    setup() {
-        /** 初始化vue flow相关函数 */
-        const { updateEdge, addEdges, addNodes, applyNodeChanges, toObject, fromObject } = useVueFlow()
-        return {
-            updateEdge,
-            addEdges,
-            addNodes,
-            applyNodeChanges,
-            toObject,
-            fromObject,
+
+    /** 组件卸载时清理轮询和SSE连接 */
+    beforeUnmount() {
+        if (this.statusPollingInterval) {
+            clearInterval(this.statusPollingInterval);
         }
+        this.closeEventSource();
     },
+
     methods: {
         newConnect(connection) {
             if (this.checkConnect(connection)) {
@@ -260,7 +272,7 @@ export default {
         saveWorkflow() {
             this.workflow.definition = this.toObject()
             fetch('/workflows/' + this.workflow.id, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -283,7 +295,7 @@ export default {
             // 先保存工作流再运行
             this.workflow.definition = this.toObject()
             fetch('/workflows/' + this.workflow.id, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -293,20 +305,226 @@ export default {
                     this.$message({ message: '工作流保存成功', type: 'success' });
                     // 保存成功后运行工作流
                     return fetch('/workflows/' + this.workflow.id + '/run', {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
                     });
                 } else {
                     throw new Error('保存工作流失败');
                 }
             }).then(res => {
-                if (res.ok) {
-                    this.$message({ message: '工作流已开始运行', type: 'success' });
-                } else {
-                    throw new Error('运行工作流失败');
-                }
+                // 尝试解析响应数据
+                return res.json().then(data => {
+                    if (res.ok) {
+                        console.log('工作流运行响应数据:', data);
+                        this.$message({
+                            message: '工作流已开始运行',
+                            type: 'success'
+                        });
+                        // 可以在这里添加更多逻辑来处理返回的数据
+                        // 例如：显示详细信息、更新UI状态等
+                        this.currentRunningWorkflowId = this.workflow.id;
+                        this.workflowRunningStatus = true;
+                        // 启动SSE连接获取日志
+                        this.startEventSource();
+                        return data;
+                    } else {
+                        throw new Error(`运行工作流失败: ${data?.error || '未知错误'}`);
+                    }
+                });
             }).catch(err => {
                 this.$message({ message: err.message, type: 'error' });
             });
+        },
+
+        /**
+         * 停止工作流
+         */
+        stopWorkflow() {
+            fetch('/workflows/' + this.workflow.id + '/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(res => {
+                return res.json().then(data => {
+                    if (res.ok) {
+                        console.log('工作流停止响应数据:', data);
+                        this.$message({
+                            message: '工作流已停止',
+                            type: 'success'
+                        });
+                        this.currentRunningWorkflowId = null;
+                        this.workflowRunningStatus = false;
+                        // 关闭SSE连接
+                        this.closeEventSource();
+                        return data;
+                    } else {
+                        throw new Error(`停止工作流失败: ${data?.error || '未知错误'}`);
+                    }
+                });
+            }).catch(err => {
+                this.$message({ message: err.message, type: 'error' });
+            });
+        },
+
+        /**
+         * 检查工作流运行状态
+         */
+        checkWorkflowStatus() {
+            fetch('/workflow-status/current')
+                .then(res => res.json())
+                .then(data => {
+                    const wasRunning = this.workflowRunningStatus;
+                    this.currentRunningWorkflowId = data.current_workflow_id;
+                    this.workflowRunningStatus = data.current_workflow_id === this.workflow.id;
+
+                    // 如果当前工作流开始运行，启动SSE连接
+                    if (!wasRunning && this.workflowRunningStatus) {
+                        this.startEventSource();
+                    }
+                    // 如果当前工作流停止运行，关闭SSE连接
+                    else if (wasRunning && !this.workflowRunningStatus) {
+                        this.closeEventSource();
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to check workflow status:', err);
+                });
+        },
+
+        /**
+         * 启动轮询检查工作流状态
+         */
+        startStatusPolling() {
+            // 每5秒检查一次工作流状态
+            this.statusPollingInterval = setInterval(() => {
+                this.checkWorkflowStatus();
+            }, 5000);
+        },
+
+        /**
+         * 启动SSE连接获取工作流日志
+         */
+        startEventSource() {
+            // 先关闭已有的连接
+            this.closeEventSource();
+
+            try {
+                for (let node of this.getNodes) {
+                    node.data.runStatus = 'wait';
+                }
+                // 建立SSE连接
+                this.eventSource = new EventSource(`/workflow-status/stream`);
+
+                // 处理消息事件
+                this.eventSource.onmessage = (event) => {
+                    try {
+                        // 解析消息数据
+                        const data = JSON.parse(event.data);
+
+                        // 初始化日志消息
+                        let logMessage = '';
+
+                        // 处理不同格式的消息
+                        if (data.data && typeof data.data === 'object') {
+                            // 处理包含data对象的消息
+                            if (data.data.status) {
+                                logMessage = data.data.status;
+                                // 添加当前节点和节点状态信息
+                                if (data.data.current_node && data.data.node_status) {
+                                    logMessage += ` - 当前节点: ${data.data.current_node} (${data.data.node_status})`;
+                                    for (let node of this.getNodes) {
+
+                                        if (node.id === data.data.current_node) {
+                                            node.data.runStatus = 'running';
+                                        }
+                                        else {
+                                            node.data.runStatus = 'wait';
+                                        }
+                                    }
+                                }
+
+                                // 添加已运行节点数量信息
+                                if (data.data.ran_nodes && data.data.ran_nodes.length > 0) {
+                                    logMessage += ` (已运行节点数: ${data.data.ran_nodes.length})`;
+                                    for (let node of this.getNodes) {
+                                        if (data.data.ran_nodes.includes(node.id) && node.data.runStatus !== 'running') {
+                                            node.data.runStatus = 'ran';
+                                        }
+                                    }
+                                }
+
+                                // 添加耗时信息
+                                if (data.data.elapsed_time !== undefined) {
+                                    logMessage += ` (耗时: ${data.data.elapsed_time.toFixed(2)}s)`;
+                                }
+                            }
+                        } else if (data.status) {
+                            // 处理直接包含status字段的消息
+                            logMessage = data.status;
+
+                            // 添加流程完成标记
+                            if (data.process_completed === true) {
+                                logMessage += ' (流程已完成)';
+                            }
+                        }
+
+                        // 如果解析到了日志消息，则更新显示
+                        if (logMessage) {
+                            // 添加时间戳
+                            const timestamp = new Date().toLocaleTimeString();
+                            // 更新日志，添加视觉区分
+                            this.workflowLog = `[${timestamp}] ${logMessage}`;
+                        }
+                    } catch (error) {
+                        console.error('Failed to parse SSE message:', error);
+                        // 添加解析错误到日志中
+                        const timestamp = new Date().toLocaleTimeString();
+                        this.workflowLog = `[${timestamp}] 解析SSE消息失败: ${error.message}`;
+                    }
+                };
+
+                // 处理错误事件
+                this.eventSource.onerror = (error) => {
+                    console.error('SSE connection error:', error);
+                    // 发生错误时关闭连接
+                    for (let node of this.getNodes) {
+                        node.data.runStatus = '';
+                    }
+                    this.closeEventSource();
+                };
+
+                console.log('SSE connection established for workflow:', this.workflow.id);
+            } catch (error) {
+                console.error('Failed to establish SSE connection:', error);
+            }
+        },
+
+        /**
+         * 关闭SSE连接
+         */
+        closeEventSource() {
+            if (this.eventSource) {
+                this.eventSource.close();
+                this.eventSource = null;
+                console.log('SSE connection closed');
+            }
+        }
+    },
+
+    setup() {
+        /** 初始化vue flow相关函数 */
+        const { getNodes, updateEdge, addEdges, addNodes, applyNodeChanges, toObject, fromObject } = useVueFlow()
+        return {
+            updateEdge,
+            addEdges,
+            addNodes,
+            getNodes,
+            applyNodeChanges,
+            toObject,
+            fromObject,
         }
     }
 }
@@ -319,6 +537,16 @@ export default {
 .tips {
     position: absolute;
     top: 0px;
+    right: 0px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--el-text-color-disabled);
+}
+
+.lastlog {
+    position: absolute;
+    bottom: 0px;
     right: 0px;
     padding: 5px 10px;
     border-radius: 4px;
