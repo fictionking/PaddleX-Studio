@@ -273,13 +273,13 @@ export default {
 
 .stripe-bg {
     background-image: linear-gradient(45deg,
-            rgba(255, 255, 255, 0.3) 25%,
-            transparent 25%,
-            transparent 50%,
-            rgba(255, 255, 255, 0.3) 50%,
-            rgba(255, 255, 255, 0.3) 75%,
-            transparent 75%,
-            transparent);
+        rgba(255, 255, 255, 0.3) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.3) 75%,
+        transparent 75%,
+        transparent);
     background-size: 40px 40px;
     /* 修复动画：添加浏览器前缀并确保动画属性完整 */
     -webkit-animation: stripe-scroll 1.5s linear infinite;

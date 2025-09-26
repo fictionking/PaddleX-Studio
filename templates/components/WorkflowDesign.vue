@@ -451,11 +451,11 @@ export default {
                             if (data.data.status) {
                                 logMessage = data.data.status;
                                 // 添加当前节点和节点状态信息
-                                if (data.data.current_node && data.data.node_status) {
-                                    logMessage += ` - 当前节点: ${data.data.current_node} (${data.data.node_status})`;
+                                if (data.data.run_nodes) {
+                                    logMessage += ` - 当前节点: ${data.data.run_nodes.join(', ')}`;
                                     for (let node of this.getNodes) {
 
-                                        if (node.id === data.data.current_node) {
+                                        if (data.data.run_nodes.includes(node.id)) {
                                             node.data.runStatus = 'running';
                                         }
                                         else {

@@ -123,8 +123,7 @@ class WorkflowPipeline(BasePipeline):
                 - elapsed_time: 当前流程已运行耗时（秒）
                 - result: 可选的工作流输出结果（仅在完成时返回）
                 - error: 可选的错误信息（仅在失败时返回）
-                - current_node: 当前处理的节点ID（运行中时返回）
-                - node_status: 当前节点的状态（运行中时返回）
+                - run_nodes: 正在运行的节点ID数组（运行中时返回）
         """
         import time
 
@@ -132,8 +131,10 @@ class WorkflowPipeline(BasePipeline):
 
         # 初始化执行队列，存储元组 (node_id, input_value, port)
         execution_queue = []
-        # 记录正在运行的节点
+        # 记录已经运行的节点
         ran_nodes = []
+        # 记录正在运行的节点
+        run_nodes = []
         # 记录开始时间
         start_time = time.time()
         
@@ -156,24 +157,18 @@ class WorkflowPipeline(BasePipeline):
                 if isinstance(node, ConstantNode):
                     try:
                         elapsed_time = time.time() - start_time
+                        # 添加到正在运行的节点数组
+                        run_nodes.append(node_id)
                         yield{
                             'ran_nodes': ran_nodes,
                             'status': '运行中',
                             'elapsed_time': elapsed_time,
-                            'current_node': node_id,
-                            'node_status': '开始执行'
+                            'run_nodes': run_nodes
                         }
                         node_result = node.run()
                         execution_count[node_id] += 1
                         elapsed_time = time.time() - start_time
                         ran_nodes = [node_id for node_id, count in execution_count.items() if count > 0]
-                        yield{
-                            'ran_nodes': ran_nodes,
-                            'status': '运行中',
-                            'elapsed_time': elapsed_time,
-                            'current_node': node_id,
-                            'node_status': '处理连接'
-                        }
                         # 传递常量节点结果到下一个节点
                         if node_id in self.connections:
                             for conn in self.connections[node_id]:
@@ -182,17 +177,6 @@ class WorkflowPipeline(BasePipeline):
                                 to_port = conn["to_port"]
                                 
                                 if to_node in self.nodes:
-                                    # 检查to_node是否为常量节点
-                                    if self._is_constant_node(self.nodes[to_node], f"常量节点 {node_id} 不能连接到常量节点 {to_node}"):
-                                        elapsed_time = time.time() - start_time
-                                        yield {
-                                            'ran_nodes': ran_nodes,
-                                            'status': '失败',
-                                            'elapsed_time': elapsed_time,
-                                            'error': f"常量节点 {node_id} 不能连接到常量节点 {to_node}"
-                                        }
-                                        return
-                                        
                                     # 使用parse_port函数分解port
                                     port_type, port_name = parse_port(to_port)
                                     if port_type == 'params':
@@ -203,6 +187,7 @@ class WorkflowPipeline(BasePipeline):
                                         elapsed_time = time.time() - start_time
                                         yield {
                                             'ran_nodes': ran_nodes,
+                                            'run_nodes': run_nodes,
                                             'status': '失败',
                                             'elapsed_time': elapsed_time,
                                             'error': f"常量节点 {node_id} 不能连接到 inputs 类型端口 {to_port}"
@@ -213,23 +198,29 @@ class WorkflowPipeline(BasePipeline):
                                         elapsed_time = time.time() - start_time
                                         yield {
                                             'ran_nodes': ran_nodes,
+                                            'run_nodes': run_nodes,
                                             'status': '失败',
                                             'elapsed_time': elapsed_time,
                                             'error': f"常量节点 {node_id} 连接到未知端口类型 {port_type}"
                                         }
                                         return
                         elapsed_time = time.time() - start_time
+                        # 从正在运行的节点数组中移除
+                        run_nodes.remove(node_id)
                         yield{
                             'ran_nodes': ran_nodes,
                             'status': '运行中',
                             'elapsed_time': elapsed_time,
-                            'current_node': node_id,
-                            'node_status': '执行完成'
+                            'run_nodes': run_nodes
                         }
                     except Exception as e:
+                        # 如果出错，从正在运行的节点数组中移除
+                        if node_id in run_nodes:
+                            run_nodes.remove(node_id)
                         elapsed_time = time.time() - start_time
                         yield {
                             'ran_nodes': ran_nodes,
+                            'run_nodes': run_nodes,
                             'status': '失败',
                             'elapsed_time': elapsed_time,
                             'error': f"处理常量节点 {node_id} 时发生错误: {str(e)}"
@@ -266,6 +257,7 @@ class WorkflowPipeline(BasePipeline):
                 elapsed_time = time.time() - start_time
                 yield {
                     'ran_nodes': ran_nodes,
+                    'run_nodes': run_nodes,
                     'status': '失败',
                     'elapsed_time': elapsed_time,
                     'error': "无法确定工作流的入口节点，请确保工作流中包含没有入边的节点作为入口"
@@ -282,6 +274,7 @@ class WorkflowPipeline(BasePipeline):
                     elapsed_time = time.time() - start_time
                     yield {
                         'ran_nodes': ran_nodes,
+                        'run_nodes': run_nodes,
                         'status': '失败',
                         'elapsed_time': elapsed_time,
                         'error': f"节点 {current_node_id} 不存在于工作流中"
@@ -292,17 +285,21 @@ class WorkflowPipeline(BasePipeline):
                 
                 # 输出运行中状态 - 节点开始执行
                 elapsed_time = time.time() - start_time
+                # 添加到正在运行的节点数组
+                run_nodes.append(current_node_id)
                 yield {
                     'ran_nodes': ran_nodes,
+                    'run_nodes': run_nodes,
                     'status': '运行中',
                     'elapsed_time': elapsed_time,
-                    'current_node': current_node_id,
-                    'node_status': '开始执行'
+                    'run_nodes': run_nodes
                 }
 
                 # 检查是否超过最大执行次数
                 if execution_count[current_node_id] >= self.max_executions:
                     print(f"警告: 节点 {current_node_id} 已达到最大执行次数 {self.max_executions}，跳过执行。")
+                    # 从正在运行的节点数组中移除
+                    run_nodes.remove(current_node_id)
                     # 输出状态更新 - 节点跳过执行
                     elapsed_time = time.time() - start_time
                     ran_nodes = [node_id for node_id, count in execution_count.items() if count > 0]
@@ -310,8 +307,7 @@ class WorkflowPipeline(BasePipeline):
                         'ran_nodes': ran_nodes,
                         'status': '运行中',
                         'elapsed_time': elapsed_time,
-                        'current_node': current_node_id,
-                        'node_status': '跳过执行'
+                        'run_nodes': run_nodes
                     }
                     continue
 
@@ -323,26 +319,12 @@ class WorkflowPipeline(BasePipeline):
                     # 输出状态更新 - 节点执行完成
                     elapsed_time = time.time() - start_time
                     ran_nodes = [node_id for node_id, count in execution_count.items() if count > 0]
-                    yield {
-                        'ran_nodes': ran_nodes,
-                        'status': '运行中',
-                        'elapsed_time': elapsed_time,
-                        'current_node': current_node_id,
-                        'node_status': '执行完成'
-                    }
 
                     # 处理输出
                     # 处理节点之间的连接
                     if current_node_id in self.connections:
                         # 输出状态更新 - 开始处理连接
                         elapsed_time = time.time() - start_time
-                        yield {
-                            'ran_nodes': ran_nodes,
-                            'status': '运行中',
-                            'elapsed_time': elapsed_time,
-                            'current_node': current_node_id,
-                            'node_status': '处理连接'
-                        }
                         
                         for conn in self.connections[current_node_id]:
                             from_port = conn["from_port"]
@@ -350,29 +332,22 @@ class WorkflowPipeline(BasePipeline):
                             to_port = conn["to_port"]
 
                             if to_node in self.nodes:
-                                # 检查to_node是否为常量节点
-                                if self._is_constant_node(self.nodes[to_node], f"运算节点 {current_node_id} 不能连接到常量节点 {to_node}"):
-                                    elapsed_time = time.time() - start_time
-                                    yield {
-                                        'ran_nodes': ran_nodes,
-                                        'status': '失败',
-                                        'elapsed_time': elapsed_time,
-                                        'error': f"运算节点 {current_node_id} 不能连接到常量节点 {to_node}",
-                                        'current_node': current_node_id
-                                    }
-                                    return
+                          
                                     
                                 # 使用parse_port函数分解port
                                 try:
                                     port_type, port_name = parse_port(to_port)
                                 except Exception as e:
+                                    # 从正在运行的节点数组中移除
+                                    if current_node_id in run_nodes:
+                                        run_nodes.remove(current_node_id)
                                     elapsed_time = time.time() - start_time
                                     yield {
                                         'ran_nodes': ran_nodes,
                                         'status': '失败',
                                         'elapsed_time': elapsed_time,
                                         'error': f"解析端口 {to_port} 时发生错误: {str(e)}",
-                                        'current_node': current_node_id
+                                        'run_nodes': run_nodes
                                     }
                                     return
                                     
@@ -381,13 +356,16 @@ class WorkflowPipeline(BasePipeline):
                                     try:
                                         self.nodes[to_node].set_params(port_name, node_result.get(from_port))
                                     except Exception as e:
+                                        # 从正在运行的节点数组中移除
+                                        if current_node_id in run_nodes:
+                                            run_nodes.remove(current_node_id)
                                         elapsed_time = time.time() - start_time
                                         yield {
                                             'ran_nodes': ran_nodes,
                                             'status': '失败',
                                             'elapsed_time': elapsed_time,
                                             'error': f"设置节点 {to_node} 参数时发生错误: {str(e)}",
-                                            'current_node': current_node_id
+                                            'run_nodes': run_nodes
                                         }
                                         return
                                 elif port_type == 'inputs':
@@ -395,23 +373,37 @@ class WorkflowPipeline(BasePipeline):
                                     execution_queue.append((to_node, node_result.get(from_port), port_name))
                                 else:
                                     # 未知端口类型，返回错误
+                                    # 从正在运行的节点数组中移除
+                                    if current_node_id in run_nodes:
+                                        run_nodes.remove(current_node_id)
                                     elapsed_time = time.time() - start_time
                                     yield {
                                         'ran_nodes': ran_nodes,
                                         'status': '失败',
                                         'elapsed_time': elapsed_time,
                                         'error': f"未知端口类型 {port_type}",
-                                        'current_node': current_node_id
+                                        'run_nodes': run_nodes
                                     }
                                     return
+                    # 从正在运行的节点数组中移除
+                    run_nodes.remove(current_node_id)
+                    yield {
+                        'ran_nodes': ran_nodes,
+                        'status': '运行中',
+                        'elapsed_time': elapsed_time,
+                        'run_nodes': run_nodes
+                    }
                 except Exception as e:
+                    # 从正在运行的节点数组中移除
+                    if current_node_id in run_nodes:
+                        run_nodes.remove(current_node_id)
                     elapsed_time = time.time() - start_time
                     yield {
                         'running_nodes': ran_nodes,
                         'status': '失败',
                         'elapsed_time': elapsed_time,
                         'error': f"执行节点 {current_node_id} 时发生错误: {str(e)}",
-                        'current_node': current_node_id
+                        'run_nodes': run_nodes
                     }
                     return
         
@@ -429,6 +421,7 @@ class WorkflowPipeline(BasePipeline):
                 'running_nodes': ran_nodes,
                 'status': '失败',
                 'elapsed_time': elapsed_time,
-                'error': f"工作流执行过程中发生未预期的错误: {str(e)}"
+                'error': f"工作流执行过程中发生未预期的错误: {str(e)}",
+                'run_nodes': run_nodes
             }
             return

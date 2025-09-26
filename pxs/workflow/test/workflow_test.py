@@ -35,10 +35,9 @@ def run_workflow():
         print(f"已运行时间: {result.get('elapsed_time', 0):.4f}秒")
         
         # 输出当前节点和节点状态
-        current_node = result.get('current_node')
-        node_status = result.get('node_status')
-        if current_node and node_status:
-            print(f"当前节点: {current_node}, 节点状态: {node_status}")
+        run_nodes = result.get('run_nodes', [])
+        if run_nodes:
+            print(f"正在运行的节点: {', '.join(run_nodes)}")
         
         # 输出正在运行的节点
         ran_nodes = result.get('ran_nodes', [])
