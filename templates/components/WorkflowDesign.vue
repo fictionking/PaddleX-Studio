@@ -27,6 +27,7 @@
                 <el-button v-if="currentRunningWorkflowId !== workflow.id" type="success" @click="runWorkflow()"
                     icon="Promotion">运行</el-button>
                 <el-button v-else type="danger" @click="stopWorkflow()" :icon="StopIcon">停止</el-button>
+                <el-button type="primary" @click="openLogWindow()" icon="Tickets">日志</el-button>
                 <el-button type="primary" @click="saveWorkflow()" :icon="SaveIcon">保存</el-button>
                 <el-button type="primary" plain @click="$router.push('/workflow')">退出</el-button>
             </div>
@@ -109,6 +110,13 @@
                                                     outputs: module.infer_params?.ports?.outputs || [],
                                                 })" class="node-menu">
                                                     {{ value.name }}
+                                                    <el-icon v-if="value.rate" style="color:goldenrod">
+                                                        <CollectionTag />
+                                                    </el-icon>
+                                                    <el-icon v-if="cachedModels.includes(value.name)"
+                                                        style="color:#00c58d;">
+                                                        <SuccessFilled />
+                                                    </el-icon>
                                                 </el-menu-item>
                                                 <template #content>
                                                     <span
@@ -152,7 +160,7 @@
     </div>
 </template>
 <script>
-const { markRaw, defineComponent } = Vue
+const { markRaw, defineComponent, getCurrentInstance, provide, computed } = Vue
 import { VueFlow, useVueFlow } from '/libs/vue-flow/core/vue-flow-core.mjs';
 import nodeTypes, { createNodeData, menuItems, initializeNodeCounters } from '/components/nodes/nodes.mjs';
 
@@ -167,6 +175,7 @@ export default {
             menuItems,
             models: [],
             trains: [],
+            cachedModels: [],
             workflow: {},
             SaveIcon: SvgIcons.DiskIcon,
             StopIcon: SvgIcons.StopIcon,
@@ -200,6 +209,11 @@ export default {
                 throw new Error(`HTTP error! status: ${trainResponse.status}`);
             }
             this.trains = await trainResponse.json();
+            const cachedResponse = await fetch('/define/modules/cached');
+            if (!cachedResponse.ok) {
+                throw new Error(`HTTP error! status: ${cachedResponse.status}`);
+            }
+            this.cachedModels = await cachedResponse.json();
 
             // 检查当前是否有工作流正在运行
             this.checkWorkflowStatus();
@@ -271,6 +285,10 @@ export default {
         },
         saveWorkflow() {
             this.workflow.definition = this.toObject()
+            //删除所有node中的runStatus
+            this.workflow.definition.nodes.forEach(node => {
+                delete node.data.runStatus
+            })
             fetch('/workflows/' + this.workflow.id, {
                 method: 'PUT',
                 headers: {
@@ -511,12 +529,26 @@ export default {
                 this.eventSource = null;
                 console.log('SSE connection closed');
             }
+        },
+        
+        /**
+         * 打开日志窗口
+         * 专门处理在新窗口中打开工作流日志的逻辑
+         */
+        openLogWindow() {
+            window.open(`/workflows/${this.workflow.id}/logs`);
         }
     },
 
     setup() {
         /** 初始化vue flow相关函数 */
         const { getNodes, updateEdge, addEdges, addNodes, applyNodeChanges, toObject, fromObject } = useVueFlow()
+        const instance = getCurrentInstance()
+
+        // 使用 provide 将 models 数据提供给所有子组件
+        provide('models', computed(() => instance?.proxy?.models || []))
+        provide('cachedModels', computed(() => instance?.proxy?.cachedModels || []))
+
         return {
             updateEdge,
             addEdges,

@@ -302,6 +302,7 @@ export default {
 }
 
 .content-input {
+    font-size: var(--el-font-size-extra-small);
     --el-input-text-color: #000;
     --el-input-border: none;
     --el-input-hover-border: none;

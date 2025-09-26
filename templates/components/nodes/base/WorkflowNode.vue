@@ -160,9 +160,18 @@ export default {
     border-radius: 6px;
     overflow: hidden;
     box-shadow: var(--el-box-shadow);
-    background-color: var(--el-fill-color-dark);
+    background-color: #333333;
 }
-
+.custom-node::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border-radius: 4px;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.1) 55%, rgba(255, 255, 255, 0.1) 60%, transparent);
+}
 .custom-node.selected {
     border: 2px solid rgb(224, 154, 2);
 }

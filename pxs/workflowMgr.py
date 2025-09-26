@@ -1,4 +1,4 @@
-from flask import Blueprint, make_response, jsonify, request, Response
+from flask import Blueprint, make_response, jsonify, request, Response, send_file
 import os
 import json
 import logging
@@ -626,15 +626,7 @@ def get_workflow_logs(workflow_id):
         if not os.path.exists(log_file_path):
             return jsonify({'success': True, 'logs': '', 'message': '日志文件不存在'}), 200
         
-        # 读取日志文件内容
-        with open(log_file_path, 'r', encoding='utf-8') as log_file:
-            logs_content = log_file.read()
-        
-        return jsonify({
-            'success': True,
-            'logs': logs_content,
-            'workflow_id': workflow_id
-        }), 200
+        return send_file(log_file_path)
     except Exception as e:
         logging.error(f"读取工作流日志失败: {str(e)}")
         return jsonify({'success': False, 'error': f'读取日志文件失败：{str(e)}'}), 500
