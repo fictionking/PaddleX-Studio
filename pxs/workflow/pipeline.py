@@ -2,11 +2,14 @@
 from typing import Any, Dict, Optional, Union, List, Set
 import importlib
 from collections import defaultdict
+import threading
+from queue import Queue, Empty
+import time
 
 from paddlex.inference.utils.hpi import HPIConfig
 from paddlex.inference.utils.pp_option import PaddlePredictorOption
 from paddlex.inference.pipelines import BasePipeline
-from pxs.workflow.nodes.base_node import ComputeNode, ConstantNode
+from pxs.workflow.nodes.base_node import ComputeNode, ConstantNode, StreamNode
 from pxs.workflow.common.utils import parse_port
 
 class WorkflowPipeline(BasePipeline):
@@ -21,7 +24,7 @@ class WorkflowPipeline(BasePipeline):
         pp_option: PaddlePredictorOption = None,
         use_hpip: bool = False,
         hpi_config: Optional[Union[Dict[str, Any], HPIConfig]] = None,
-        max_executions: int = 100,
+        max_executions: int = 0,
     ) -> None:
         """
         初始化工作流管道
@@ -33,7 +36,7 @@ class WorkflowPipeline(BasePipeline):
             use_hpip (bool, optional): 是否使用高性能推理插件(HPIP). Defaults to False
             hpi_config (Optional[Union[Dict[str, Any], HPIConfig]], optional):
                 高性能推理配置字典. Defaults to None
-            max_executions (int, optional): 节点的最大执行次数，用于防止无限循环. Defaults to 100
+            max_executions (int, optional): 节点的最大执行次数，用于防止无限循环. Defaults to 0（不检查）
         """
 
         super().__init__(
@@ -44,6 +47,18 @@ class WorkflowPipeline(BasePipeline):
         self.nodes = {}
         self.connections = {}
         self.max_executions = max_executions
+        
+        # 类成员变量，用于工作流执行
+        self.execution_queue = []  # 执行队列，存储元组 (node_id, input_value, port)
+        self.ran_nodes = []  # 已运行的节点列表
+        self.run_nodes = []  # 正在运行的节点列表
+        self.start_time = 0  # 开始时间
+        self.execution_count = {}  # 节点执行次数记录
+        # 流式节点相关成员变量
+        self.stream_results_queue = Queue(maxsize=1000)  # 流式结果队列，设置最大容量为1000
+        self.active_stream_nodes = set()  # 活动流式节点集合
+        self.exception_queue = Queue()  # 线程间通信的异常队列
+        self.stream_threads = []  # 流式节点线程集合
 
     def initialize_nodes(self):
         """初始化工作流中的所有节点"""
@@ -104,324 +119,509 @@ class WorkflowPipeline(BasePipeline):
             bool: 如果是常量节点返回True，否则返回False
         """
         return isinstance(node, ConstantNode)
-
-    def predict(self, input=None, **kwargs):
-        """
-        运行工作流预测并输出运行状态信息，所有异常都会封装成标准输出结构输出
         
-        注：此方法的输入参数结构主要是为了实现基类接口要求，
-        实际逻辑主要使用kwargs中的参数，input参数在实际逻辑中不会使用。
+    def _create_status_update(self, ran_nodes, status, elapsed_time, run_nodes=None, error=None):
+        """
+        创建状态更新对象
 
         Args:
-            input: 为了实现基类接口要求而保留，实际逻辑中不会使用
-            **kwargs: 其他参数，无
+            ran_nodes: 已运行的节点列表
+            status: 当前状态
+            elapsed_time: 已运行时间
+            run_nodes: 正在运行的节点列表
+            error: 错误信息
+
+        Returns:
+            dict: 状态更新对象
+        """
+        update = {
+            'ran_nodes': ran_nodes,
+            'status': status,
+            'elapsed_time': elapsed_time,
+            'stream_queue_size': self.stream_results_queue.qsize()
+        }
+        if run_nodes is not None:
+            update['run_nodes'] = run_nodes
+        if error is not None:
+            update['error'] = error
+        return update
+        
+    def _process_constant_nodes(self):
+        """
+        处理所有常量节点，并直接操作执行队列
 
         Yields:
-            dict: 包含工作流运行状态信息，包括:
-                - running_nodes: 正在运行的节点ID清单
-                - status: 当前流程运行状态（准备中、运行中、完成、失败）
-                - elapsed_time: 当前流程已运行耗时（秒）
-                - result: 可选的工作流输出结果（仅在完成时返回）
-                - error: 可选的错误信息（仅在失败时返回）
-                - run_nodes: 正在运行的节点ID数组（运行中时返回）
+            dict: 状态更新信息
         """
-        import time
+        for node_id, node in self.nodes.items():
+            if isinstance(node, ConstantNode):
+                try:
+                    elapsed_time = time.time() - self.start_time
+                    # 添加到正在运行的节点数组
+                    self.run_nodes.append(node_id)
+                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+                    
+                    node_result = node.run()
+                    self.execution_count[node_id] += 1
+                    elapsed_time = time.time() - self.start_time
+                    self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
+                    
+                    # 传递常量节点结果到下一个节点
+                    if node_id in self.connections:
+                        for conn in self.connections[node_id]:
+                            from_port = conn["from_port"]
+                            to_node = conn["to_node"]
+                            to_port = conn["to_port"]
+                            
+                            if to_node in self.nodes:
+                                # 使用parse_port函数分解port
+                                port_type, port_name = parse_port(to_port)
+                                if port_type == 'params':
+                                    # 如果是params类型，立即调用set_params
+                                    self.nodes[to_node].set_params(port_name, node_result.get(from_port))
+                                elif port_type == 'inputs':
+                                    # 如果是inputs类型，直接添加到执行队列
+                                    execution_queue_item = (to_node, node_result.get(from_port), port_name)
+                                    self.execution_queue.append(execution_queue_item)
+                                else:
+                                    # 未知端口类型，返回错误
+                                    elapsed_time = time.time() - self.start_time
+                                    yield self._create_status_update(
+                                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                                        f"常量节点 {node_id} 连接到未知端口类型 {port_type}"
+                                    )
+                                    return
+                    
+                    elapsed_time = time.time() - self.start_time
+                    # 从正在运行的节点数组中移除
+                    self.run_nodes.remove(node_id)
+                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+                    
+                except Exception as e:
+                    # 如果出错，从正在运行的节点数组中移除
+                    if node_id in self.run_nodes:
+                        self.run_nodes.remove(node_id)
+                    elapsed_time = time.time() - self.start_time
+                    yield self._create_status_update(
+                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                        f"处理常量节点 {node_id} 时发生错误: {str(e)}"
+                    )
+                    return
+        
+        return
+        
+    def _find_entry_nodes(self):
+        """
+        查找工作流的入口节点
 
+        Returns:
+            bool: 是否找到入口节点
+        """
+        # 获取所有有入边的节点
+        nodes_with_incoming = set()
+        for from_node, conns in self.connections.items():
+            for conn in conns:
+                if conn["to_node"] in self.nodes:
+                    nodes_with_incoming.add(conn["to_node"])
+                
+        # 查找没有入边的节点作为入口
+        for node_id, node in self.nodes.items():
+            # 跳过常量节点
+            if isinstance(node, ConstantNode):
+                continue
+            
+            # 检查节点是否没有入边
+            if node_id not in nodes_with_incoming:
+                # 无需查找输入端口，直接设为None，因为入口节点无需输入值
+                self.execution_queue.append((node_id, None, None))
+        
+        return len(self.execution_queue) > 0
+        
+    def _process_stream_result(self, items):
+        """
+        处理流式节点的结果
 
+        设计说明：
+        - 直接操作类成员变量execution_queue
+        - yield只用于返回状态更新信息，不再返回队列项
 
-        # 初始化执行队列，存储元组 (node_id, input_value, port)
-        execution_queue = []
-        # 记录已经运行的节点
-        ran_nodes = []
-        # 记录正在运行的节点
-        run_nodes = []
-        # 记录开始时间
-        start_time = time.time()
+        Args:
+            items: 流式结果项
+
+        Yields:
+            dict: 状态更新信息
+        """
+        # 处理特殊的线程完成标记
+        if len(items) == 3 and items[2] == 'thread_complete':
+            node_id = items[0]
+            # 从活动流式节点集合中移除
+            self.active_stream_nodes.discard(node_id)
+            # 从正在运行的节点数组中移除
+            if node_id in self.run_nodes:
+                self.run_nodes.remove(node_id)
+            # 更新执行过的节点列表
+            self.ran_nodes = [nid for nid, count in self.execution_count.items() if count > 0]
+            # 输出状态更新 - 流式节点完成
+            elapsed_time = time.time() - self.start_time
+            status_update = self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+            # 标记任务完成
+            self.stream_results_queue.task_done()
+            
+            # 只yield状态更新信息
+            yield status_update
+            return
+        
+        stream_node_id, stream_result = items
         
         try:
-            # 输出准备中状态
-            elapsed_time = time.time() - start_time
-            yield {
-                'ran_nodes': ran_nodes,
-                'status': '准备中',
-                'elapsed_time': elapsed_time
-            }
-            self.initialize_nodes()
-            self.initialize_connections()
+            # 处理每条流式输出的连接
+            if stream_node_id in self.connections:
+                for conn in self.connections[stream_node_id]:
+                    from_port = conn["from_port"]
+                    to_node = conn["to_node"]
+                    to_port = conn["to_port"]
 
-            # 记录节点被执行的次数，防止无限循环
-            execution_count = {node_id: 0 for node_id, node in self.nodes.items()}
+                    if to_node in self.nodes:
+                        port_type, port_name = parse_port(to_port)
+                        if port_type == 'params':
+                            # 如果是params类型，立即调用set_params
+                            try:
+                                self.nodes[to_node].set_params(port_name, stream_result.get(from_port))
+                            except Exception as e:
+                                # 从正在运行的节点数组中移除
+                                if stream_node_id in self.run_nodes:
+                                    self.run_nodes.remove(stream_node_id)
+                                elapsed_time = time.time() - self.start_time
+                                error_update = self._create_status_update(
+                                    [], '失败', elapsed_time, self.run_nodes,
+                                    f"设置节点 {to_node} 参数时发生错误: {str(e)}"
+                                )
+                                self.stream_results_queue.task_done()
+                                yield error_update
+                                return
+                        elif port_type == 'inputs':
+                            # 如果是inputs类型，直接操作execution_queue
+                            queue_item = (to_node, stream_result.get(from_port), port_name)
+                            self.execution_queue.append(queue_item)
+                        else:
+                            # 未知端口类型，返回错误
+                            # 从正在运行的节点数组中移除
+                            if stream_node_id in self.run_nodes:
+                                self.run_nodes.remove(stream_node_id)
+                            elapsed_time = time.time() - self.start_time
+                            error_update = self._create_status_update(
+                                [], '失败', elapsed_time, self.run_nodes,
+                                f"未知端口类型 {port_type}"
+                            )
+                            self.stream_results_queue.task_done()
+                            yield error_update
+                            return
+            
+            # 标记任务完成
+            self.stream_results_queue.task_done()
+            
+            # 输出状态更新 - 流式节点产生新结果
+            elapsed_time = time.time() - self.start_time
+            self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
+            status_update = self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+            
+            # 只yield状态更新信息
+            yield status_update
+            return
+        except Exception as e:
+            # 捕获异常并处理
+            if stream_node_id in self.run_nodes:
+                self.run_nodes.remove(stream_node_id)
+            elapsed_time = time.time() - self.start_time
+            error_update = self._create_status_update(
+                [], '失败', elapsed_time, self.run_nodes,
+                f"处理流式节点 {stream_node_id} 结果时发生错误: {str(e)}"
+            )
+            self.stream_results_queue.task_done()
+            yield error_update
+            return
 
-            # 首先处理所有常量节点
-            for node_id, node in self.nodes.items():
-                if isinstance(node, ConstantNode):
-                    try:
-                        elapsed_time = time.time() - start_time
-                        # 添加到正在运行的节点数组
-                        run_nodes.append(node_id)
-                        yield{
-                            'ran_nodes': ran_nodes,
-                            'status': '运行中',
-                            'elapsed_time': elapsed_time,
-                            'run_nodes': run_nodes
-                        }
-                        node_result = node.run()
-                        execution_count[node_id] += 1
-                        elapsed_time = time.time() - start_time
-                        ran_nodes = [node_id for node_id, count in execution_count.items() if count > 0]
-                        # 传递常量节点结果到下一个节点
-                        if node_id in self.connections:
-                            for conn in self.connections[node_id]:
-                                from_port = conn["from_port"]
-                                to_node = conn["to_node"]
-                                to_port = conn["to_port"]
-                                
-                                if to_node in self.nodes:
-                                    # 使用parse_port函数分解port
-                                    port_type, port_name = parse_port(to_port)
-                                    if port_type == 'params':
-                                        # 如果是params类型，立即调用set_params
-                                        self.nodes[to_node].set_params(port_name, node_result.get(from_port))
-                                    elif port_type == 'inputs':
-                                        # 常量节点不能给inputs类型赋值，返回错误
-                                        elapsed_time = time.time() - start_time
-                                        yield {
-                                            'ran_nodes': ran_nodes,
-                                            'run_nodes': run_nodes,
-                                            'status': '失败',
-                                            'elapsed_time': elapsed_time,
-                                            'error': f"常量节点 {node_id} 不能连接到 inputs 类型端口 {to_port}"
-                                        }
-                                        return
-                                    else:
-                                        # 未知端口类型，返回错误
-                                        elapsed_time = time.time() - start_time
-                                        yield {
-                                            'ran_nodes': ran_nodes,
-                                            'run_nodes': run_nodes,
-                                            'status': '失败',
-                                            'elapsed_time': elapsed_time,
-                                            'error': f"常量节点 {node_id} 连接到未知端口类型 {port_type}"
-                                        }
-                                        return
-                        elapsed_time = time.time() - start_time
-                        # 从正在运行的节点数组中移除
-                        run_nodes.remove(node_id)
-                        yield{
-                            'ran_nodes': ran_nodes,
-                            'status': '运行中',
-                            'elapsed_time': elapsed_time,
-                            'run_nodes': run_nodes
-                        }
-                    except Exception as e:
-                        # 如果出错，从正在运行的节点数组中移除
-                        if node_id in run_nodes:
-                            run_nodes.remove(node_id)
-                        elapsed_time = time.time() - start_time
-                        yield {
-                            'ran_nodes': ran_nodes,
-                            'run_nodes': run_nodes,
-                            'status': '失败',
-                            'elapsed_time': elapsed_time,
-                            'error': f"处理常量节点 {node_id} 时发生错误: {str(e)}"
-                        }
-                        return
+    def _process_regular_node(self, current_node_id, input_value, port):
+        """
+        处理常规节点（非流式节点）的执行和结果处理
 
-            # 查找启动入口
-            # 获取所有有入边的节点
-            nodes_with_incoming = set()
-            for from_node, conns in self.connections.items():
-                for conn in conns:
-                    if conn["to_node"] in self.nodes:
-                        nodes_with_incoming.add(conn["to_node"])
-                    
-            # 查找没有入边的节点作为入口
-            for node_id, node in self.nodes.items():
-                # 跳过常量节点
-                if isinstance(node, ConstantNode):
-                    continue
-                
-                # 检查节点是否没有入边
-                if node_id not in nodes_with_incoming:
-                    # 检查节点是否有输入端口
-                    if hasattr(node, 'data') and 'inputs' in node.data and len(node.data['inputs']) > 0:
-                        # 使用第一个输入端口
-                        first_input_port = node.data['inputs'][0]
-                    else:
-                        # 没有输入端口时，使用默认端口名
-                        first_input_port = "default_input"
-                    execution_queue.append((node_id, input, first_input_port))
-                    
-            # 如果没有找到合适的入口节点，返回错误
-            if not execution_queue:
-                elapsed_time = time.time() - start_time
-                yield {
-                    'ran_nodes': ran_nodes,
-                    'run_nodes': run_nodes,
-                    'status': '失败',
-                    'elapsed_time': elapsed_time,
-                    'error': "无法确定工作流的入口节点，请确保工作流中包含没有入边的节点作为入口"
-                }
+        Args:
+            current_node_id: 当前执行的节点ID
+            input_value: 输入值
+            port: 输入端口
+
+        Yields:
+            dict: 状态更新信息
+        """
+        # 检查节点是否存在
+        if current_node_id not in self.nodes:
+            elapsed_time = time.time() - self.start_time
+            yield self._create_status_update(
+                self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                f"节点 {current_node_id} 不存在于工作流中"
+            )
+            return
+        
+        current_node = self.nodes[current_node_id]
+        
+        # 输出运行中状态 - 节点开始执行
+        elapsed_time = time.time() - self.start_time
+        # 添加到正在运行的节点数组
+        self.run_nodes.append(current_node_id)
+        yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+
+        # 检查是否超过最大执行次数（只有当max_executions > 0时才检查）
+        if self.max_executions > 0 and self.execution_count[current_node_id] >= self.max_executions:
+            print(f"警告: 节点 {current_node_id} 已达到最大执行次数 {self.max_executions}，跳过执行。")
+            # 从正在运行的节点数组中移除
+            self.run_nodes.remove(current_node_id)
+            # 输出状态更新 - 节点跳过执行
+            elapsed_time = time.time() - self.start_time
+            self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
+            yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+            return
+
+        try:
+            # 检查节点是否为流式节点
+            if isinstance(current_node, StreamNode):
+                # 标记为活动流式节点
+                self.active_stream_nodes.add(current_node_id)
+                # 创建并启动线程
+                thread = threading.Thread(
+                    target=self._stream_node_worker,  # 使用内部方法
+                    args=(current_node_id, current_node, port, input_value),
+                    daemon=True
+                )
+                self.stream_threads.append(thread)
+                thread.start()
+                # 从正在运行的节点数组中移除（因为在单独的线程中运行）
+                self.run_nodes.remove(current_node_id)
                 return
-
-
-            # 执行队列中的节点
-            while execution_queue:
-                current_node_id, input_value, port = execution_queue.pop(0)
+            else:
+                # 非流式节点，使用标准run方法
+                node_result = current_node.run(port, input_value)
+                self.execution_count[current_node_id] += 1
                 
-                # 检查节点是否存在
-                if current_node_id not in self.nodes:
-                    elapsed_time = time.time() - start_time
-                    yield {
-                        'ran_nodes': ran_nodes,
-                        'run_nodes': run_nodes,
-                        'status': '失败',
-                        'elapsed_time': elapsed_time,
-                        'error': f"节点 {current_node_id} 不存在于工作流中"
-                    }
-                    return
+                # 从正在运行的节点数组中移除
+                self.run_nodes.remove(current_node_id)
                 
-                current_node = self.nodes[current_node_id]
-                
-                # 输出运行中状态 - 节点开始执行
-                elapsed_time = time.time() - start_time
-                # 添加到正在运行的节点数组
-                run_nodes.append(current_node_id)
-                yield {
-                    'ran_nodes': ran_nodes,
-                    'run_nodes': run_nodes,
-                    'status': '运行中',
-                    'elapsed_time': elapsed_time,
-                    'run_nodes': run_nodes
-                }
-
-                # 检查是否超过最大执行次数
-                if execution_count[current_node_id] >= self.max_executions:
-                    print(f"警告: 节点 {current_node_id} 已达到最大执行次数 {self.max_executions}，跳过执行。")
-                    # 从正在运行的节点数组中移除
-                    run_nodes.remove(current_node_id)
-                    # 输出状态更新 - 节点跳过执行
-                    elapsed_time = time.time() - start_time
-                    ran_nodes = [node_id for node_id, count in execution_count.items() if count > 0]
-                    yield {
-                        'ran_nodes': ran_nodes,
-                        'status': '运行中',
-                        'elapsed_time': elapsed_time,
-                        'run_nodes': run_nodes
-                    }
-                    continue
-
-                try:
-                    # 直接执行节点，传入port_name和数据
-                    node_result = current_node.run(port, input_value)
-                    execution_count[current_node_id] += 1
+                # 处理节点运行结果
+                if node_result is not None:
+                    # 输出状态更新 - 节点完成执行
+                    elapsed_time = time.time() - self.start_time
+                    self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
+                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
                     
-                    # 输出状态更新 - 节点执行完成
-                    elapsed_time = time.time() - start_time
-                    ran_nodes = [node_id for node_id, count in execution_count.items() if count > 0]
-
-                    # 处理输出
-                    # 处理节点之间的连接
+                    # 处理节点的输出连接
                     if current_node_id in self.connections:
-                        # 输出状态更新 - 开始处理连接
-                        elapsed_time = time.time() - start_time
-                        
                         for conn in self.connections[current_node_id]:
                             from_port = conn["from_port"]
                             to_node = conn["to_node"]
                             to_port = conn["to_port"]
 
                             if to_node in self.nodes:
-                          
-                                    
                                 # 使用parse_port函数分解port
-                                try:
-                                    port_type, port_name = parse_port(to_port)
-                                except Exception as e:
-                                    # 从正在运行的节点数组中移除
-                                    if current_node_id in run_nodes:
-                                        run_nodes.remove(current_node_id)
-                                    elapsed_time = time.time() - start_time
-                                    yield {
-                                        'ran_nodes': ran_nodes,
-                                        'status': '失败',
-                                        'elapsed_time': elapsed_time,
-                                        'error': f"解析端口 {to_port} 时发生错误: {str(e)}",
-                                        'run_nodes': run_nodes
-                                    }
-                                    return
-                                    
+                                port_type, port_name = parse_port(to_port)
                                 if port_type == 'params':
                                     # 如果是params类型，立即调用set_params
                                     try:
                                         self.nodes[to_node].set_params(port_name, node_result.get(from_port))
                                     except Exception as e:
-                                        # 从正在运行的节点数组中移除
-                                        if current_node_id in run_nodes:
-                                            run_nodes.remove(current_node_id)
-                                        elapsed_time = time.time() - start_time
-                                        yield {
-                                            'ran_nodes': ran_nodes,
-                                            'status': '失败',
-                                            'elapsed_time': elapsed_time,
-                                            'error': f"设置节点 {to_node} 参数时发生错误: {str(e)}",
-                                            'run_nodes': run_nodes
-                                        }
+                                        elapsed_time = time.time() - self.start_time
+                                        yield self._create_status_update(
+                                            self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                                            f"设置节点 {to_node} 参数时发生错误: {str(e)}"
+                                        )
                                         return
                                 elif port_type == 'inputs':
-                                    # 如果是inputs类型，加入执行队列
-                                    execution_queue.append((to_node, node_result.get(from_port), port_name))
+                                    # 如果是inputs类型，加入主执行队列
+                                    self.execution_queue.append((to_node, node_result.get(from_port), port_name))
                                 else:
                                     # 未知端口类型，返回错误
-                                    # 从正在运行的节点数组中移除
-                                    if current_node_id in run_nodes:
-                                        run_nodes.remove(current_node_id)
-                                    elapsed_time = time.time() - start_time
-                                    yield {
-                                        'ran_nodes': ran_nodes,
-                                        'status': '失败',
-                                        'elapsed_time': elapsed_time,
-                                        'error': f"未知端口类型 {port_type}",
-                                        'run_nodes': run_nodes
-                                    }
+                                    elapsed_time = time.time() - self.start_time
+                                    yield self._create_status_update(
+                                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                                        f"未知端口类型 {port_type}"
+                                    )
                                     return
-                    # 从正在运行的节点数组中移除
-                    run_nodes.remove(current_node_id)
-                    yield {
-                        'ran_nodes': ran_nodes,
-                        'status': '运行中',
-                        'elapsed_time': elapsed_time,
-                        'run_nodes': run_nodes
-                    }
-                except Exception as e:
-                    # 从正在运行的节点数组中移除
-                    if current_node_id in run_nodes:
-                        run_nodes.remove(current_node_id)
-                    elapsed_time = time.time() - start_time
-                    yield {
-                        'running_nodes': ran_nodes,
-                        'status': '失败',
-                        'elapsed_time': elapsed_time,
-                        'error': f"执行节点 {current_node_id} 时发生错误: {str(e)}",
-                        'run_nodes': run_nodes
-                    }
+                else:
+                    # 节点没有返回结果
+                    elapsed_time = time.time() - self.start_time
+                    self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
+                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
                     return
-        
-            # 工作流执行完成
-            elapsed_time = time.time() - start_time
-            yield {
-                'ran_nodes': [],
-                'status': '完成',
-                'elapsed_time': elapsed_time
-            }
         except Exception as e:
-            # 捕获所有未被前面捕获的异常
-            elapsed_time = time.time() - start_time
-            yield {
-                'running_nodes': ran_nodes,
-                'status': '失败',
-                'elapsed_time': elapsed_time,
-                'error': f"工作流执行过程中发生未预期的错误: {str(e)}",
-                'run_nodes': run_nodes
-            }
+            # 节点执行错误
+            # 从正在运行的节点数组中移除
+            if current_node_id in self.run_nodes:
+                self.run_nodes.remove(current_node_id)
+            elapsed_time = time.time() - self.start_time
+            yield self._create_status_update(
+                self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                f"节点 {current_node_id} 执行出错: {str(e)}"
+            )
             return
+
+    def _stream_node_worker(self, node_id, node, port, input_value):
+        """
+        流式节点的工作线程函数
+
+        Args:
+            node_id: 节点ID
+            node: 节点实例
+            port: 输入端口
+            input_value: 输入值
+        """
+        try:
+            # 遍历流式输出的每条结果
+            for stream_result in node._stream_output(port, input_value):
+                # 将每条流式结果放入stream_results_queue
+                self.stream_results_queue.put((node_id, stream_result))
+            
+            # 线程完成时，从run_nodes中移除节点（通过结果队列传递）
+            self.stream_results_queue.put((node_id, None, 'thread_complete'))
+        except Exception as e:
+            # 将异常放入队列而不是直接抛出
+            self.exception_queue.put((node_id, e))
+
+    def predict(self, inputs: Dict = None):
+        """
+        执行工作流预测
+
+        Args:
+            inputs (Dict, optional): 工作流的输入参数. Defaults to None
+
+        Yields:
+            dict: 包含以下信息的状态更新对象:
+                - ran_nodes: 已运行的节点ID清单
+                - status: 当前流程运行状态(准备中, 运行中, 完成, 失败)
+                - elapsed_time: 当前流程已运行耗时(秒)
+                - result: 可选的工作流输出结果(仅在完成时返回)
+                - error: 可选的错误信息(仅在失败时返回)
+                - run_nodes: 正在运行的节点ID数组(运行中时返回)
+        """
+        # 重置执行相关的成员变量
+        self.execution_queue = []
+        self.ran_nodes = []
+        self.run_nodes = []
+        self.start_time = time.time()
+        self.stream_results_queue = Queue(maxsize=1000)  # 流式结果队列，设置最大容量为1000
+        self.active_stream_nodes = set()  # 活动流式节点集合
+        self.exception_queue = Queue()  # 线程间通信的异常队列
+        self.stream_threads = []  # 流式节点线程集合
+        
+        try:
+            # 输出准备中状态
+            elapsed_time = time.time() - self.start_time
+            yield self._create_status_update(self.ran_nodes, '准备中', elapsed_time)
+            
+            self.initialize_nodes()
+            self.initialize_connections()
+
+            # 记录节点被执行的次数，防止无限循环
+            self.execution_count = {node_id: 0 for node_id, node in self.nodes.items()}
+
+            # 首先处理所有常量节点
+            constant_processor = self._process_constant_nodes()
+            for status_update in constant_processor:
+                if isinstance(status_update, dict):
+                    # 如果是状态更新对象，直接yield
+                    yield status_update
+                    # 如果发生错误，状态更新中包含错误信息，应该终止处理
+                    if status_update.get('status') == '失败':
+                        return
+
+            # 查找启动入口
+            if not self.execution_queue and not self._find_entry_nodes():
+                elapsed_time = time.time() - self.start_time
+                yield self._create_status_update(
+                    self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                    "无法确定工作流的入口节点，请确保工作流中包含没有入边的节点作为入口"
+                )
+                return
+
+            # 执行队列中的节点
+            while self.execution_queue or not self.stream_results_queue.empty() or self.active_stream_nodes or self.stream_threads:
+                # 检查异常队列
+                while not self.exception_queue.empty():
+                    node_id, error = self.exception_queue.get()
+                    self.active_stream_nodes.discard(node_id)
+                    # 从正在运行的节点数组中移除
+                    if node_id in self.run_nodes:
+                        self.run_nodes.remove(node_id)
+                    elapsed_time = time.time() - self.start_time
+                    yield self._create_status_update(
+                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                        f"流式节点 {node_id} 执行出错: {str(error)}"
+                    )
+                    # 清理线程
+                    for thread in self.stream_threads:
+                        if thread.is_alive():
+                            # 注意：这里不能强制终止线程，只能等待其自然结束
+                            pass
+                    return
+
+                # 优先处理流式节点产生的结果
+                while not self.stream_results_queue.empty():
+                    try:
+                        # 使用非阻塞方式获取队列元素，避免阻塞
+                        items = self.stream_results_queue.get_nowait()
+                        
+                        # 处理流式结果
+                        stream_processor = self._process_stream_result(items)
+                        
+                        # 处理流式结果处理器产生的状态更新
+                        for status_update in stream_processor:
+                            yield status_update
+                            # 如果发生错误，状态更新中包含错误信息，应该终止处理
+                            if isinstance(status_update, dict) and status_update.get('status') == '失败':
+                                # 清理线程
+                                for thread in self.stream_threads:
+                                    if thread.is_alive():
+                                        pass
+                                return
+                    except Empty:
+                        # 队列为空，跳出循环
+                        break
+                
+                # 清理已完成的线程
+                self.stream_threads = [t for t in self.stream_threads if t.is_alive()]
+                
+                # 处理主执行队列
+                if self.execution_queue:
+                    current_node_id, input_value, port = self.execution_queue.pop(0)
+                    
+                    node_processor = self._process_regular_node(current_node_id, input_value, port)
+                    
+                    for status_update in node_processor:
+                        # 状态更新
+                        yield status_update
+                        # 如果发生错误，状态更新中包含错误信息，应该终止处理
+                        if status_update.get('status') == '失败':
+                            return
+
+            # 所有节点执行完毕，工作流完成
+            elapsed_time = time.time() - self.start_time
+            
+            # 收集输出结果
+            result = {}
+            for node_id, node in self.nodes.items():
+                if hasattr(node, 'output') and node.output:
+                    result[node_id] = node.output
+            
+            # 输出完成状态
+            yield self._create_status_update(
+                self.ran_nodes, '完成', elapsed_time, self.run_nodes, result=result
+            )
+        except Exception as e:
+            # 捕获所有其他异常
+            elapsed_time = time.time() - self.start_time
+            yield self._create_status_update(
+                self.ran_nodes, '失败', elapsed_time, self.run_nodes,
+                f"工作流执行时发生错误: {str(e)}"
+            )
+            # 清理线程
+            for thread in self.stream_threads:
+                if thread.is_alive():
+                    pass
+        return

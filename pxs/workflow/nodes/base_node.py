@@ -243,3 +243,56 @@ class ComputeNode(BaseNode):
             NodeResult: 节点运行结果封装对象
         """
         pass
+
+
+class StreamNode(ComputeNode):
+    """流式输出节点抽象类
+
+    流式输出节点能够在运行过程中逐步输出多条数据，每条数据都能立即传递到下游节点进行处理
+    在WorkflowPipeline中，流式节点会在单独的线程中运行，避免阻塞主执行队列
+    """
+
+    def __init__(self, config: Dict, pipeline: Any) -> None:
+        """
+        初始化流式节点
+
+        Args:
+            config (Dict): 节点配置
+            pipeline (Any): 工作流管道实例
+        """
+        super().__init__(config, pipeline)
+
+    def run(self, port: str, data: Any) -> 'NodeResult':
+        """
+        运行流式节点（非流式调用方式）
+
+        注意：在标准工作流执行中，此方法通常不会被直接调用，而是由WorkflowPipeline
+        创建单独的线程并调用_stream_output方法来处理流式输出。
+        这个方法主要用于非流式场景下获取完整结果，或作为流式处理的回退机制。
+
+        Args:
+            port (str): 输入端口名称
+            data (Any): 输入数据
+
+        Returns:
+            NodeResult: 完整运行结果
+        """
+        # 调用计算方法获取完整结果
+        return self._run_compute(port, data)
+        
+    @abstractmethod
+    def _stream_output(self, port: str, data: Any):
+        """
+        流式输出的核心逻辑，每次yield一条数据
+        
+        在WorkflowPipeline中，这个方法会在单独的线程中被调用，产生的每条结果
+        会通过队列传递回主线程，并立即发送到下游节点进行处理。
+
+        Args:
+            port (str): 输入端口名称
+            data (Any): 输入数据
+            
+        Yields:
+            NodeResult: 每条流式输出的结果
+        """
+        pass
