@@ -214,7 +214,7 @@ export default {
             statusPollingInterval: null,   // 状态轮询的定时器ID
             workflowStatus: {},            // 工作流状态信息
             eventSource: null,             // SSE连接对象
-            push_interval: 0.5,            // 状态更新速度
+            push_interval: "0.5",            // 状态更新速度
         }
     },
     /** 组件挂载时加载工作流配置 */
