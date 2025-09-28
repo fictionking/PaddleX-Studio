@@ -46,7 +46,11 @@ PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue
 
 <img src="assets/readme/screen05.jpg" height="200">
 
-* ...未完待续
+* 提供工作流功能，可视化设计和执行模型的简单应用
+
+<img src="assets/readme/screen06.jpg" height="200">
+
+
 
 #### 参与贡献
 
