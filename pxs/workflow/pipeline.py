@@ -120,28 +120,26 @@ class WorkflowPipeline(BasePipeline):
         """
         return isinstance(node, ConstantNode)
         
-    def _create_status_update(self, ran_nodes, status, elapsed_time, run_nodes=None, error=None):
+    def _create_status_update(self, status, error=None):
         """
         创建状态更新对象
 
         Args:
-            ran_nodes: 已运行的节点列表
             status: 当前状态
-            elapsed_time: 已运行时间
-            run_nodes: 正在运行的节点列表
-            error: 错误信息
+            error: 错误信息（可选）
 
         Returns:
             dict: 状态更新对象
         """
+        elapsed_time = time.time() - self.start_time
+        
         update = {
-            'ran_nodes': ran_nodes,
+            'ran_nodes': self.ran_nodes,
+            'run_nodes':self.run_nodes,
             'status': status,
             'elapsed_time': elapsed_time,
             'stream_queue_size': self.stream_results_queue.qsize()
         }
-        if run_nodes is not None:
-            update['run_nodes'] = run_nodes
         if error is not None:
             update['error'] = error
         return update
@@ -156,10 +154,9 @@ class WorkflowPipeline(BasePipeline):
         for node_id, node in self.nodes.items():
             if isinstance(node, ConstantNode):
                 try:
-                    elapsed_time = time.time() - self.start_time
                     # 添加到正在运行的节点数组
                     self.run_nodes.append(node_id)
-                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+                    yield self._create_status_update('运行中')
                     
                     node_result = node.run()
                     self.execution_count[node_id] += 1
@@ -185,27 +182,18 @@ class WorkflowPipeline(BasePipeline):
                                     self.execution_queue.append(execution_queue_item)
                                 else:
                                     # 未知端口类型，返回错误
-                                    elapsed_time = time.time() - self.start_time
-                                    yield self._create_status_update(
-                                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                                        f"常量节点 {node_id} 连接到未知端口类型 {port_type}"
-                                    )
+                                    yield self._create_status_update('失败', f"常量节点 {node_id} 连接到未知端口类型 {port_type}")
                                     return
                     
-                    elapsed_time = time.time() - self.start_time
                     # 从正在运行的节点数组中移除
                     self.run_nodes.remove(node_id)
-                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+                    yield self._create_status_update('运行中')
                     
                 except Exception as e:
                     # 如果出错，从正在运行的节点数组中移除
                     if node_id in self.run_nodes:
                         self.run_nodes.remove(node_id)
-                    elapsed_time = time.time() - self.start_time
-                    yield self._create_status_update(
-                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                        f"处理常量节点 {node_id} 时发生错误: {str(e)}"
-                    )
+                    yield self._create_status_update('失败', f"处理常量节点 {node_id} 时发生错误: {str(e)}")
                     return
         
         return
@@ -259,11 +247,17 @@ class WorkflowPipeline(BasePipeline):
             # 从正在运行的节点数组中移除
             if node_id in self.run_nodes:
                 self.run_nodes.remove(node_id)
+            # 流式节点执行完成时设置execution_count，与非流式节点逻辑一致
+            if node_id not in self.execution_count:
+                self.execution_count[node_id] = 0
+            if self.max_executions > 0:
+                self.execution_count[node_id] += 1
+            else:
+                self.execution_count[node_id] = 1
             # 更新执行过的节点列表
             self.ran_nodes = [nid for nid, count in self.execution_count.items() if count > 0]
             # 输出状态更新 - 流式节点完成
-            elapsed_time = time.time() - self.start_time
-            status_update = self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+            status_update = self._create_status_update('运行中')
             # 标记任务完成
             self.stream_results_queue.task_done()
             
@@ -291,11 +285,7 @@ class WorkflowPipeline(BasePipeline):
                                 # 从正在运行的节点数组中移除
                                 if stream_node_id in self.run_nodes:
                                     self.run_nodes.remove(stream_node_id)
-                                elapsed_time = time.time() - self.start_time
-                                error_update = self._create_status_update(
-                                    [], '失败', elapsed_time, self.run_nodes,
-                                    f"设置节点 {to_node} 参数时发生错误: {str(e)}"
-                                )
+                                error_update = self._create_status_update('失败', f"设置节点 {to_node} 参数时发生错误: {str(e)}")
                                 self.stream_results_queue.task_done()
                                 yield error_update
                                 return
@@ -308,11 +298,7 @@ class WorkflowPipeline(BasePipeline):
                             # 从正在运行的节点数组中移除
                             if stream_node_id in self.run_nodes:
                                 self.run_nodes.remove(stream_node_id)
-                            elapsed_time = time.time() - self.start_time
-                            error_update = self._create_status_update(
-                                [], '失败', elapsed_time, self.run_nodes,
-                                f"未知端口类型 {port_type}"
-                            )
+                            error_update = self._create_status_update('失败', f"未知端口类型 {port_type}")
                             self.stream_results_queue.task_done()
                             yield error_update
                             return
@@ -321,9 +307,8 @@ class WorkflowPipeline(BasePipeline):
             self.stream_results_queue.task_done()
             
             # 输出状态更新 - 流式节点产生新结果
-            elapsed_time = time.time() - self.start_time
             self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
-            status_update = self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+            status_update = self._create_status_update('运行中')
             
             # 只yield状态更新信息
             yield status_update
@@ -332,11 +317,7 @@ class WorkflowPipeline(BasePipeline):
             # 捕获异常并处理
             if stream_node_id in self.run_nodes:
                 self.run_nodes.remove(stream_node_id)
-            elapsed_time = time.time() - self.start_time
-            error_update = self._create_status_update(
-                [], '失败', elapsed_time, self.run_nodes,
-                f"处理流式节点 {stream_node_id} 结果时发生错误: {str(e)}"
-            )
+            error_update = self._create_status_update('失败', f"处理流式节点 {stream_node_id} 结果时发生错误: {str(e)}")
             self.stream_results_queue.task_done()
             yield error_update
             return
@@ -355,20 +336,19 @@ class WorkflowPipeline(BasePipeline):
         """
         # 检查节点是否存在
         if current_node_id not in self.nodes:
-            elapsed_time = time.time() - self.start_time
-            yield self._create_status_update(
-                self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                f"节点 {current_node_id} 不存在于工作流中"
-            )
+            yield self._create_status_update('失败', f"节点 {current_node_id} 不存在于工作流中")
             return
         
         current_node = self.nodes[current_node_id]
         
+        # 确保当前节点在execution_count中，初始化为0
+        if current_node_id not in self.execution_count:
+            self.execution_count[current_node_id] = 0
+        
         # 输出运行中状态 - 节点开始执行
-        elapsed_time = time.time() - self.start_time
         # 添加到正在运行的节点数组
         self.run_nodes.append(current_node_id)
-        yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+        yield self._create_status_update('运行中')
 
         # 检查是否超过最大执行次数（只有当max_executions > 0时才检查）
         if self.max_executions > 0 and self.execution_count[current_node_id] >= self.max_executions:
@@ -376,9 +356,8 @@ class WorkflowPipeline(BasePipeline):
             # 从正在运行的节点数组中移除
             self.run_nodes.remove(current_node_id)
             # 输出状态更新 - 节点跳过执行
-            elapsed_time = time.time() - self.start_time
             self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
-            yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+            yield self._create_status_update('运行中')
             return
 
         try:
@@ -394,13 +373,15 @@ class WorkflowPipeline(BasePipeline):
                 )
                 self.stream_threads.append(thread)
                 thread.start()
-                # 从正在运行的节点数组中移除（因为在单独的线程中运行）
-                self.run_nodes.remove(current_node_id)
                 return
             else:
                 # 非流式节点，使用标准run方法
                 node_result = current_node.run(port, input_value)
-                self.execution_count[current_node_id] += 1
+                # 用户指定的逻辑：max_executions>0时增加计数，max_executions=0时永远设为1
+                if self.max_executions > 0:
+                    self.execution_count[current_node_id] += 1
+                else:
+                    self.execution_count[current_node_id] = 1
                 
                 # 从正在运行的节点数组中移除
                 self.run_nodes.remove(current_node_id)
@@ -408,9 +389,8 @@ class WorkflowPipeline(BasePipeline):
                 # 处理节点运行结果
                 if node_result is not None:
                     # 输出状态更新 - 节点完成执行
-                    elapsed_time = time.time() - self.start_time
                     self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
-                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+                    yield self._create_status_update('运行中')
                     
                     # 处理节点的输出连接
                     if current_node_id in self.connections:
@@ -427,39 +407,26 @@ class WorkflowPipeline(BasePipeline):
                                     try:
                                         self.nodes[to_node].set_params(port_name, node_result.get(from_port))
                                     except Exception as e:
-                                        elapsed_time = time.time() - self.start_time
-                                        yield self._create_status_update(
-                                            self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                                            f"设置节点 {to_node} 参数时发生错误: {str(e)}"
-                                        )
+                                        yield self._create_status_update('失败', f"设置节点 {to_node} 参数时发生错误: {str(e)}")
                                         return
                                 elif port_type == 'inputs':
                                     # 如果是inputs类型，加入主执行队列
                                     self.execution_queue.append((to_node, node_result.get(from_port), port_name))
                                 else:
                                     # 未知端口类型，返回错误
-                                    elapsed_time = time.time() - self.start_time
-                                    yield self._create_status_update(
-                                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                                        f"未知端口类型 {port_type}"
-                                    )
+                                    yield self._create_status_update('失败', f"未知端口类型 {port_type}")
                                     return
                 else:
                     # 节点没有返回结果
-                    elapsed_time = time.time() - self.start_time
                     self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
-                    yield self._create_status_update(self.ran_nodes, '运行中', elapsed_time, self.run_nodes)
+                    yield self._create_status_update('运行中')
                     return
         except Exception as e:
             # 节点执行错误
             # 从正在运行的节点数组中移除
             if current_node_id in self.run_nodes:
                 self.run_nodes.remove(current_node_id)
-            elapsed_time = time.time() - self.start_time
-            yield self._create_status_update(
-                self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                f"节点 {current_node_id} 执行出错: {str(e)}"
-            )
+            yield self._create_status_update('失败', f"节点 {current_node_id} 执行出错: {str(e)}")
             return
 
     def _stream_node_worker(self, node_id, node, port, input_value):
@@ -512,8 +479,7 @@ class WorkflowPipeline(BasePipeline):
         
         try:
             # 输出准备中状态
-            elapsed_time = time.time() - self.start_time
-            yield self._create_status_update(self.ran_nodes, '准备中', elapsed_time)
+            yield self._create_status_update('准备中')
             
             self.initialize_nodes()
             self.initialize_connections()
@@ -533,11 +499,7 @@ class WorkflowPipeline(BasePipeline):
 
             # 查找启动入口
             if not self.execution_queue and not self._find_entry_nodes():
-                elapsed_time = time.time() - self.start_time
-                yield self._create_status_update(
-                    self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                    "无法确定工作流的入口节点，请确保工作流中包含没有入边的节点作为入口"
-                )
+                yield self._create_status_update('失败', "无法确定工作流的入口节点，请确保工作流中包含没有入边的节点作为入口")
                 return
 
             # 执行队列中的节点
@@ -549,11 +511,7 @@ class WorkflowPipeline(BasePipeline):
                     # 从正在运行的节点数组中移除
                     if node_id in self.run_nodes:
                         self.run_nodes.remove(node_id)
-                    elapsed_time = time.time() - self.start_time
-                    yield self._create_status_update(
-                        self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                        f"流式节点 {node_id} 执行出错: {str(error)}"
-                    )
+                    yield self._create_status_update('失败', f"流式节点 {node_id} 执行出错: {str(error)}")
                     # 清理线程
                     for thread in self.stream_threads:
                         if thread.is_alive():
@@ -562,7 +520,8 @@ class WorkflowPipeline(BasePipeline):
                     return
 
                 # 优先处理流式节点产生的结果
-                while not self.stream_results_queue.empty():
+                # 修改为每次只处理一个流式结果，而不是循环处理所有结果
+                if not self.stream_results_queue.empty():
                     try:
                         # 使用非阻塞方式获取队列元素，避免阻塞
                         items = self.stream_results_queue.get_nowait()
@@ -579,10 +538,15 @@ class WorkflowPipeline(BasePipeline):
                                 for thread in self.stream_threads:
                                     if thread.is_alive():
                                         pass
+                                # 标记任务完成后再返回
+                                self.stream_results_queue.task_done()
                                 return
+                        
+                        # 标记任务完成
+                        self.stream_results_queue.task_done()
                     except Empty:
-                        # 队列为空，跳出循环
-                        break
+                        # 队列为空，跳过处理
+                        pass
                 
                 # 清理已完成的线程
                 self.stream_threads = [t for t in self.stream_threads if t.is_alive()]
@@ -600,26 +564,11 @@ class WorkflowPipeline(BasePipeline):
                         if status_update.get('status') == '失败':
                             return
 
-            # 所有节点执行完毕，工作流完成
-            elapsed_time = time.time() - self.start_time
-            
-            # 收集输出结果
-            result = {}
-            for node_id, node in self.nodes.items():
-                if hasattr(node, 'output') and node.output:
-                    result[node_id] = node.output
-            
-            # 输出完成状态
-            yield self._create_status_update(
-                self.ran_nodes, '完成', elapsed_time, self.run_nodes, result=result
-            )
+            # 所有节点执行完毕，工作流完成，输出完成状态
+            yield self._create_status_update('完成')
         except Exception as e:
             # 捕获所有其他异常
-            elapsed_time = time.time() - self.start_time
-            yield self._create_status_update(
-                self.ran_nodes, '失败', elapsed_time, self.run_nodes,
-                f"工作流执行时发生错误: {str(e)}"
-            )
+            yield self._create_status_update('失败', f"工作流执行时发生错误: {str(e)}")
             # 清理线程
             for thread in self.stream_threads:
                 if thread.is_alive():

@@ -41,8 +41,30 @@
                     • 按住Shift键可以框选多个节点<br>
                     • 按住Ctrl键可以点击选择多个节点<br>
                 </div>
-                <div class="lastlog">
-                    <span>{{ workflowLog }}</span>
+                <div class="status-bar">
+                    <div class="status-item" v-if="workflowStatus?.run_nodes !== undefined">
+                        <span class="status-label">运行中节点:</span>
+                        <span class="status-value">{{ workflowStatus.run_nodes }}</span>
+                    </div>
+                    <div class="status-item" v-if="workflowStatus?.ran_nodes !== undefined">
+                        <span class="status-label">已完成节点:</span>
+                        <span class="status-value">{{ workflowStatus.ran_nodes }}</span>
+                    </div>
+                    <div class="status-item" v-if="workflowStatus?.stream_queue_size !== undefined">
+                        <span class="status-label">流队列:</span>
+                        <span class="status-value">{{ workflowStatus.stream_queue_size }}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">状态:</span>
+                        <span class="status-value">{{ workflowStatus?.status || '就绪' }}</span>
+                        <el-icon v-if="workflowStatus?.error" style="color: var(--el-color-danger); margin-left: 5px;">
+                            <CircleCloseFilled />
+                        </el-icon>
+                    </div>
+                    <div class="status-item" v-if="workflowStatus?.elapsed_time !== undefined">
+                        <span class="status-label">耗时:</span>
+                        <span class="status-value">{{ workflowStatus.elapsed_time.toFixed(2) }}s</span>
+                    </div>
                 </div>
                 <VueFlow :nodeTypes="nodeTypes" :edgesUpdatable="true" :snap-to-grid="true" :connect-on-click="false"
                     @edge-update="updateConnect" @connect="newConnect" @nodesChange="applyNodeChanges" class="vue-flow">
@@ -182,7 +204,7 @@ export default {
             currentRunningWorkflowId: null, // 当前运行的工作流ID
             workflowRunningStatus: false,  // 当前工作流的运行状态
             statusPollingInterval: null,   // 状态轮询的定时器ID
-            workflowLog: '',               // 最新的工作流日志
+            workflowStatus: {},            // 工作流状态信息
             eventSource: null,             // SSE连接对象
         }
     },
@@ -442,19 +464,31 @@ export default {
                         // 解析消息数据
                         const data = JSON.parse(event.data);
 
-                        // 初始化日志消息
-                        let logMessage = '';
-
-                        // 处理不同格式的消息
+                        // 更新workflowStatus对象
                         if (data.data && typeof data.data === 'object') {
                             // 处理包含data对象的消息
-                            if (data.data.status) {
-                                logMessage = data.data.status;
-                                // 添加当前节点和节点状态信息
-                                if (data.data.run_nodes) {
-                                    logMessage += ` - 当前节点: ${data.data.run_nodes.join(', ')}`;
-                                    for (let node of this.getNodes) {
+                            this.workflowStatus = {
+                                ran_nodes: data.data.ran_nodes ? data.data.ran_nodes.length : 0,
+                                status: data.data.status || '',
+                                elapsed_time: data.data.elapsed_time,
+                                stream_queue_size: data.data.stream_queue_size
+                            };
 
+                            // 如果有run_nodes信息，添加到workflowStatus
+                            if (data.data.run_nodes) {
+                                this.workflowStatus.run_nodes = data.data.run_nodes.length;
+                            } else {
+                                this.workflowStatus.run_nodes = 0;
+                            }
+
+                            // 如果有error信息，添加到workflowStatus
+                            this.workflowStatus.error = !!data.data.error;
+
+                            // 更新节点状态
+                            if (data.data.status) {
+                                // 更新当前运行节点状态
+                                if (data.data.run_nodes) {
+                                    for (let node of this.getNodes) {
                                         if (data.data.run_nodes.includes(node.id)) {
                                             node.data.runStatus = 'running';
                                         }
@@ -464,43 +498,24 @@ export default {
                                     }
                                 }
 
-                                // 添加已运行节点数量信息
+                                // 更新已运行节点状态
                                 if (data.data.ran_nodes && data.data.ran_nodes.length > 0) {
-                                    logMessage += ` (已运行节点数: ${data.data.ran_nodes.length})`;
                                     for (let node of this.getNodes) {
                                         if (data.data.ran_nodes.includes(node.id) && node.data.runStatus !== 'running') {
                                             node.data.runStatus = 'ran';
                                         }
                                     }
                                 }
-
-                                // 添加耗时信息
-                                if (data.data.elapsed_time !== undefined) {
-                                    logMessage += ` (耗时: ${data.data.elapsed_time.toFixed(2)}s)`;
-                                }
                             }
-                        } else if (data.status) {
-                            // 处理直接包含status字段的消息
-                            logMessage = data.status;
-
-                            // 添加流程完成标记
-                            if (data.process_completed === true) {
-                                logMessage += ' (流程已完成)';
-                            }
-                        }
-
-                        // 如果解析到了日志消息，则更新显示
-                        if (logMessage) {
-                            // 添加时间戳
-                            const timestamp = new Date().toLocaleTimeString();
-                            // 更新日志，添加视觉区分
-                            this.workflowLog = `[${timestamp}] ${logMessage}`;
-                        }
+                        } 
                     } catch (error) {
                         console.error('Failed to parse SSE message:', error);
-                        // 添加解析错误到日志中
-                        const timestamp = new Date().toLocaleTimeString();
-                        this.workflowLog = `[${timestamp}] 解析SSE消息失败: ${error.message}`;
+                        // 更新错误状态
+                        this.workflowStatus = {
+                            ...this.workflowStatus,
+                            status: '解析错误',
+                            error: error.message ? error.message.replace(/\n/g, ' ') : '解析错误'
+                        };
                     }
                 };
 
@@ -530,7 +545,7 @@ export default {
                 console.log('SSE connection closed');
             }
         },
-        
+
         /**
          * 打开日志窗口
          * 专门处理在新窗口中打开工作流日志的逻辑
@@ -576,14 +591,36 @@ export default {
     color: var(--el-text-color-disabled);
 }
 
-.lastlog {
+.status-bar {
     position: absolute;
     bottom: 0px;
+    left: 0px;
     right: 0px;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 8px 8px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
     font-size: 12px;
-    color: var(--el-text-color-disabled);
+    justify-content: flex-end;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-label {
+    color: var(--el-text-color-secondary);
+    font-weight: 500;
+}
+
+.status-value {
+    color: var(--el-text-color-regular);
+}
+
+.status-item.error .status-value {
+    color: var(--el-color-danger);
 }
 
 :deep(.vue-flow .vue-flow__edge.selected .vue-flow__edge-path) {
