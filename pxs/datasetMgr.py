@@ -287,7 +287,21 @@ def preview_dataset_file(dataset_id, file_path):
     
     # 获取文件MIME类型
     mime_type, _ = mimetypes.guess_type(full_path)
-    is_text_file = mime_type and (mime_type.startswith('text/') or mime_type in ['application/json', 'application/javascript'])
+    
+    # 获取文件扩展名（小写）
+    _, ext = os.path.splitext(full_path)
+    ext = ext.lower()
+    
+    # 显式检查常见的文本文件扩展名，包括jsonl、yaml和yml
+    is_text_file = (
+        (mime_type and (mime_type.startswith('text/') or 
+                        mime_type in ['application/json', 'application/javascript', 
+                                      'application/jsonl', 'application/x-ndjson',
+                                      'application/yaml', 'text/yaml', 'application/x-yaml'])) or
+        # 直接检查文件扩展名，确保即使MIME类型检测失败也能正确识别
+        ext in ['.txt', '.json', '.js', '.jsonl', '.ndjson', '.yaml', '.yml',
+                '.csv', '.log', '.xml', '.html', '.css', '.py', '.md', '.rst']
+    )
     is_image_file = mime_type and mime_type.startswith('image/')
     
     # 处理图片类型文件

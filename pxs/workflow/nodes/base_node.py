@@ -245,7 +245,7 @@ class ComputeNode(BaseNode):
         pass
 
 
-class StreamNode(ComputeNode):
+class StreamNode(BaseNode):
     """流式输出节点抽象类
 
     流式输出节点能够在运行过程中逐步输出多条数据，每条数据都能立即传递到下游节点进行处理
@@ -277,8 +277,7 @@ class StreamNode(ComputeNode):
         Returns:
             NodeResult: 完整运行结果
         """
-        # 调用计算方法获取完整结果
-        return self._run_compute(port, data)
+        pass
         
     @abstractmethod
     def _stream_output(self, port: str, data: Any):

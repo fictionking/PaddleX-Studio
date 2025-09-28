@@ -58,7 +58,10 @@ class BaseModelNode(ComputeNode):
             results=[]
             for item in self.model(input_data, **self.params.get("infer_params", {})):
                 results.append(item)
-            return NodeResult(results, self)
+            if results:
+                return NodeResult(results, self)
+            else:
+                return None
         except Exception as e:
             raise RuntimeError(f"节点 {self.id} 运行失败: {str(e)}")
 

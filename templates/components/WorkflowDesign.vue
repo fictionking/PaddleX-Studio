@@ -22,12 +22,20 @@
                     </el-form>
                 </el-popover>
             </div>
-
-            <div class="header-buttons">
+            <div>
+                <span style="margin-right: 5px;font-size: 12px;">状态更新速度:</span>
+                <el-select v-model="push_interval" placeholder="状态更新速度" style="width: 120px;margin-right: 10px;" size="small">
+                    <el-option label="慢(1s)" value="1" />
+                    <el-option label="中(0.5s)" value="0.5" />
+                    <el-option label="快(0.1s)" value="0.1" />
+                    <el-option label="超快(0.01s)" value="0.01" />
+                </el-select>
                 <el-button v-if="currentRunningWorkflowId !== workflow.id" type="success" @click="runWorkflow()"
                     icon="Promotion">运行</el-button>
                 <el-button v-else type="danger" @click="stopWorkflow()" :icon="StopIcon">停止</el-button>
                 <el-button type="primary" @click="openLogWindow()" icon="Tickets">日志</el-button>
+            </div>
+            <div class="header-buttons">
                 <el-button type="primary" @click="saveWorkflow()" :icon="SaveIcon">保存</el-button>
                 <el-button type="primary" plain @click="$router.push('/workflow')">退出</el-button>
             </div>
@@ -206,6 +214,7 @@ export default {
             statusPollingInterval: null,   // 状态轮询的定时器ID
             workflowStatus: {},            // 工作流状态信息
             eventSource: null,             // SSE连接对象
+            push_interval: 0.5,            // 状态更新速度
         }
     },
     /** 组件挂载时加载工作流配置 */
@@ -456,7 +465,7 @@ export default {
                     node.data.runStatus = 'wait';
                 }
                 // 建立SSE连接
-                this.eventSource = new EventSource(`/workflow-status/stream`);
+                this.eventSource = new EventSource(`/workflow-status/stream?push_interval=${this.push_interval}`);
 
                 // 处理消息事件
                 this.eventSource.onmessage = (event) => {
@@ -507,7 +516,7 @@ export default {
                                     }
                                 }
                             }
-                        } 
+                        }
                     } catch (error) {
                         console.error('Failed to parse SSE message:', error);
                         // 更新错误状态

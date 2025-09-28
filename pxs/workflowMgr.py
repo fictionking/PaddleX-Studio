@@ -537,8 +537,12 @@ def get_workflows_status():
 def get_workflow_status_stream():
     """
     提供工作流状态的SSE流，持续从队列中获取运行状态并推送给前端
+    :param push_interval: URL请求参数，控制SSE流的更新频率，单位为秒，默认值为0.5
     :return: SSE响应流
     """
+    # 从URL请求参数中获取推送间隔，如果未提供则使用默认值0.5
+    push_interval = request.args.get('push_interval', default=0.5, type=float)
+    
     def event_stream():
         """生成SSE事件流"""
         # 声明全局变量
@@ -575,9 +579,9 @@ def get_workflow_status_stream():
                     else:
                         yield 'data: ' + json.dumps(base_status) + "\n\n"
                 
-                # 每秒检查一次更新
+                # 按照指定的时间间隔检查更新
                 import time
-                time.sleep(1)
+                time.sleep(push_interval)
             except GeneratorExit:
                 # 客户端断开连接
                 break
@@ -585,7 +589,7 @@ def get_workflow_status_stream():
                 logging.error(f"SSE流错误: {str(e)}")
                 # 发生错误时，尝试继续运行
                 import time
-                time.sleep(1)
+                time.sleep(push_interval)
     
     # 设置SSE响应头
     return Response(event_stream(), mimetype='text/event-stream', headers={

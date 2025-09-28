@@ -59,6 +59,7 @@ export const nodeTypes = {
     model: markRaw(defineAsyncComponent(() => import(`/components/nodes/model.vue`))),
     save_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/save_image.vue`))),
     load_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/load_image.vue`))),
+    load_image_stream: markRaw(defineAsyncComponent(() => import(`/components/nodes/load_image.vue`))),
     number_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     text_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     bool_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
@@ -72,6 +73,10 @@ export const menuItems = [
             {
                 label: '加载图像',
                 type: 'load_image'
+            },
+            {
+                label: '加载图像(流式)',
+                type: 'load_image_stream'
             },
             {
                 label: '保存图像',
@@ -139,6 +144,13 @@ export function createNodeData(type, data = {}) {
         case 'load_image':
             newNode.data.name = '加载图像';
             newNode.data.outputs = ['images', 'count'];
+            newNode.data.params = {
+                path: ''
+            };
+            break;
+        case 'load_image_stream':
+            newNode.data.name = '加载图像(流式)';
+            newNode.data.outputs = ['images'];
             newNode.data.params = {
                 path: ''
             };

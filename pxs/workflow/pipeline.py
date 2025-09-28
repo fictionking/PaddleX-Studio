@@ -132,10 +132,15 @@ class WorkflowPipeline(BasePipeline):
             dict: 状态更新对象
         """
         elapsed_time = time.time() - self.start_time
-        
+        rans=[]
+        for node_id in self.ran_nodes:
+            rans.append(node_id)
+        runs=[]
+        for node_id in self.run_nodes:
+            runs.append(node_id)
         update = {
-            'ran_nodes': self.ran_nodes,
-            'run_nodes':self.run_nodes,
+            'ran_nodes': rans,
+            'run_nodes':runs,
             'status': status,
             'elapsed_time': elapsed_time,
             'stream_queue_size': self.stream_results_queue.qsize()
@@ -160,7 +165,6 @@ class WorkflowPipeline(BasePipeline):
                     
                     node_result = node.run()
                     self.execution_count[node_id] += 1
-                    elapsed_time = time.time() - self.start_time
                     self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
                     
                     # 传递常量节点结果到下一个节点
@@ -398,7 +402,9 @@ class WorkflowPipeline(BasePipeline):
                             from_port = conn["from_port"]
                             to_node = conn["to_node"]
                             to_port = conn["to_port"]
-
+                            value = node_result.get(from_port)
+                            if value is None:
+                                continue
                             if to_node in self.nodes:
                                 # 使用parse_port函数分解port
                                 port_type, port_name = parse_port(to_port)
@@ -521,7 +527,7 @@ class WorkflowPipeline(BasePipeline):
 
                 # 优先处理流式节点产生的结果
                 # 修改为每次只处理一个流式结果，而不是循环处理所有结果
-                if not self.stream_results_queue.empty():
+                if not self.execution_queue and not self.stream_results_queue.empty():
                     try:
                         # 使用非阻塞方式获取队列元素，避免阻塞
                         items = self.stream_results_queue.get_nowait()
@@ -538,12 +544,7 @@ class WorkflowPipeline(BasePipeline):
                                 for thread in self.stream_threads:
                                     if thread.is_alive():
                                         pass
-                                # 标记任务完成后再返回
-                                self.stream_results_queue.task_done()
                                 return
-                        
-                        # 标记任务完成
-                        self.stream_results_queue.task_done()
                     except Empty:
                         # 队列为空，跳过处理
                         pass

@@ -54,8 +54,12 @@ class ObjectDetectionNode(BaseModelNode):
                         ret.extend(sub_image(image,boxes))
                     case "boxes":
                         ret.append(boxes)
-            return ret
+            if ret:
+                return ret
+            return None
         else:
+            if not result or not isinstance(result,dict):
+                return None
             boxes = result["boxes"]
             match port:
                 case "images":
