@@ -29,7 +29,10 @@ class SaveTextfileNode(ComputeNode):
         """
         super().__init__(config, pipeline)
         # 初始化并存储配置参数
-        self.output_path = self.params.get("path", "output")
+        self.output_path = self.params.get("path", "")
+        if not self.output_path:
+            raise ValueError("保存文本文件节点输出路径不能为空")
+
         self.format_type = self.params.get("format", "json")
         # 初始化计数器，用于确保多次调用时文件名不冲突
         self.counter = 0

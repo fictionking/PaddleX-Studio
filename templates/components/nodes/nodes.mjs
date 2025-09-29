@@ -140,6 +140,7 @@ export function createNodeData(type, data = {}) {
         case 'note':
             newNode.data.name = '备注';
             newNode.data.content = '';
+            newNode.data.color = '#ffcf3d';
             break;
         case 'load_image':
             newNode.data.name = '加载图像';
@@ -147,13 +148,15 @@ export function createNodeData(type, data = {}) {
             newNode.data.params = {
                 path: ''
             };
+            newNode.data.color = '#705400';
             break;
         case 'load_image_stream':
             newNode.data.name = '加载图像(流式)';
-            newNode.data.outputs = ['images'];
+            newNode.data.outputs = ['images', 'filename'];
             newNode.data.params = {
                 path: ''
             };
+            newNode.data.color = '#705400';
             break;
         case 'save_image':
             newNode.data.name = '保存图像';
@@ -165,6 +168,7 @@ export function createNodeData(type, data = {}) {
                 filename: 'image',
                 clear_dir: false
             };
+            newNode.data.color = '#21455F';
             break;
         case 'number_const':
             newNode.data.name = '数值常量';
@@ -173,6 +177,7 @@ export function createNodeData(type, data = {}) {
                 type: 'number',
                 value: 0
             };
+            newNode.data.color = '#456133';
             break;
         case 'text_const':
             newNode.data.name = '文本常量';
@@ -181,6 +186,7 @@ export function createNodeData(type, data = {}) {
                 type: 'text',
                 value: ''
             };
+            newNode.data.color = '#456133';
             break;
         case 'bool_const':
             newNode.data.name = '布尔常量';
@@ -189,6 +195,7 @@ export function createNodeData(type, data = {}) {
                 type: 'bool',
                 value: false
             };
+            newNode.data.color = '#456133';
             break;
         case 'model':
             // 添加防御性检查，确保必要的属性存在
@@ -206,6 +213,7 @@ export function createNodeData(type, data = {}) {
                 inputs: data.inputs,
                 outputs: data.outputs
             };
+            newNode.data.color = '#6D276D';
             break;
         case 'save_textfile':
             newNode.data.name = '保存文本文件';
@@ -217,6 +225,7 @@ export function createNodeData(type, data = {}) {
                 filename: 'file',
                 clear_dir: false
             };
+            newNode.data.color = '#21455F';
             break;
     }
 

@@ -52,6 +52,7 @@ class WorkflowPipeline(BasePipeline):
         self.execution_queue = []  # 执行队列，存储元组 (node_id, input_value, port)
         self.ran_nodes = []  # 已运行的节点列表
         self.run_nodes = []  # 正在运行的节点列表
+        self.run_connection = None  # 正在运行的连接列表
         self.start_time = 0  # 开始时间
         self.execution_count = {}  # 节点执行次数记录
         # 流式节点相关成员变量
@@ -63,8 +64,11 @@ class WorkflowPipeline(BasePipeline):
     def initialize_nodes(self):
         """初始化工作流中的所有节点"""
         for node_config in self.config.get("nodes", []):
-            node_id = node_config["id"]
             node_type = node_config["type"]
+            # 如果是备注类型节点，可以跳过导入
+            if node_type in ["note", "group"]:
+                continue
+            node_id = node_config["id"]
             node_data = node_config["data"]
             node_name = node_data.get("name", node_id)  # 如果没有name，使用id作为name
             node_params = node_data.get("params", {})
@@ -82,9 +86,6 @@ class WorkflowPipeline(BasePipeline):
                 node = node_class(node_config, self)
                 self.nodes[node_id] = node
             except (ImportError, AttributeError) as e:
-                # 如果是备注类型节点，可以跳过导入
-                if node_type == "note":
-                    continue
                 raise ValueError(f"Failed to initialize node {node_id}: {str(e)}")
 
     def initialize_connections(self):
@@ -94,6 +95,7 @@ class WorkflowPipeline(BasePipeline):
         
         # 处理edges格式
         for edge in edges:
+            connection_id = edge["id"]
             from_node = edge["source"]
             to_node = edge["target"]
             from_port = edge["sourceHandle"]
@@ -102,6 +104,7 @@ class WorkflowPipeline(BasePipeline):
             if from_node not in self.connections:
                 self.connections[from_node] = []
             self.connections[from_node].append({
+                "id": connection_id,
                 "from_port": from_port,
                 "to_node": to_node,
                 "to_port": to_port
@@ -141,6 +144,7 @@ class WorkflowPipeline(BasePipeline):
         update = {
             'ran_nodes': rans,
             'run_nodes':runs,
+            'run_connection':self.run_connection,
             'status': status,
             'elapsed_time': elapsed_time,
             'stream_queue_size': self.stream_results_queue.qsize()
@@ -170,6 +174,8 @@ class WorkflowPipeline(BasePipeline):
                     # 传递常量节点结果到下一个节点
                     if node_id in self.connections:
                         for conn in self.connections[node_id]:
+                            self.run_connection = conn["id"]
+                            yield self._create_status_update('运行中')
                             from_port = conn["from_port"]
                             to_node = conn["to_node"]
                             to_port = conn["to_port"]
@@ -188,7 +194,7 @@ class WorkflowPipeline(BasePipeline):
                                     # 未知端口类型，返回错误
                                     yield self._create_status_update('失败', f"常量节点 {node_id} 连接到未知端口类型 {port_type}")
                                     return
-                    
+                        self.run_connection = None
                     # 从正在运行的节点数组中移除
                     self.run_nodes.remove(node_id)
                     yield self._create_status_update('运行中')
@@ -275,6 +281,8 @@ class WorkflowPipeline(BasePipeline):
             # 处理每条流式输出的连接
             if stream_node_id in self.connections:
                 for conn in self.connections[stream_node_id]:
+                    self.run_connection = conn["id"]
+                    yield self._create_status_update('运行中')
                     from_port = conn["from_port"]
                     to_node = conn["to_node"]
                     to_port = conn["to_port"]
@@ -287,6 +295,7 @@ class WorkflowPipeline(BasePipeline):
                                 self.nodes[to_node].set_params(port_name, stream_result.get(from_port))
                             except Exception as e:
                                 # 从正在运行的节点数组中移除
+                                self.run_connection = None
                                 if stream_node_id in self.run_nodes:
                                     self.run_nodes.remove(stream_node_id)
                                 error_update = self._create_status_update('失败', f"设置节点 {to_node} 参数时发生错误: {str(e)}")
@@ -300,12 +309,14 @@ class WorkflowPipeline(BasePipeline):
                         else:
                             # 未知端口类型，返回错误
                             # 从正在运行的节点数组中移除
+                            self.run_connection = None
                             if stream_node_id in self.run_nodes:
                                 self.run_nodes.remove(stream_node_id)
                             error_update = self._create_status_update('失败', f"未知端口类型 {port_type}")
                             self.stream_results_queue.task_done()
                             yield error_update
                             return
+                    self.run_connection = None
             
             # 标记任务完成
             self.stream_results_queue.task_done()
@@ -399,6 +410,8 @@ class WorkflowPipeline(BasePipeline):
                     # 处理节点的输出连接
                     if current_node_id in self.connections:
                         for conn in self.connections[current_node_id]:
+                            self.run_connection = conn["id"]
+                            yield self._create_status_update('运行中')
                             from_port = conn["from_port"]
                             to_node = conn["to_node"]
                             to_port = conn["to_port"]
@@ -413,6 +426,8 @@ class WorkflowPipeline(BasePipeline):
                                     try:
                                         self.nodes[to_node].set_params(port_name, node_result.get(from_port))
                                     except Exception as e:
+                                        # 从正在运行的连接数组中移除
+                                        self.run_connection = None
                                         yield self._create_status_update('失败', f"设置节点 {to_node} 参数时发生错误: {str(e)}")
                                         return
                                 elif port_type == 'inputs':
@@ -420,8 +435,13 @@ class WorkflowPipeline(BasePipeline):
                                     self.execution_queue.append((to_node, node_result.get(from_port), port_name))
                                 else:
                                     # 未知端口类型，返回错误
+                                    # 从正在运行的连接数组中移除
+                                    self.run_connection = None
                                     yield self._create_status_update('失败', f"未知端口类型 {port_type}")
                                     return
+                                    # 从正在运行的连接数组中移除
+                        self.run_connection = None
+                        yield self._create_status_update('运行中')
                 else:
                     # 节点没有返回结果
                     self.ran_nodes = [node_id for node_id, count in self.execution_count.items() if count > 0]
@@ -476,7 +496,8 @@ class WorkflowPipeline(BasePipeline):
         # 重置执行相关的成员变量
         self.execution_queue = []
         self.ran_nodes = []
-        self.run_nodes = []
+        self.run_nodes = []  # 正在运行的节点ID数组
+        self.run_connection = None  # 正在运行的连接ID
         self.start_time = time.time()
         self.stream_results_queue = Queue(maxsize=1000)  # 流式结果队列，设置最大容量为1000
         self.active_stream_nodes = set()  # 活动流式节点集合

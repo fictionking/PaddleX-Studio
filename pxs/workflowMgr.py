@@ -36,7 +36,7 @@ current_workflow_id = None
 current_workflow_process = None
 
 # 用于进程间通信的队列
-workflow_status_queue = multiprocessing.Queue(maxsize=100)
+workflow_status_queue = multiprocessing.Queue(maxsize=1000)
 
 def workflow_process_func(workflow_id, workflow_definition, workflow_dir, status_queue, exit_event):
     """工作流执行进程函数

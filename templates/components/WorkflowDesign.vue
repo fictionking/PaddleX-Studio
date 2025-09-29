@@ -24,7 +24,8 @@
             </div>
             <div>
                 <span style="margin-right: 5px;font-size: 12px;">状态更新速度:</span>
-                <el-select v-model="push_interval" placeholder="状态更新速度" style="width: 120px;margin-right: 10px;" size="small">
+                <el-select v-model="push_interval" placeholder="状态更新速度" style="width: 120px;margin-right: 10px;"
+                    size="small">
                     <el-option label="慢(1s)" value="1" />
                     <el-option label="中(0.5s)" value="0.5" />
                     <el-option label="快(0.1s)" value="0.1" />
@@ -515,6 +516,18 @@ export default {
                                         }
                                     }
                                 }
+                                for (let edge of this.getEdges) {
+                                    if (edge.id === data.data.run_connection) {
+                                        edge.animated = true;
+                                        edge.style = {
+                                            stroke: '#008F8F !important'
+                                        };
+                                    }
+                                    else {
+                                        edge.animated = false;
+                                        edge.style = {};
+                                    }
+                                }
                             }
                         }
                     } catch (error) {
@@ -532,9 +545,6 @@ export default {
                 this.eventSource.onerror = (error) => {
                     console.error('SSE connection error:', error);
                     // 发生错误时关闭连接
-                    for (let node of this.getNodes) {
-                        node.data.runStatus = '';
-                    }
                     this.closeEventSource();
                 };
 
@@ -548,6 +558,13 @@ export default {
          * 关闭SSE连接
          */
         closeEventSource() {
+            for (let node of this.getNodes) {
+                node.data.runStatus = '';
+            }
+            for (let edge of this.getEdges) {
+                edge.animated = false;
+                edge.style = {};
+            }
             if (this.eventSource) {
                 this.eventSource.close();
                 this.eventSource = null;
@@ -566,7 +583,7 @@ export default {
 
     setup() {
         /** 初始化vue flow相关函数 */
-        const { getNodes, updateEdge, addEdges, addNodes, applyNodeChanges, toObject, fromObject } = useVueFlow()
+        const { getNodes, getEdges, updateEdge, addEdges, addNodes, applyNodeChanges, toObject, fromObject } = useVueFlow()
         const instance = getCurrentInstance()
 
         // 使用 provide 将 models 数据提供给所有子组件
@@ -578,6 +595,7 @@ export default {
             addEdges,
             addNodes,
             getNodes,
+            getEdges,
             applyNodeChanges,
             toObject,
             fromObject,

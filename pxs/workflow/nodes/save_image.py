@@ -21,7 +21,10 @@ class SaveImageNode(ComputeNode):
         """
         super().__init__(config, pipeline)
         # 初始化并存储配置参数
-        self.output_path = self.params.get("path", "output")
+        self.output_path = self.params.get("path", "")
+        if not self.output_path:
+            raise ValueError("保存图像节点输出路径不能为空")
+
         self.format_type = self.params.get("format", "png")
         # 是否在初始化时清空目标文件夹
         self.clear_dir = self.params.get("clear_dir", False)

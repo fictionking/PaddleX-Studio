@@ -15,29 +15,26 @@
     },
     "infer_params": {
         "model_params": {
-            "threshold": {
+            "flip": {
                 "config_able": true,
-                "type": "number",
-                "min": 0.0,
-                "max": 1.0,
-                "step": 0.01,
-                "value": null
+                "type": "bool",
+                "value": false
             }
         },
         "predict_params": {
-            "threshold": {
-                "config_able": true,
-                "type": "number",
-                "min": 0.0,
-                "max": 1.0,
-                "step": 0.01,
-                "value": null
-            }
         },
         "input_types": "img",
         "result_types": [
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "features"
+            ]
+        }
     },
     "dataset": {
         "types": [

@@ -23,7 +23,15 @@
         "input_types": "img",
         "result_types": [
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "features"
+            ]
+        }
     },
     "dataset": {
         "types": [

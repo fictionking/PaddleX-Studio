@@ -37,6 +37,7 @@ class LoadImageStreamNode(StreamNode):
                     if self._is_image_file(file_path):
                         image = self._read_image(file_path)
                         result = {
+                            "filename": file_name,
                             "images": [image],
                             "count": 1
                         }
@@ -45,6 +46,7 @@ class LoadImageStreamNode(StreamNode):
                 # 如果是文件，直接读取
                 image = self._read_image(image_path)
                 result = {
+                    "filename": os.path.basename(image_path),
                     "images": [image],
                     "count": 1
                 }
@@ -57,6 +59,7 @@ class LoadImageStreamNode(StreamNode):
                 if self._is_image_file(path):
                     image = self._read_image(path)
                     result = {
+                        "filename": os.path.basename(path),
                         "images": [image],
                         "count": 1
                     }
@@ -80,6 +83,8 @@ class LoadImageStreamNode(StreamNode):
             return result["images"]
         elif port == "count":
             return result["count"]
+        elif port == "filename":
+            return result["filename"]
         else:
             return result
 

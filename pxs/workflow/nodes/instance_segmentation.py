@@ -1,14 +1,14 @@
 from typing import Any, Optional
 from .model import BaseImageCVNode
-from pxs.workflow.common.utils import sub_image
+from pxs.workflow.common.utils import sub_image_with_mask
 
 
-class ObjectDetectionNode(BaseImageCVNode):
-    """目标检测节点"""
+class InstanceSegmentationNode(BaseImageCVNode):
+    """实例分割节点"""
 
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:
         """
-        处理目标检测模型输出结果
+        处理实例分割模型输出结果
 
         Args:
             result (Any): 模型原始输出
@@ -29,7 +29,8 @@ class ObjectDetectionNode(BaseImageCVNode):
                 match port:
                     case "images":
                         image=item["input_img"]
-                        ret.extend(sub_image(image,boxes))
+                        masks = item["masks"]
+                        ret.extend(sub_image_with_mask(image,boxes,masks))
                     case "boxes":
                         ret.append(boxes)
             if ret:
@@ -44,7 +45,8 @@ class ObjectDetectionNode(BaseImageCVNode):
             match port:
                 case "images":
                     image=result["input_img"]
-                    return sub_image(image,boxes)
+                    masks = result["masks"]
+                    return sub_image_with_mask(image,boxes,masks)
                 case "boxes":
                     return boxes
                 case "count":

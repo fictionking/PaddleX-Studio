@@ -25,6 +25,7 @@
     background-color: hsl(300, 90%, 60%) !important;
 }
 
+.io-port.features,
 .io-port.labels,
 .io-port.paths,
 .io-port.boxes,
@@ -34,6 +35,7 @@
 }
 
 /* 参数端口样式 */
+.io-port.filename,
 .io-port.value,
 .params-port {
     background-color: hsl(150, 90%, 60%) !important;

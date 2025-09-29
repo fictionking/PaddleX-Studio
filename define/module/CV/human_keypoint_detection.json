@@ -32,7 +32,15 @@
         "result_types": [
             "img",
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "keypoints"
+            ]
+        }
     },
     "dataset": {
         "types": [

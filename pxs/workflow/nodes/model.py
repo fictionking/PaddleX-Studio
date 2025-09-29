@@ -1,7 +1,8 @@
 from typing import Any, Dict, Optional
 from .base_node import ComputeNode, NodeResult
 import importlib
-from  paddlex import create_model
+from paddlex import create_model
+import numpy as np
 
 class BaseModelNode(ComputeNode):
     """模型节点基类"""
@@ -90,6 +91,35 @@ class BaseModelNode(ComputeNode):
         # 基础实现：直接返回原始结果
         # 子类应根据不同的port实现特定的处理逻辑
         return result
+
+
+
+class BaseImageCVNode(BaseModelNode):
+    """图像处理节点基类"""
+    def prepare_input(self,port:str,data: Any) -> Any:
+        """
+        准备图像处理模型输入数据    
+
+        Args:
+            port (str): 输入端口名称
+            data (Any): 输入数据
+
+        Returns:
+            Any: 处理后的输入数据
+        """
+        # 获取原始输入数据
+        assert port=="images",f"节点输入端口必须是images，当前端口是{port}"
+        # 检查输入数据是否为空
+        if not data:
+            raise ValueError("输入数据不能为空")
+        # 检查输入数据是否为图像
+        if not isinstance(data, (np.ndarray, list)):
+            raise TypeError(f"不支持的输入类型: {type(data)}")
+        # 如果是列表，检查列表中的所有元素是否都是np.ndarray
+        if isinstance(data, list) and not all(isinstance(item, np.ndarray) for item in data):
+            raise TypeError("列表中的元素必须都是np.ndarray类型")
+        return data
+
 
 def ModelNode(config:Dict, pipeline:Any)->BaseModelNode:
     """

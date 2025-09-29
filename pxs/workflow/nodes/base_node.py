@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Union, List
+from typing import Any, Dict, Optional
 import os
 from pxs.workflow.common.utils import parse_port
 

@@ -1,36 +1,9 @@
-from typing import Any, Dict, Optional
-from typing import Any, Dict, Optional
-from .model import BaseModelNode
-import cv2
+from typing import Any, Optional
+from .model import BaseImageCVNode
 import numpy as np
 
-class ImageClassificationNode(BaseModelNode):
+class ImageClassificationNode(BaseImageCVNode):
     """图像分类节点"""
-
-    def prepare_input(self,port:str,data: Any) -> Any:
-        """
-        准备图像分类模型输入数据
-
-        Args:
-            port (str): 输入端口名称
-            data (Any): 输入数据
-
-        Returns:
-            Any: 处理后的输入数据
-        """
-
-        # 获取原始输入数据
-        assert port=="images",f"图像分类节点输入端口必须是images，当前端口是{port}"
-        # 检查输入数据是否为空
-        if not data:
-            raise ValueError("输入数据不能为空")
-        # 检查输入数据是否为图像
-        if not isinstance(data, (np.ndarray, list)):
-            raise TypeError(f"不支持的输入类型: {type(data)}")
-        # 如果是列表，检查列表中的所有元素是否都是np.ndarray
-        if isinstance(data, list) and not all(isinstance(item, np.ndarray) for item in data):
-            raise TypeError("列表中的元素必须都是np.ndarray类型")
-        return data
 
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:
         """
@@ -43,20 +16,20 @@ class ImageClassificationNode(BaseModelNode):
         Returns:
             Any: 处理后的结果，类型取决于from_port参数
         """
-        assert port=="labels",f"图像分类节点输出端口必须是labels，当前端口是{port}"
+        assert port=="labels",f"节点输出端口必须是labels，当前端口是{port}"
         if isinstance(result,list):
             ret=[]
             for item in result:
                 obj={
-                    "class_ids": item["class_ids"].tolist(),  # 将ndarray转换为列表，保持维度不变
-                    "scores": item["scores"].tolist(),        # 将ndarray转换为列表，保持维度不变
+                    "class_ids": item["class_ids"].tolist() if isinstance(item["class_ids"],np.ndarray) else item["class_ids"],  # 将ndarray转换为列表，保持维度不变
+                    "scores": item["scores"].tolist() if isinstance(item["scores"],np.ndarray) else item["scores"],        # 将ndarray转换为列表，保持维度不变
                     "label_names": item["label_names"],
                 }
                 ret.append(obj)
             return ret
         else:
             return {
-                "class_ids": result["class_ids"].tolist(),
-                "scores": result["scores"].tolist(),
+                "class_ids": result["class_ids"].tolist() if isinstance(result["class_ids"],np.ndarray) else result["class_ids"],
+                "scores": result["scores"].tolist() if isinstance(result["scores"],np.ndarray) else result["scores"],
                 "label_names": result["label_names"],
             }

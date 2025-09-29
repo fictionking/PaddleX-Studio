@@ -29,7 +29,7 @@
                 "min": 0.0,
                 "max": 1.0,
                 "step": 0.01,
-                "value": null
+                "value": 0.5
             }
         },
         "predict_params": {
@@ -39,14 +39,24 @@
                 "min": 0.0,
                 "max": 1.0,
                 "step": 0.01,
-                "value": null
+                "value": 0.5
             }
         },
         "input_types": "img",
         "result_types": [
             "img",
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "images",
+                "boxes",
+                "count"
+            ]
+        }
     },
     "dataset": {
         "types": [
