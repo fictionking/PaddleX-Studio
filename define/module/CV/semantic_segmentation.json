@@ -94,7 +94,17 @@
         "result_types": [
             "img",
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "images",
+                "pred",
+                "count"
+            ]
+        }
     },
     "dataset": {
         "types": [
