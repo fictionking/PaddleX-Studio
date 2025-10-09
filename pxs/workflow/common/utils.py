@@ -188,9 +188,11 @@ def sub_image_with_pred(image, pred):
         if not isinstance(pred, np.ndarray):
             pred = np.array(pred)
         
-        # 检查pred和image的尺寸是否匹配
+        # 检查pred和image的尺寸是否匹配，如果不匹配则缩放pred到图像尺寸
         if pred.shape[:2] != image.shape[:2]:
-            raise ValueError(f"pred和image的尺寸不匹配: {pred.shape[:2]} vs {image.shape[:2]}")
+            # 使用cv2.resize将pred缩放到与image相同的尺寸
+            # 使用INTER_NEAREST插值方法以保持像素的类别值不变
+            pred = cv2.resize(pred, (image.shape[1], image.shape[0]), interpolation=cv2.INTER_NEAREST)
         
         # 获取所有不同的类别值
         unique_categories = np.unique(pred)

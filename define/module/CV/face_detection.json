@@ -53,8 +53,7 @@
             ],
             "outputs": [
                 "images",
-                "boxes",
-                "count"
+                "boxes"
             ]
         }
     },

@@ -101,8 +101,7 @@
             ],
             "outputs": [
                 "images",
-                "pred",
-                "count"
+                "pred"
             ]
         }
     },
