@@ -93,9 +93,6 @@
                         <el-tooltip content="备注" placement="top">
                             <el-button icon="Tickets" @click="addNode('note')" round />
                         </el-tooltip>
-                        <el-tooltip content="分组框" placement="top">
-                            <el-button icon="Files" round />
-                        </el-tooltip>
                     </el-button-group>
                     <el-menu mode="vertical" collapse class="node-menu">
                         <el-menu-item-group v-for="item in menuItems" :title="item.label">
@@ -304,6 +301,7 @@ export default {
                 this.addNode('model', {
                     name: model.name,
                     params: {
+                        is_local: true,
                         module_name: module.id,
                         model_name: model.pretrained,
                         model_dir: 'models\\' + model.id + '\\train\\best_model\\inference',

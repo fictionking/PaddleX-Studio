@@ -202,6 +202,7 @@ export function createNodeData(type, data = {}) {
             newNode.data = {
                 name: data.name,
                 params: {
+                    is_local: data.params.is_local,
                     module_name: data.params.module_name,
                     model_name: data.params.model_name,
                     model_dir: data.params.model_dir,

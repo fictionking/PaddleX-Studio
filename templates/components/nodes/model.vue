@@ -2,7 +2,8 @@
     <WorkflowNode v-bind="$props">
         <template #properties>
             <ValueProperty label="模型类别" :value="data.params.module_name" />
-            <el-popover placement="right" width="310" trigger="click" :show-after="500" popper-style="padding:5px;"
+            <ValueProperty v-if="data.params.is_local" label="模型名称" :value="data.params.model_name" />
+            <el-popover v-else placement="right" width="310" trigger="click" :show-after="500" popper-style="padding:5px;"
                 :persistent="false">
                 <template #reference>
                     <div style="display: flex;align-items: center;justify-content: space-between;">
