@@ -58,13 +58,14 @@ export function initializeNodeCounters(nodes) {
 export const nodeTypes = {
     model: markRaw(defineAsyncComponent(() => import(`/components/nodes/model.vue`))),
     save_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/save_image.vue`))),
-    load_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/load_image.vue`))),
-    load_image_stream: markRaw(defineAsyncComponent(() => import(`/components/nodes/load_image.vue`))),
+    load_image: markRaw(defineAsyncComponent(() => import(`/components/nodes/load_file.vue`))),
+    load_image_stream: markRaw(defineAsyncComponent(() => import(`/components/nodes/load_file.vue`))),
     number_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     text_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     bool_const: markRaw(defineAsyncComponent(() => import(`/components/nodes/const.vue`))),
     note: markRaw(defineAsyncComponent(() => import(`/components/nodes/base/NoteNode.vue`))),
     save_textfile: markRaw(defineAsyncComponent(() => import(`/components/nodes/save_textfile.vue`))),
+    feature_match: markRaw(defineAsyncComponent(() => import(`/components/nodes/feature_match.vue`))),
 };
 export const menuItems = [
     {
@@ -102,6 +103,15 @@ export const menuItems = [
             {
                 label: '布尔常量',
                 type: 'bool_const'
+            }
+        ]
+    },
+    {
+        label: '运算',
+        children: [
+            {
+                label: '特征匹配',
+                type: 'feature_match'
             }
         ]
     },
@@ -227,6 +237,16 @@ export function createNodeData(type, data = {}) {
                 clear_dir: false
             };
             newNode.data.color = '#21455F';
+            break;
+        case 'feature_match':
+            newNode.data.name = '特征匹配';
+            newNode.data.inputs = ['features'];
+            newNode.data.outputs = ['matches'];
+            newNode.data.params = {
+                metric: 'cosine',
+                threshold: 0.5
+            };
+            newNode.data.color = '#1F4D27';
             break;
     }
 

@@ -25,6 +25,7 @@
     background-color: hsl(300, 90%, 60%) !important;
 }
 
+.io-port.matches,
 .io-port.pred,
 .io-port.features,
 .io-port.labels,

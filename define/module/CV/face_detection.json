@@ -14,7 +14,8 @@
         },
         "PicoDet_LCNet_x2_5_face": {
             "description": "基于PicoDet_LCNet_x2_5的人脸检测模型",
-            "model_size": "28.9 M"
+            "model_size": "28.9 M",
+            "rate": 5
         },
         "PP-YOLOE_plus-S_face": {
             "description": "基于PP-YOLOE_plus-S的人脸检测模型",
@@ -66,6 +67,6 @@
             }
         ],
         "files": [],
-        "doc":"paddlex://docs/data_annotations/cv_modules/object_detection.md"
+        "doc": "paddlex://docs/data_annotations/cv_modules/object_detection.md"
     }
 }
