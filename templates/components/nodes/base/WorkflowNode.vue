@@ -55,6 +55,10 @@
                 <slot name="properties"></slot>
             </div>
         </div>
+        <Handle :type="'source'" :position="Position.Top" :id="`flow.before`"
+                            class="flow-handle" :style="{ 'background-color': data.color }" />
+        <Handle :type="'source'" :position="Position.Bottom" :id="`flow.next`"
+                            class="flow-handle" :style="{ 'background-color': data.color }" />
     </div>
 </template>
 
@@ -316,5 +320,11 @@ export default {
     100% {
         background-position: 40px 0px;
     }
+}
+.flow-handle {
+    width: 20px !important;
+    height: 5px !important;
+    border: 0px solid #000000 !important;
+    border-radius:4px  !important;
 }
 </style>

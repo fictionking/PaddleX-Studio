@@ -662,7 +662,7 @@ export default {
 }
 
 :deep(.vue-flow__handle) {
-    border: 2px solid rgba(0, 0, 0, 0.7) !important;
+    border: 2px solid rgba(0, 0, 0, 0.7) ;
 }
 
 /* 节点面板容器样式 */
