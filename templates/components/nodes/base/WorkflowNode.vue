@@ -2,8 +2,8 @@
     <div :class="['custom-node', 'node-color', type, { 'selected': selected }]"
         :style="{ 'background-color': data.color }">
         <div :class="['node-header', type, { 'stripe-bg': data.runStatus === 'running' }]">
-            <div v-if="!nameEditing || fixName" class="name-bar">
-                <span @click="!fixName && startEditName()" :style="!fixName && { cursor: 'text' }" class="node-name">
+            <div v-if="!nameEditing" class="name-bar">
+                <span @click="startEditName()" class="node-name">
                     {{ data.name }}
                 </span>
                 <el-icon v-if="data.runStatus === 'running'">
@@ -89,7 +89,6 @@ export default {
         return {
             nameEditing: false,
             editingName: '',
-            fixName: this.data.fixName || false,
             predefineColors: [
                 'hsl(0, 70%, 20%)',
                 'hsl(36, 70%, 20%)',
@@ -122,10 +121,6 @@ export default {
     methods: {
         /** 开始编辑节点名称 */
         startEditName() {
-            // 如果名称固定则不能编辑
-            if (this.fixName) {
-                return;
-            }
             this.nameEditing = true;
             this.editingName = this.data.name;
             // 在下一个 tick 中聚焦输入框
@@ -162,6 +157,7 @@ export default {
     box-shadow: var(--el-box-shadow);
     background-color: #333333;
 }
+
 .custom-node::before {
     content: "";
     position: absolute;
@@ -171,7 +167,9 @@ export default {
     bottom: 2px;
     border-radius: 4px;
     background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.1) 55%, rgba(255, 255, 255, 0.1) 60%, transparent);
+    pointer-events: none;
 }
+
 .custom-node.selected {
     border: 2px solid rgb(224, 154, 2);
 }
@@ -191,6 +189,10 @@ export default {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+}
+
+.node-name {
+    cursor: text;
 }
 
 .node-content {
@@ -273,13 +275,13 @@ export default {
 
 .stripe-bg {
     background-image: linear-gradient(45deg,
-        rgba(255, 255, 255, 0.3) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0.3) 75%,
-        transparent 75%,
-        transparent);
+            rgba(255, 255, 255, 0.3) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.3) 50%,
+            rgba(255, 255, 255, 0.3) 75%,
+            transparent 75%,
+            transparent);
     background-size: 40px 40px;
     /* 修复动画：添加浏览器前缀并确保动画属性完整 */
     -webkit-animation: stripe-scroll 1.5s linear infinite;
