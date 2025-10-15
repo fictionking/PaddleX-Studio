@@ -1,12 +1,12 @@
 from typing import Any, Optional
 from .model import BaseImageInputModelNode
 
-class TextRecognitionNode(BaseImageInputModelNode):
-    """文本识别节点"""
+class FormulaRecognitionNode(BaseImageInputModelNode):
+    """公式识别节点"""
 
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:
         """
-        处理文本识别模型输出结果
+        处理公式识别模型输出结果
 
         Args:
             result (Any): 模型原始输出
@@ -19,8 +19,8 @@ class TextRecognitionNode(BaseImageInputModelNode):
         if isinstance(result,list):
             ret=[]
             for item in result:
-                txt=item["rec_text"]
+                txt=item["rec_formula"]
                 ret.append(txt)
             return ret
         else:
-            return [result["rec_text"]]
+            return [result["rec_formula"]]

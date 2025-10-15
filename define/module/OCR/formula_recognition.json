@@ -40,7 +40,11 @@
         "result_types": [
             "img",
             "json"
-        ]
+        ],
+        "ports":{
+            "inputs":["images"],
+            "outputs":["text"]
+        }
     },
     "dataset": {
         "types": [
