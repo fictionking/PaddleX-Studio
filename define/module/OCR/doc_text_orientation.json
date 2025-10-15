@@ -16,7 +16,15 @@
         "result_types": [
             "img",
             "json"
-        ]
+        ],
+        "ports": {
+            "inputs": [
+                "images"
+            ],
+            "outputs": [
+                "labels"
+            ]
+        }
     },
     "dataset": {
         "types": [
