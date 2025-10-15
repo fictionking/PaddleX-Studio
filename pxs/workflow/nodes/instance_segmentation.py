@@ -1,9 +1,9 @@
 from typing import Any, Optional
-from .model import BaseImageCVNode
+from .model import BaseImageInputModelNode
 from pxs.workflow.common.utils import sub_image_with_mask
 
 
-class InstanceSegmentationNode(BaseImageCVNode):
+class InstanceSegmentationNode(BaseImageInputModelNode):
     """实例分割节点"""
 
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:

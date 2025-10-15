@@ -1,9 +1,9 @@
 from typing import Any, Optional
-from .model import BaseImageCVNode
+from .model import BaseImageInputModelNode
 from pxs.workflow.common.utils import sub_image
 
 
-class ObjectDetectionNode(BaseImageCVNode):
+class ObjectDetectionNode(BaseImageInputModelNode):
     """目标检测节点"""
 
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:

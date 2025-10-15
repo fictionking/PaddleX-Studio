@@ -94,7 +94,7 @@ class BaseModelNode(ComputeNode):
 
 
 
-class BaseImageCVNode(BaseModelNode):
+class BaseImageInputModelNode(BaseModelNode):
     """图像处理节点基类"""
     def prepare_input(self,port:str,data: Any) -> Any:
         """

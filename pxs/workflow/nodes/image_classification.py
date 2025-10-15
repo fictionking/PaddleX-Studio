@@ -1,8 +1,8 @@
 from typing import Any, Optional
-from .model import BaseImageCVNode
+from .model import BaseImageInputModelNode
 import numpy as np
 
-class ImageClassificationNode(BaseImageCVNode):
+class ImageClassificationNode(BaseImageInputModelNode):
     """图像分类节点"""
 
     def process_output(self, result: Any, port: Optional[str] = None) -> Any:
