@@ -612,18 +612,25 @@ def create_app(model_id):
     module = defineMgr.getModule(category_id,module_id)
     if not module:
         return jsonify({'message': '模块不存在'}),400
-    config=module['infer_params']
-    config['model_params']['model_name']={
-      "config_able": False,
-      "value": model_name
-    }
+    
     infer_path=os.path.join('models',model_id,'train','best_model','inference')
     if not os.path.exists(infer_path):
         return jsonify({'message': '模型推理目录不存在'}),400
-    config['model_params']['model_dir']={
-      "config_able": False,
-      "value": infer_path
+    config={
+        'model_name':{
+            "config_able": False,
+            "value": model_name
+        },
+        'model_dir':{
+            "config_able": False,
+            "value": infer_path
+        },
+        'model_params':module['infer_params']['model_params'],
+        'predict_params':module['infer_params']['predict_params'],
+        'input_types':module['infer_params']['input_types'],
+        'result_types':module['infer_params']['result_types'],
     }
+    
     succ,msg=new_applications(app_id,app_name,"module",[category_id,module['name'],model_name,model['name']],config)
     if succ:
         return jsonify({'message': '应用创建成功'}),200

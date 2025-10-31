@@ -325,7 +325,10 @@ def start_application(app_id):
 
                 # 提取推理所需参数
                 model_params = config.get('model_params', {})
-                params={}
+                params={
+                    "model_name":config['model_name']['value'],
+                    "model_dir":config['model_dir']['value'],
+                }
                 for key, value in model_params.items():
                     if 'value' in value:
                         v = value['value']

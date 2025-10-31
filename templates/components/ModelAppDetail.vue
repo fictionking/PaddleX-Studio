@@ -15,6 +15,13 @@
     <div class="layout-container">
       <div class="left-column">
         <div class="part-container">
+          <h3>模型信息</h3>
+          <div class="model-info">
+            <p><strong>模型名称:</strong> {{ appConfig.model_name.value }}</p>
+            <p><strong>模型目录:</strong> {{ appConfig.model_dir.value }}</p>
+          </div>
+        </div>
+        <div class="part-container">
           <h3>模型参数配置</h3>
           <el-form :model="modelFormData" label-width="auto" @submit.prevent="saveConfig">
             <el-form-item v-for="(param, key) in modelParams" :key="key" :label="key">
