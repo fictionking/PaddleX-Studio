@@ -367,7 +367,7 @@ export default {
                 case 'aborted':
                 case 'failed':
                     try {
-                        const response = await axios.get(`/models/${this.currentModel.id}/config/1`);
+                        const response = await axios.get(`/models/${this.currentModel.id}/config/0`);
                         if (response.data.code === 200) {
                             window.location.reload(); // 强制刷新当前页面
                         } else {

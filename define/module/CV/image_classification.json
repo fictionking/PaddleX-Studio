@@ -11,7 +11,8 @@
         },
         "CLIP_vit_large_patch14_224": {
             "description": "CLIP是一种基于视觉和语言相关联的图像分类模型，采用对比学习和预训练方法，实现无监督或弱监督的图像分类，尤其适用于大规模数据集。模型通过将图像和文本映射到同一表示空间，学习到通用特征，具有良好的泛化能力和解释性。其在较好的训练误差，在很多下游任务都有较好的表现。",
-            "model_size": "1040 MB"
+            "model_size": "1040 MB",
+            "rate": 4
         },
         "ConvNeXt_base_224": {
             "description": "ConvNeXt系列模型是Meta在2022年提出的基于CNN架构的模型。该系列模型是在ResNet的基础上，通过借鉴SwinTransformer的优点设计，包括训练策略和网络结构的优化思路，从而改进的纯CNN架构网络，探索了卷积神经网络的性能上限。ConvNeXt系列模型具备卷积神经网络的诸多优点，包括推理效率高和易于迁移到下游任务等。",
@@ -322,7 +323,8 @@
         },
         "SwinTransformer_large_patch4_window12_384": {
             "description": "SwinTransformer 是一种新的视觉 Transformer 网络，可以用作计算机视觉领域的通用骨干网路。SwinTransformer 由移动窗口（shifted windows）表示的层次 Transformer 结构组成。移动窗口将自注意计算限制在非重叠的局部窗口上，同时允许跨窗口连接，从而提高了网络性能。",
-            "model_size": "696.1 MB"
+            "model_size": "696.1 MB",
+            "rate": 5
         },
         "SwinTransformer_small_patch4_window7_224": {
             "description": "SwinTransformer 是一种新的视觉 Transformer 网络，可以用作计算机视觉领域的通用骨干网路。SwinTransformer 由移动窗口（shifted windows）表示的层次 Transformer 结构组成。移动窗口将自注意计算限制在非重叠的局部窗口上，同时允许跨窗口连接，从而提高了网络性能。",
@@ -341,7 +343,7 @@
                 "type": "number",
                 "min": 1,
                 "max": null,
-                "step":1,
+                "step": 1,
                 "value": 5
             }
         },
@@ -351,7 +353,7 @@
                 "type": "number",
                 "min": 1,
                 "max": null,
-                "step":1,
+                "step": 1,
                 "value": 5
             }
         },
