@@ -1668,8 +1668,8 @@ watch(() => props.modelValue, (newValue) => {
 /* 颜色选择器容器 */
 .color-picker-container {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 310px;
+    height: 310px;
     margin: 0 auto;
     overflow: hidden;
     --bg-color: var(--chromawheel-bg-color);
@@ -1687,10 +1687,17 @@ watch(() => props.modelValue, (newValue) => {
 
 /* 颜色选择器 */
 .color-selector {
-    z-index: 5;
+    /* 提高z-index确保元素在顶层 */
+    z-index: 100;
+    /* 使用绝对定位配合auto边距实现居中 */
     position: absolute;
-    left: 40px;
-    top: 40px;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 220px; /* 设置具体宽度 */
+    height: 220px; /* 设置具体高度 */
+    margin: auto;
     filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));
 }
 
@@ -1763,7 +1770,8 @@ watch(() => props.modelValue, (newValue) => {
 .lock-saturation {
     position: absolute;
     top: 30px;
-    left: 142px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1780,7 +1788,7 @@ watch(() => props.modelValue, (newValue) => {
 }
 
 .lock-saturation:hover {
-    transform: scale(1.5);
+    transform: translateX(-50%) scale(1.5);
 }
 
 /* 背景色切换区域 */

@@ -15,7 +15,7 @@
                 <el-icon v-if="data.runStatus === 'wait'">
                     <VideoPause />
                 </el-icon>
-                <el-popover v-if="!data.runStatus" placement="right" width="310" trigger="hover" :show-after="500"
+                <el-popover v-if="!data.runStatus" placement="right" width="320" trigger="hover" :show-after="500"
                     popper-style="padding:5px;" :persistent="false">
                     <template #reference>
                         <el-icon>
