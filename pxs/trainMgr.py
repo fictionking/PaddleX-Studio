@@ -635,3 +635,28 @@ def create_app(model_id):
     if succ:
         return jsonify({'message': '应用创建成功'}),200
     return jsonify({'message': msg}),400
+
+
+@train_bp.route('/models/<model_id>/download/log', methods=['GET'])
+def download_train_log(model_id):
+    """获取训练实时日志接口"""
+    # 检查模型是否存在
+    model = models[model_id]
+    if not model:
+        return jsonify({'code': 404, 'message': '未找到指定模型'}), 404
+    if model['status'] == 'queued':
+        return jsonify({'code': 200,'data': '训练任务已加入队列'})   
+    # 构建日志路径
+    output_dir = os.path.join(models_root, model_id, 'train')
+    train_log_path = os.path.join(output_dir, 'logs','train.log')
+    
+    try:
+        # 发送日志文件给客户端
+        return send_file(
+            train_log_path,
+            as_attachment=True,
+            download_name=f"{model_id}_train.log",
+            mimetype='text/plain'
+        )
+    except Exception as e:
+        return jsonify({'code': 500, 'message': f'模型打包失败: {str(e)}'}), 500

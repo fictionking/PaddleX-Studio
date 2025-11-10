@@ -87,6 +87,7 @@
                         ['finished', 'aborted', 'failed'].includes(currentModel.status) ? '重新训练' : '中断训练'
                 }}</el-button>
                 <el-button v-if="currentModel.status === 'finished'" type="primary" @click="download">下载模型</el-button>
+                <el-button v-if="['finished', 'aborted', 'failed'].includes(currentModel.status)" type="primary" @click="downloadLog">下载日志</el-button>
                 <el-button v-if="currentModel.status === 'finished'" type="primary"
                     @click="openCreateAppDialog">创建应用</el-button>
             </div>
@@ -383,6 +384,10 @@ export default {
         download() {
             // 调用API获取模型文件
             window.open(`/models/${this.currentModel.id}/download`, '_blank');
+        },
+        downloadLog() {
+            // 调用API获取模型文件
+            window.open(`/models/${this.currentModel.id}/download/log`, '_blank');
         },
         /**
         * 打开创建应用对话框并初始化数据
