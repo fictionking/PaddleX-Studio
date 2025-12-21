@@ -120,8 +120,13 @@ def system_usage():
 
 
 def create_directories():
-    # 检查并创建models、dataset、pretrained目录
-    required_dirs = [cfg.train_root, cfg.datasets_root, cfg.weights_root,cfg.app_root]
+    # 设置PADDLE_PDX_CACHE_HOME环境变量到项目的cache目录
+    cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
+    os.environ['PADDLE_PDX_CACHE_HOME'] = cache_dir
+    logging.info(f'设置环境变量 PADDLE_PDX_CACHE_HOME={cache_dir}')
+    
+    # 检查并创建models、dataset、pretrained目录以及cache目录
+    required_dirs = [cfg.train_root, cfg.datasets_root, cfg.weights_root, cfg.app_root, cache_dir]
     for dir_name in required_dirs:
         if not os.path.exists(dir_name):
             # 创建目录（允许已存在时不报错）
