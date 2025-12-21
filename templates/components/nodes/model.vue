@@ -104,7 +104,7 @@ export default {
     methods: {
         changeModel(key) {
             this.data.params.model_name = key
-            this.data.params.model_dir = 'weights\\' + key + '\\inference'
+            this.data.params.model_dir = ''
         }
     }
 };

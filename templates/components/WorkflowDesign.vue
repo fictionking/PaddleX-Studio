@@ -137,7 +137,7 @@
                                                     params: {
                                                         module_name: module.id,
                                                         model_name: key,
-                                                        model_dir: 'weights\\' + key + '\\inference',
+                                                        model_dir: '',
                                                         model_params: module.infer_params?.model_params || {},
                                                         infer_params: module.infer_params?.predict_params || {},
                                                     },
