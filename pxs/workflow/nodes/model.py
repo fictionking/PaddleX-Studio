@@ -29,10 +29,13 @@ class BaseModelNode(ComputeNode):
         if "module_name" in self.params and "model_name" in self.params:
             try:
                 # 构建模型配置
-                config = {
-                    "model_name": self.params.get("model_name"),
-                    "model_dir": self.params.get("model_dir")
-                }
+                # 初始创建config字典，包含model_name
+                config = {"model_name": self.params.get("model_name")}
+                
+                # 只有当model_dir不为空时才添加该属性
+                model_dir_value = self.params.get("model_dir")
+                if model_dir_value and model_dir_value.strip() != '':
+                    config["model_dir"] = model_dir_value
                 model_params = self.params.get("model_params", {})
 
                 # 创建模型实例
