@@ -10,6 +10,7 @@ PaddleX Studio是PaddleX的图形化界面工具，提供直观的可视化操�
 PaddleX Studio基于Python开发，采用前后端分离架构，前端使用Vue.js构建，后端通过Python Flask提供API服务，核心功能依赖PaddleX深度学习框架。
 
 #### 安装教程
+！！！python版本最好是3.11
 
 1. 首先用 **自定义模式(从源码安装)** 安装PaddleX深度学习框架，请参考官方文档：[PaddleX安装指南](https://paddlepaddle.github.io/PaddleX/latest/index.html)
 * 目前基于PaddleX 3.1版本开发,请切换PaddleX源码到3.1分支：`git checkout release/3.1`

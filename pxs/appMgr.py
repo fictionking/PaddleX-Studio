@@ -325,10 +325,13 @@ def start_application(app_id):
 
                 # 提取推理所需参数
                 model_params = config.get('model_params', {})
-                params={
-                    "model_name":config['model_name']['value'],
-                    "model_dir":config['model_dir']['value'],
-                }
+                # 初始创建params字典，包含model_name
+                params = {"model_name": config['model_name']['value']}
+                
+                # 只有当model_dir不为空时才添加该属性
+                model_dir_value = config['model_dir'].get('value', '')
+                if model_dir_value and model_dir_value.strip() != '':
+                    params["model_dir"] = model_dir_value
                 for key, value in model_params.items():
                     if 'value' in value:
                         v = value['value']

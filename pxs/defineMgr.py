@@ -11,7 +11,7 @@ import logging
 import shutil
 import yaml
 import mimetypes
-from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
+# from paddlex.inference.utils.official_models import OFFICIAL_MODELS as OFFICIAL_MODELS_INFER
 
 # 创建蓝图
 define_bp = Blueprint('define', __name__)
@@ -139,10 +139,10 @@ def parse_module_define(module):
                 with open(file_path, 'r', encoding='utf-8') as f:
                     model_yml = yaml.safe_load(f)
                     model_name=model_yml['Global']['model']
-                    pretrain_weight_path=model_yml.get('Train', {}).get('pretrain_weight_path', '')
+                    pretrain_weight_path=''#model_yml.get('Train', {}).get('pretrain_weight_path', '')
                     if not pretrain_weight_path:
                         pretrain_weight_path=''
-                    inference_weight_path=OFFICIAL_MODELS_INFER.get(model_name, '')
+                    inference_weight_path=''#OFFICIAL_MODELS_INFER.get(model_name, '')
                     model_define=module['models'].get(model_name, None)
                     if model_define:
                         if 'inference_model_url' not in model_define or model_define['inference_model_url']=='':
